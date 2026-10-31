@@ -11,7 +11,37 @@ interface Section {
 }
 
 const sectionPattern = /^\s*\[(.*)\]\s*$/;
-const propertyPattern = /^(\s*)([^\s=#;[][^=]*?)(\s*=\s*)(.*?)(\s+[#;].*)?$/;
+
+/** Parts of a `key = value # comment` line; the comment keeps its leading whitespace. */
+type Property = [indent: string, name: string, separator: string, value: string, comment: string | undefined];
+
+// Hand-written scan instead of one regular expression: whitespace-heavy lines made the pattern backtrack heavily.
+function parseProperty(line: string): Property | null {
+  const start = line.length - line.trimStart().length;
+  const equals = line.indexOf('=', start);
+  if (equals < 0 || start >= line.length || '=#;['.includes(line[start])) {
+    return null;
+  }
+  const name = line.slice(start, equals).trimEnd();
+  const valueStart = equals + 1 + (line.length - equals - 1 - line.slice(equals + 1).trimStart().length);
+  let end = line.length;
+  for (let i = valueStart + 1; i < line.length; i++) {
+    if ((line[i] === '#' || line[i] === ';') && /\s/.test(line[i - 1])) {
+      end = i;
+      while (end > valueStart && /\s/.test(line[end - 1])) {
+        end--;
+      }
+      break;
+    }
+  }
+  return [
+    line.slice(0, start),
+    name,
+    line.slice(start + name.length, valueStart),
+    line.slice(valueStart, end),
+    end < line.length ? line.slice(end) : undefined,
+  ];
+}
 
 function splitLines(text: string): { lines: string[]; eol: string } {
   const eol = text.includes('\r\n') ? '\r\n' : '\n';
@@ -46,8 +76,8 @@ export function appliesToCSharp(glob: string): boolean {
 
 function findProperty(lines: string[], section: Section, key: string): number {
   for (let index = section.header + 1; index < section.end; index++) {
-    const match = propertyPattern.exec(lines[index]);
-    if (match && match[2].toLowerCase() === key.toLowerCase()) {
+    const match = parseProperty(lines[index]);
+    if (match && match[1].toLowerCase() === key.toLowerCase()) {
       return index;
     }
   }
@@ -65,7 +95,7 @@ export function readValues(text: string, keys: string[]): Map<string, string> {
     for (const key of keys) {
       const index = findProperty(lines, section, key);
       if (index >= 0) {
-        values.set(key, propertyPattern.exec(lines[index])![4]);
+        values.set(key, parseProperty(lines[index])![3]);
       }
     }
   }
@@ -84,7 +114,7 @@ export function setValue(text: string, key: string, value: string): string {
   for (const section of [...csharpSections].reverse()) {
     const index = findProperty(lines, section, key);
     if (index >= 0) {
-      const [, indent, name, separator, , comment] = propertyPattern.exec(lines[index])!;
+      const [indent, name, separator, , comment] = parseProperty(lines[index])!;
       lines[index] = `${indent}${name}${separator}${value}${comment ?? ''}`;
       return lines.join(eol);
     }

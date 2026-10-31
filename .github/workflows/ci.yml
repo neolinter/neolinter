@@ -22,11 +22,12 @@ jobs:
       - name: Build
         run: dotnet build Neolinter.slnx -c Release
 
-      - name: Test
-        run: dotnet test Neolinter.slnx -c Release --no-build
-
+      # Before the tests: the dead-code tests analyse the restored playground.
       - name: Build playground
         run: dotnet build samples/Playground -c Release
+
+      - name: Test
+        run: dotnet test Neolinter.slnx -c Release --no-build
 
       - name: Pack analyzers package and dotnet tool
         run: dotnet pack Neolinter.slnx -c Release --no-build -o artifacts
@@ -52,7 +53,7 @@ jobs:
           cache: npm
           cache-dependency-path: src/ide/vscode/package-lock.json
 
-      - run: npm ci
+      - run: npm ci --ignore-scripts
 
       - name: Test
         run: npm test

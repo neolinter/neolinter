@@ -121,6 +121,8 @@
   }
 
   window.addEventListener('message', (event) => {
+    // Only the extension host (a vscode-webview origin) may drive the page.
+    if (!event.origin.startsWith('vscode-webview://')) return;
     if (event.data.type === 'state') render(event.data);
   });
   vscode.postMessage({ type: 'ready' });

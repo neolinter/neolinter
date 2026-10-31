@@ -60,3 +60,9 @@ test('is lossless for everything else', () => {
   const updated = setValue(text, key, 'warning');
   assert.equal(updated.replace('warning', 'suggestion'), text);
 });
+
+test('handles odd spacing and whitespace-heavy lines quickly', () => {
+  const text = `[*.cs]\n\t${key}\t=\t\twarning   \t; note\n${' '.repeat(50000)}x${' '.repeat(50000)}\n`;
+  assert.equal(readValues(text, [key]).get(key), 'warning');
+  assert.equal(setValue(text, key, 'error'), text.replace('\t\twarning', '\t\terror'));
+});
