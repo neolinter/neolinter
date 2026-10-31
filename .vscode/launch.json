@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Neolinter extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/src/ide/vscode"],
+      "outFiles": ["${workspaceFolder}/src/ide/vscode/out/**/*.js"],
+      "preLaunchTask": "neolinter: compile extension"
+    }
+  ]
+}
