@@ -1,0 +1,20 @@
+# .NET
+bin/
+obj/
+artifacts/
+TestResults/
+*.user
+.vs/
+
+# Node / VS Code extension
+node_modules/
+out/
+*.vsix
+src/ide/vscode/resources/rules.json
+src/ide/vscode/LICENSE
+
+# Editors
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea/

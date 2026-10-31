@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/dotnet/Neolinter.Analyzers/Neolinter.Analyzers.csproj" />
+    <Project Path="src/dotnet/Neolinter.CodeFixes/Neolinter.CodeFixes.csproj" />
+    <Project Path="src/dotnet/Neolinter.Package/Neolinter.Package.csproj" />
+    <Project Path="src/dotnet/Neolinter.Cli.Core/Neolinter.Cli.Core.csproj" />
+    <Project Path="src/dotnet/Neolinter.Cli/Neolinter.Cli.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/dotnet/Neolinter.Tests/Neolinter.Tests.csproj" />
+    <Project Path="tests/dotnet/Neolinter.Cli.Tests/Neolinter.Cli.Tests.csproj" />
+  </Folder>
+</Solution>

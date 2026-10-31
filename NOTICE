@@ -1,0 +1,13 @@
+Neolinter
+Copyright (c) 2026 The Neolinter Authors
+
+This product is licensed under the MIT License (see LICENSE).
+
+Neolinter is developed as a clean-room project: it contains no code, rule
+identifiers, rule texts or documentation taken from third-party code analysis
+products. See docs/CLEAN_ROOM.md.
+
+Third-party components bundled in distributed packages, if any, are listed
+below with their licenses.
+
+(none)
