@@ -36,7 +36,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-00 | Merge the initial skeleton (PR #1) | — | in review |
 | WP-01 | Repository hygiene | WP-00 | todo |
 | WP-02 | Release and publishing | WP-00 | todo |
-| WP-03 | CLI: dead code (NLD0001) | WP-00 | todo |
+| WP-03 | CLI: dead code (NLD0001) | WP-00 | done |
 | WP-04 | CLI: duplicated code (NLC0001) | WP-00 | todo |
 | WP-05 | CLI: output and CI options | WP-03 or WP-04 | todo |
 | WP-06 | VS Code: "Solution analysis" tab | WP-03 or WP-04 | todo |
@@ -57,6 +57,13 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
 
 - **0.1 skeleton** (PR #1): monorepo, NL0001 analyzer + code fix + fix all, VS Code settings extension,
   CLI skeleton (solution loading, `neolinter.json`, SARIF export), CI, playground, docs.
+- **WP-03 dead code**: `neolinter analyze dead-code` (NLD0001), exclusions documented in
+  `docs/architecture.md`, one test per exclusion, playground `neolinter.json`. Decisions: members of every
+  accessibility are reported, private included; `excludePaths`/`testProjects` globs use
+  `Microsoft.Extensions.FileSystemGlobbing`; an unused type is reported once instead of member by member;
+  "packable library" is read from the MSBuild property `IsPackable`; progress messages go to stderr so stdout
+  carries only SARIF. Also fixed the open SonarCloud issues (webview message origin, `npm ci --ignore-scripts`,
+  backtracking-prone `.editorconfig` property regex).
 
 ---
 
@@ -93,7 +100,7 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   `neolinter` creation and PAT; pre-release naming (`0.1.0-preview.1`?).
 - **Done when**: a test tag publishes all three artifacts (or a dry run proves it).
 
-## WP-03 — CLI: dead code (NLD0001)
+## WP-03 — CLI: dead code (NLD0001) — done
 
 - **Goal**: implement `neolinter analyze dead-code` (rule `NLD0001`, see `rules/NLD0001.yaml`).
 - **Design** (from `docs/architecture.md`): load with `SolutionLoader`; for each public/internal method,

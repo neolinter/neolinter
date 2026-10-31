@@ -60,18 +60,16 @@ public class CommandTests
         Assert.Contains(NeolinterConfig.FileName, error);
     }
 
-    [Theory]
-    [InlineData("dead-code")]
-    [InlineData("duplicates")]
-    public async Task LoadsTheProjectThenReportsNotImplemented(string analysis)
+    [Fact]
+    public async Task DuplicatesLoadsTheProjectThenReportsNotImplemented()
     {
         using var directory = new TestPaths.TempDirectory();
         var project = WriteProject(directory);
 
-        var (exitCode, output, error) = await RunAsync(directory.Path, "analyze", analysis, project);
+        var (exitCode, _, error) = await RunAsync(directory.Path, "analyze", "duplicates", project);
 
         Assert.Equal(ExitCodes.Error, exitCode);
-        Assert.Contains("Loaded 1 project(s)", output);
+        Assert.Contains("Loaded 1 project(s)", error);
         Assert.Contains("not implemented", error);
     }
 
