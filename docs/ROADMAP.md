@@ -38,7 +38,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-02 | Release and publishing | WP-00 | todo |
 | WP-03 | CLI: dead code (NLD0001) | WP-00 | done |
 | WP-04 | CLI: duplicated code (NLC0001) | WP-00 | todo |
-| WP-05 | CLI: output and CI options | WP-03 or WP-04 | todo |
+| WP-05 | CLI: output and CI options | WP-03 or WP-04 | done |
 | WP-06 | VS Code: "Solution analysis" tab | WP-03 or WP-04 | todo |
 | WP-07 | Shared `.editorconfig` fixtures | WP-00 | todo |
 | WP-08 | Visual Studio 2022+ settings extension | WP-07 | todo |
@@ -64,6 +64,12 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   "packable library" is read from the MSBuild property `IsPackable`; progress messages go to stderr so stdout
   carries only SARIF. Also fixed the open SonarCloud issues (webview message origin, `npm ci --ignore-scripts`,
   backtracking-prone `.editorconfig` property regex).
+- **WP-05 output and CI options**: `--fail-on <note|warning|error>`, `--format sarif|text`,
+  `--baseline <sarif>`, GitHub code scanning upload example in the README. Decisions: `--fail-on` defaults to
+  `warning` (same behaviour as before for current rules); baseline matching uses SARIF
+  `partialFingerprints["neolinter/v1"]` = SHA-256 of rule id, relative path, normalized start-line text and
+  occurrence index (no line number, no message); baselined findings are dropped from the report and the exit
+  code; text layout is `path(line,column): level RULEID: message` with indented `related:` lines.
 
 ---
 
@@ -135,13 +141,9 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   addition to statement count to skip trivial statements?
 - **Done when**: command reports the playground group, tests above pass, docs updated.
 
-## WP-05 — CLI: output and CI options
+## WP-05 — CLI: output and CI options — done
 
-- **Scope**: `--fail-on <note|warning|error>` (exit code 1 only at or above that level), a human-readable
-  `--format text` next to SARIF, `--baseline <sarif>` to report only new findings, GitHub code scanning upload
-  example in the docs.
-- **Open decisions (ask)**: default of `--fail-on`; baseline matching strategy (fingerprints in SARIF
-  `partialFingerprints`).
+See "Done" above.
 
 ## WP-06 — VS Code: "Solution analysis" tab
 

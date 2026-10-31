@@ -67,9 +67,37 @@ neolinter analyze dead-code MySolution.slnx --output dead-code.sarif
 neolinter analyze duplicates MySolution.slnx
 ```
 
-Exit codes: `0` nothing found, `1` findings reported, `2` error. Restore the solution first (`dotnet restore`).
+Exit codes: `0` nothing to report, `1` findings reported, `2` error. Restore the solution first (`dotnet restore`).
 `dead-code` is available; `duplicates` still stops with "not implemented" (exit code 2) after loading the
 solution.
+
+Options of every analysis:
+
+| Option | Effect |
+|---|---|
+| `--output <file>` | Write the report to a file instead of the standard output. |
+| `--format sarif\|text` | `sarif` (default) or one line per finding: `path(line,column): level RULEID: message`. |
+| `--fail-on note\|warning\|error` | Exit code `1` only for findings at or above this level (default `warning`). Lower findings are still reported. |
+| `--baseline <file.sarif>` | Skip findings already present in a previous SARIF log (matched by `partialFingerprints`), in the report and in the exit code. |
+
+Before `--fail-on` existed, any finding gave exit code `1`; the default `warning` keeps that behaviour for every
+current rule, which all report at `warning`.
+
+### Continuous integration (GitHub code scanning)
+
+```yaml
+- run: dotnet restore
+- run: dotnet tool install --global Neolinter.Cli
+- run: neolinter analyze dead-code MySolution.slnx --output dead-code.sarif
+  continue-on-error: true   # exit code 1 = findings, still upload them
+- uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: dead-code.sarif
+    category: neolinter-dead-code
+```
+
+To fail a pull request only on new findings, keep the SARIF of the main branch (artifact or cache) and pass it with
+`--baseline main.sarif`.
 
 ## Rules
 

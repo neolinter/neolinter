@@ -68,8 +68,18 @@ These are frozen from 0.1 on; changing them is a breaking change.
 | Code | Meaning |
 |---|---|
 | 0 | Analysis ran, nothing reported |
-| 1 | Analysis ran, at least one finding |
+| 1 | Analysis ran, at least one finding at or above `--fail-on` (default `warning`) that is not in the `--baseline` |
 | 2 | Error: bad arguments, invalid configuration, load failure (including an unrestored project), analysis not implemented |
+
+### Output options
+
+- `--format sarif` (default) or `text`; `--output` writes to a file; progress and the summary go to stderr.
+- `--fail-on <note|warning|error>` only moves the exit code threshold; every non-baselined finding is still
+  reported.
+- Every SARIF result carries `partialFingerprints["neolinter/v1"]`: SHA-256 of rule id, path relative to the
+  solution directory (`/` separators), whitespace-normalized text of the start line and the occurrence index of
+  identical findings in that file. Line numbers and messages are not part of it, so edits above a finding do not
+  make it new. `--baseline` ignores any finding whose fingerprint is in the given SARIF log.
 
 ### Rule ids
 
