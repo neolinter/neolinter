@@ -80,6 +80,7 @@ Exit codes: `0` nothing found, `1` findings reported, `2` error. Both analyses c
 
 ## Documentation
 
+- [Roadmap](docs/ROADMAP.md): work packages and rules for picking them up
 - [Architecture](docs/architecture.md), including the `neolinter.json` format
 - [Contributing](docs/CONTRIBUTING.md)
 - [Adding a rule](docs/ADDING_A_RULE.md)
