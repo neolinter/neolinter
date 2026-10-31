@@ -5,7 +5,10 @@
       "name": "Run Neolinter extension",
       "type": "extensionHost",
       "request": "launch",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}/src/ide/vscode"],
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/src/ide/vscode",
+        "${workspaceFolder}/samples/Playground"
+      ],
       "outFiles": ["${workspaceFolder}/src/ide/vscode/out/**/*.js"],
       "preLaunchTask": "neolinter: compile extension"
     }

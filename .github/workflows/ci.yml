@@ -25,6 +25,9 @@ jobs:
       - name: Test
         run: dotnet test Neolinter.slnx -c Release --no-build
 
+      - name: Build playground
+        run: dotnet build samples/Playground -c Release
+
       - name: Pack analyzers package and dotnet tool
         run: dotnet pack Neolinter.slnx -c Release --no-build -o artifacts
 

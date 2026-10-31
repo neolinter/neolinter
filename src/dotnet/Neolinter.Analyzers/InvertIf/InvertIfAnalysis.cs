@@ -88,8 +88,8 @@ internal static class InvertIfAnalysis
                 : null;
         }
 
-        // Non-void methods: the trailing return is duplicated into the inverted if,
-        // so only expressions that can be evaluated twice without side effects are accepted.
+        // Non-void methods: the trailing return is copied into the inverted if. Each path still evaluates it
+        // once, so behaviour is unchanged; simple expressions only keep the duplicated code trivial.
         if (followingCount == 1
             && block.Statements[index + 1] is ReturnStatementSyntax returnStatement
             && IsFunctionBody(block)

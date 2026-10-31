@@ -30,6 +30,21 @@ npm run package
 
 To debug the extension, open the repository in VS Code and press F5 ("Run Neolinter extension").
 
+## Trying the rules live
+
+`samples/Playground` is a small project that loads the analyzers and code fixes straight from their build
+output, with its own `.editorconfig`. It is not part of `Neolinter.slnx`.
+
+- **In an IDE**: open `samples/Playground` (or `Playground.slnx`) in VS Code, Visual Studio or Rider and build
+  once. Methods named `Reported*` show the diagnostic and its fix; `NotReported*` must stay silent. After
+  changing an analyzer, rebuild the playground and restart the C# language server to load the new version.
+- **On the command line**: `dotnet build samples/Playground` lists the diagnostics as warnings.
+- **Settings screen**: F5 from the repository opens the playground in the extension host; "Neolinter: Open
+  Settings" then edits `samples/Playground/.editorconfig`.
+- **CLI**: `dotnet run --project src/dotnet/Neolinter.Cli -- analyze dead-code samples/Playground`.
+
+When you add a rule, add `Reported*` and `NotReported*` examples to the playground too. CI builds it.
+
 ## Pull requests
 
 - One topic per pull request, with tests.

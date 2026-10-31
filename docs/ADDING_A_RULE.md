@@ -57,4 +57,5 @@ In `tests/dotnet/Neolinter.Tests/<RuleName>/`, with `Microsoft.CodeAnalysis.Test
 
 ## 5. Document
 
-Add the rule to the table in `README.md`. Settings screens pick it up from `/rules` automatically.
+Add the rule to the table in `README.md` and examples to `samples/Playground` (`Reported*` / `NotReported*`).
+Settings screens pick it up from `/rules` automatically.
