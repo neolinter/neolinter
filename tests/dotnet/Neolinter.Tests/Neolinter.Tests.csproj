@@ -11,7 +11,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="1.1.4" />
     <!-- Same Roslyn as the analyzers, so tests catch use of newer APIs. -->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
     <!-- Test-only: checks /rules/*.yaml against the diagnostic descriptors. -->
     <PackageReference Include="YamlDotNet" Version="18.1.0" />
     <!-- Pins a patched version of a vulnerable transitive dependency of the Roslyn testing library. -->
