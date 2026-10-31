@@ -1,0 +1,44 @@
+{
+  "name": "neolinter",
+  "displayName": "Neolinter",
+  "description": "Settings screen for Neolinter rules, stored in the workspace .editorconfig.",
+  "version": "0.1.0",
+  "publisher": "neolinter",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neolinter/neolinter"
+  },
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Linters"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "neolinter.openSettings",
+        "title": "Open Settings",
+        "category": "Neolinter"
+      }
+    ]
+  },
+  "scripts": {
+    "embed-rules": "node scripts/embed-rules.mjs",
+    "compile": "npm run embed-rules && tsc -p .",
+    "watch": "tsc -watch -p .",
+    "test": "npm run compile && node --test \"out/test/**/*.test.js\"",
+    "package": "node -e \"require('fs').copyFileSync('../../../LICENSE', 'LICENSE')\" && vsce package",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "1.95.0",
+    "@vscode/vsce": "^4.1.0",
+    "typescript": "^7.0.2",
+    "yaml": "^2.9.1"
+  }
+}

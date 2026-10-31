@@ -1,0 +1,19 @@
+id: NL0001
+title: Invert 'if' to reduce nesting
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  When the rest of a block sits inside an 'if' and the other path only leaves the block,
+  inverting the condition and leaving first keeps the main code one level less indented.
+  Reported for an 'if' without 'else' that ends a method body (exit with 'return') or a loop
+  body (exit with 'continue'), for an 'if' followed only by a simple 'return' (the return is
+  repeated), and for an 'if'/'else' whose 'else' only contains return, continue, break or throw.
+options:
+  - key: nl0001.min_statements
+    type: integer
+    default: 3
+    minimum: 1
+    title: Minimum statements
+    description: Smallest number of statements inside an 'if' without 'else' for the rule to report it.

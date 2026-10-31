@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="1.1.4" />
+    <!-- Same Roslyn as the analyzers, so tests catch use of newer APIs. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
+    <!-- Test-only: checks /rules/*.yaml against the diagnostic descriptors. -->
+    <PackageReference Include="YamlDotNet" Version="18.1.0" />
+    <!-- Pins a patched version of a vulnerable transitive dependency of the Roslyn testing library. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\dotnet\Neolinter.Analyzers\Neolinter.Analyzers.csproj" />
+    <ProjectReference Include="..\..\..\src\dotnet\Neolinter.CodeFixes\Neolinter.CodeFixes.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

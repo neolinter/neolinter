@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dotnet:
+    name: .NET build, test and pack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build Neolinter.slnx -c Release
+
+      - name: Test
+        run: dotnet test Neolinter.slnx -c Release --no-build
+
+      - name: Build playground
+        run: dotnet build samples/Playground -c Release
+
+      - name: Pack analyzers package and dotnet tool
+        run: dotnet pack Neolinter.slnx -c Release --no-build -o artifacts
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/*.nupkg
+          if-no-files-found: error
+
+  vscode:
+    name: VS Code extension
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/ide/vscode
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/ide/vscode/package-lock.json
+
+      - run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Package vsix
+        run: npm run package
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension
+          path: src/ide/vscode/*.vsix
+          if-no-files-found: error

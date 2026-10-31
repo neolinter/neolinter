@@ -1,0 +1,13 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "neolinter: compile extension",
+      "type": "npm",
+      "script": "compile",
+      "path": "src/ide/vscode",
+      "problemMatcher": "$tsc",
+      "group": "build"
+    }
+  ]
+}
