@@ -67,15 +67,16 @@ neolinter analyze dead-code MySolution.slnx --output dead-code.sarif
 neolinter analyze duplicates MySolution.slnx
 ```
 
-Exit codes: `0` nothing found, `1` findings reported, `2` error. Both analyses currently stop with
-"not implemented" (exit code 2) after loading the solution.
+Exit codes: `0` nothing found, `1` findings reported, `2` error. Restore the solution first (`dotnet restore`).
+`dead-code` is available; `duplicates` still stops with "not implemented" (exit code 2) after loading the
+solution.
 
 ## Rules
 
 | Id | Title | Kind | Default |
 |---|---|---|---|
 | [NL0001](rules/NL0001.yaml) | Invert 'if' to reduce nesting | real-time, code fix | suggestion |
-| [NLD0001](rules/NLD0001.yaml) | Unused member | command line (planned) | warning |
+| [NLD0001](rules/NLD0001.yaml) | Unused member | command line | warning |
 | [NLC0001](rules/NLC0001.yaml) | Duplicated code | command line (planned) | warning |
 
 ## Documentation

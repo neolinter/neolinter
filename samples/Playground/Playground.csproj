@@ -3,6 +3,8 @@
   <!-- Sandbox to try the rules live in an IDE. Not part of Neolinter.slnx. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- An executable, so the dead-code analysis has an entry point to start from. -->
+    <OutputType>Exe</OutputType>
     <!-- The point is to see Neolinter diagnostics, not to fail on them. -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>

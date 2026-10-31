@@ -5,7 +5,7 @@ type: cli
 category: DeadCode
 defaultSeverity: warning
 description: >-
-  A public or internal member that nothing in the solution references. Reported by
+  A type or member, of any accessibility, that nothing in the solution references. Reported by
   "neolinter analyze dead-code". Members used through reflection, dependency injection,
   serialization or naming conventions can be excluded in neolinter.json.
 options: []

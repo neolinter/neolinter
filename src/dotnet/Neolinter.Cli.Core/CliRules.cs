@@ -6,7 +6,7 @@ public static class CliRules
     public static readonly RuleDescriptor UnusedMember = new(
         "NLD0001",
         "UnusedMember",
-        "This member is not referenced anywhere in the solution.",
+        "This type or member is not referenced anywhere in the solution.",
         FindingLevel.Warning);
 
     public static readonly RuleDescriptor DuplicatedCode = new(

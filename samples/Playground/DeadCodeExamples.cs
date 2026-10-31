@@ -1,15 +1,55 @@
-// Targets for "neolinter analyze dead-code" (not implemented yet).
+// NLD0001: unused member, reported by "neolinter analyze dead-code samples/Playground".
+// Members named Reported* get a finding; NotReported* must stay silent.
+// neolinter.json excludes NL0001Examples.cs, whose methods exist only to show NL0001.
+using System;
+using System.Runtime.CompilerServices;
+
 namespace Playground;
 
 public class DeadCodeExamples
 {
-    // Referenced from Used(): not dead.
-    internal static int Helper() => 42;
+    // --- Reported --------------------------------------------------------
 
-    public int Used() => Helper();
-
-    // Referenced nowhere in the solution: expected NLD0001 once the analysis exists.
-    internal static void NeverCalled()
+    internal static void ReportedNeverCalled()
     {
+    }
+
+    private int reportedUnusedField;
+
+    // --- Not reported ----------------------------------------------------
+
+    internal static int NotReportedHelper() => 42;
+
+    public int NotReportedUsedByProgram() => NotReportedHelper() + NotReportedRecursive(1);
+
+    // A call from inside its own body does not count, but the call above does.
+    private static int NotReportedRecursive(int depth) => depth == 0 ? 0 : NotReportedRecursive(depth - 1);
+
+    public override string ToString() => nameof(NotReportedOnlyInNameof);
+
+    private static void NotReportedOnlyInNameof()
+    {
+    }
+
+    [ModuleInitializer]
+    internal static void NotReportedModuleInitializer()
+    {
+    }
+}
+
+internal sealed class NotReportedDisposable : IDisposable
+{
+    // Interface implementations are used through the interface.
+    public void Dispose()
+    {
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        using var disposable = new NotReportedDisposable();
+        Console.WriteLine(new DeadCodeExamples().NotReportedUsedByProgram());
     }
 }

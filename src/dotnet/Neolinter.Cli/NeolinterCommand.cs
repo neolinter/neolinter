@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.Reflection;
+using Microsoft.CodeAnalysis;
 using Neolinter.Cli.Core;
 
 namespace Neolinter.Cli;
@@ -34,8 +35,14 @@ internal static class NeolinterCommand
     private static RootCommand Create(TextWriter output, TextWriter error, string currentDirectory)
     {
         var analyze = new Command("analyze", "Run a solution-wide analysis on demand and report the results as SARIF 2.1.0.");
-        analyze.Subcommands.Add(CreateAnalysis("dead-code", "Report public and internal members that nothing in the solution references.", output, error, currentDirectory));
-        analyze.Subcommands.Add(CreateAnalysis("duplicates", "Report sequences of statements repeated across the solution.", output, error, currentDirectory));
+        analyze.Subcommands.Add(CreateAnalysis(
+            "dead-code",
+            "Report types and members that nothing in the solution references.",
+            (solution, config, root, ct) => DeadCodeAnalyzer.AnalyzeAsync(solution, config.DeadCode, root, ct),
+            output,
+            error,
+            currentDirectory));
+        analyze.Subcommands.Add(CreateAnalysis("duplicates", "Report sequences of statements repeated across the solution.", null, output, error, currentDirectory));
 
         return new RootCommand("Neolinter command line: solution-wide analyses that are too expensive to run while typing.")
         {
@@ -43,7 +50,10 @@ internal static class NeolinterCommand
         };
     }
 
-    private static Command CreateAnalysis(string name, string description, TextWriter output, TextWriter error, string currentDirectory)
+    private delegate Task<IReadOnlyList<Finding>> Analysis(Solution solution, NeolinterConfig config, string rootDirectory, CancellationToken cancellationToken);
+
+    /// <param name="analysis">Null while the analysis is not implemented.</param>
+    private static Command CreateAnalysis(string name, string description, Analysis? analysis, TextWriter output, TextWriter error, string currentDirectory)
     {
         var path = new Argument<string?>("path")
         {
@@ -73,7 +83,7 @@ internal static class NeolinterCommand
                     throw new FileNotFoundException($"Configuration file '{configPath}' does not exist.");
                 }
 
-                _ = NeolinterConfig.Load(configPath);
+                var neolinterConfig = NeolinterConfig.Load(configPath);
 
                 using var loaded = await SolutionLoader.LoadAsync(solutionPath, cancellationToken).ConfigureAwait(false);
                 foreach (var warning in loaded.Warnings)
@@ -81,9 +91,29 @@ internal static class NeolinterCommand
                     await error.WriteLineAsync($"warning: {warning}").ConfigureAwait(false);
                 }
 
-                await output.WriteLineAsync($"Loaded {loaded.Solution.Projects.Count()} project(s) from {solutionPath}.").ConfigureAwait(false);
-                await error.WriteLineAsync($"The {name} analysis is not implemented yet.").ConfigureAwait(false);
-                return ExitCodes.Error;
+                // Progress goes to the error stream: the standard output may carry the SARIF log.
+                await error.WriteLineAsync($"Loaded {loaded.Solution.Projects.Count()} project(s) from {solutionPath}.").ConfigureAwait(false);
+                if (analysis is null)
+                {
+                    await error.WriteLineAsync($"The {name} analysis is not implemented yet.").ConfigureAwait(false);
+                    return ExitCodes.Error;
+                }
+
+                var root = Path.GetDirectoryName(solutionPath)!;
+                var findings = await analysis(loaded.Solution, neolinterConfig, root, cancellationToken).ConfigureAwait(false);
+                var report = new AnalysisReport(Version, root, CliRules.All, findings);
+                if (parseResult.GetValue(sarifOutput) is { } outputPath)
+                {
+                    await using var stream = File.Create(Path.GetFullPath(outputPath, currentDirectory));
+                    await SarifWriter.WriteAsync(stream, report, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    await output.WriteLineAsync(SarifWriter.Write(report)).ConfigureAwait(false);
+                }
+
+                await error.WriteLineAsync($"{findings.Count} finding(s).").ConfigureAwait(false);
+                return findings.Count == 0 ? ExitCodes.Ok : ExitCodes.Findings;
             }
             catch (Exception exception) when (exception is FileNotFoundException or ConfigException or ArgumentException or InvalidOperationException)
             {
