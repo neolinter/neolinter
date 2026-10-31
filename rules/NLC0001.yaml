@@ -1,0 +1,11 @@
+id: NLC0001
+title: Duplicated code
+language: csharp
+type: cli
+category: Duplicates
+defaultSeverity: warning
+description: >-
+  A sequence of statements repeated elsewhere in the solution, ignoring identifier names and
+  literal values. Reported by "neolinter analyze duplicates" once it reaches the minimum
+  length set in neolinter.json (8 statements by default). Generated files are ignored.
+options: []
