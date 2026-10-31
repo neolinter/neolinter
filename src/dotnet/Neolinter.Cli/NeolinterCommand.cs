@@ -6,7 +6,7 @@ using Neolinter.Cli.Core;
 namespace Neolinter.Cli;
 
 /// <summary>
-/// Command line definition: <c>neolinter analyze dead-code|duplicates [path] [--config file] [--output file.sarif]</c>.
+/// Command line definition: <c>neolinter analyze dead-code|duplicates [path] [--config file] [--output file] [--format sarif|text] [--fail-on note|warning|error] [--baseline file.sarif]</c>.
 /// Exit codes follow <see cref="ExitCodes"/>.
 /// </summary>
 internal static class NeolinterCommand
@@ -66,10 +66,26 @@ internal static class NeolinterCommand
         };
         var sarifOutput = new Option<string?>("--output", "-o")
         {
-            Description = "SARIF file to write. Defaults to the standard output.",
+            Description = "File to write the report to. Defaults to the standard output.",
+        };
+        var format = new Option<string>("--format")
+        {
+            Description = "Report format.",
+            DefaultValueFactory = _ => "sarif",
+        };
+        format.AcceptOnlyFromAmong("sarif", "text");
+        var failOn = new Option<string>("--fail-on")
+        {
+            Description = "Lowest finding level that makes the exit code 1; findings below it are still reported.",
+            DefaultValueFactory = _ => "warning",
+        };
+        failOn.AcceptOnlyFromAmong("note", "warning", "error");
+        var baselinePath = new Option<string?>("--baseline")
+        {
+            Description = "SARIF log of a previous run: findings it already contains are neither reported nor counted.",
         };
 
-        var command = new Command(name, description) { path, config, sarifOutput };
+        var command = new Command(name, description) { path, config, sarifOutput, format, failOn, baselinePath };
         command.SetAction(async (parseResult, cancellationToken) =>
         {
             try
@@ -84,6 +100,9 @@ internal static class NeolinterCommand
                 }
 
                 var neolinterConfig = NeolinterConfig.Load(configPath);
+                var baseline = parseResult.GetValue(baselinePath) is { } baselineFile
+                    ? Baseline.Load(ResolveExisting(baselineFile, currentDirectory))
+                    : null;
 
                 using var loaded = await SolutionLoader.LoadAsync(solutionPath, cancellationToken).ConfigureAwait(false);
                 foreach (var warning in loaded.Warnings)
@@ -102,18 +121,26 @@ internal static class NeolinterCommand
                 var root = Path.GetDirectoryName(solutionPath)!;
                 var findings = await analysis(loaded.Solution, neolinterConfig, root, cancellationToken).ConfigureAwait(false);
                 var report = new AnalysisReport(Version, root, CliRules.All, findings);
+                if (baseline is not null)
+                {
+                    var all = findings.Count;
+                    report = report with { Findings = baseline.Filter(report) };
+                    await error.WriteLineAsync($"{all - report.Findings.Count} finding(s) already in the baseline.").ConfigureAwait(false);
+                }
+
+                var content = parseResult.GetValue(format) == "text" ? TextReportWriter.Write(report) : SarifWriter.Write(report) + Environment.NewLine;
                 if (parseResult.GetValue(sarifOutput) is { } outputPath)
                 {
-                    await using var stream = File.Create(Path.GetFullPath(outputPath, currentDirectory));
-                    await SarifWriter.WriteAsync(stream, report, cancellationToken).ConfigureAwait(false);
+                    await File.WriteAllTextAsync(Path.GetFullPath(outputPath, currentDirectory), content, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    await output.WriteLineAsync(SarifWriter.Write(report)).ConfigureAwait(false);
+                    await output.WriteAsync(content).ConfigureAwait(false);
                 }
 
-                await error.WriteLineAsync($"{findings.Count} finding(s).").ConfigureAwait(false);
-                return findings.Count == 0 ? ExitCodes.Ok : ExitCodes.Findings;
+                await error.WriteLineAsync($"{report.Findings.Count} finding(s).").ConfigureAwait(false);
+                var threshold = Enum.Parse<FindingLevel>(parseResult.GetValue(failOn)!, ignoreCase: true);
+                return report.Findings.Any(finding => finding.Level >= threshold) ? ExitCodes.Findings : ExitCodes.Ok;
             }
             catch (Exception exception) when (exception is FileNotFoundException or ConfigException or ArgumentException or InvalidOperationException)
             {
@@ -122,5 +149,11 @@ internal static class NeolinterCommand
             }
         });
         return command;
+    }
+
+    private static string ResolveExisting(string file, string currentDirectory)
+    {
+        var full = Path.GetFullPath(file, currentDirectory);
+        return File.Exists(full) ? full : throw new FileNotFoundException($"Baseline file '{full}' does not exist.");
     }
 }

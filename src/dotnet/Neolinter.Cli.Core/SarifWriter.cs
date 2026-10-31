@@ -31,6 +31,8 @@ public static class SarifWriter
             throw new ArgumentException($"Finding uses rule {unknown}, which is not part of the report rules.", nameof(report));
         }
 
+        var fingerprints = Fingerprints.Compute(report);
+
         return new Dictionary<string, object>
         {
             ["$schema"] = SchemaUri,
@@ -61,13 +63,14 @@ public static class SarifWriter
                         [RootBaseId] = new { uri = new Uri(Path.TrimEndingDirectorySeparator(root) + Path.DirectorySeparatorChar).AbsoluteUri },
                     },
                     columnKind = "utf16CodeUnits",
-                    results = report.Findings.Select(finding => new
+                    results = report.Findings.Select((finding, index) => new
                     {
                         ruleId = finding.RuleId,
                         ruleIndex = ruleIndex[finding.RuleId],
                         level = Level(finding.Level),
                         message = new { text = finding.Message },
                         locations = new[] { new { physicalLocation = PhysicalLocation(finding.Location, root) } },
+                        partialFingerprints = new Dictionary<string, string> { [Fingerprints.Key] = fingerprints[index] },
                         relatedLocations = finding.RelatedLocations.Count == 0
                             ? null
                             : finding.RelatedLocations.Select((location, index) => new
