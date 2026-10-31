@@ -8,6 +8,10 @@ updates:
     groups:
       nuget:
         update-types: [minor, patch]
+    # Analyzers and code fixes must keep targeting Roslyn 4.8 (see docs/ROADMAP.md); the CLI is bumped by hand.
+    ignore:
+      - dependency-name: Microsoft.CodeAnalysis.CSharp
+      - dependency-name: Microsoft.CodeAnalysis.CSharp.Workspaces
   - package-ecosystem: npm
     directory: /src/ide/vscode
     schedule:
@@ -16,6 +20,11 @@ updates:
     groups:
       npm:
         update-types: [minor, patch]
+    ignore:
+      # Types must match engines.vscode and the Node version of CI.
+      - dependency-name: "@types/vscode"
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule:
