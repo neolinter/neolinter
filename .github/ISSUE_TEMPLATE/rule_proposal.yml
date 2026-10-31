@@ -1,0 +1,34 @@
+name: Rule proposal
+description: Suggest a new rule or a change to an existing one.
+labels: [rule]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the practice in your own words. Do not copy or paraphrase rules, messages or examples from
+        other analyzers, and do not reference their rule ids (see docs/CLEAN_ROOM.md).
+  - type: textarea
+    id: practice
+    attributes:
+      label: Practice the rule would enforce
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Code that should be reported and code that should not
+      description: Write the examples yourself.
+    validations:
+      required: true
+  - type: textarea
+    id: fix
+    attributes:
+      label: Automatic fix and options
+      description: Is a safe code fix possible? Which options would users need?
+  - type: checkboxes
+    id: clean-room
+    attributes:
+      label: Clean room
+      options:
+        - label: This proposal is written from my own words and examples, without copying another analyzer.
+          required: true

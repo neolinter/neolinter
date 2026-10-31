@@ -1,0 +1,29 @@
+name: Bug report
+description: Something does not work as documented.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: A small C# snippet, the `.editorconfig` / `neolinter.json` involved, or the CLI command line.
+    validations:
+      required: true
+  - type: input
+    id: component
+    attributes:
+      label: Component and version
+      description: Analyzer package, CLI tool or VS Code extension, with its version.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, .NET SDK, IDE and version.
