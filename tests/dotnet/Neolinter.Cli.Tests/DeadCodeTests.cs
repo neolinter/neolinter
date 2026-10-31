@@ -285,10 +285,16 @@ public partial class DeadCodeTests
     }
 
     [Fact]
-    public async Task UnrestoredProjectIsAnError()
+    public async Task ProjectWithoutFrameworkReferencesIsAnError()
     {
+        // Disabling the implicit framework reference gives the same state as an unrestored project on Windows;
+        // on Linux an unrestored project still resolves the framework, so it cannot be used here.
         using var directory = new TestPaths.TempDirectory();
         WriteProject(directory, "App.csproj", ("C.cs", "public class C { }"));
+        directory.Write("App.csproj", ProjectFile.Replace(
+            "<Nullable>",
+            "<DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences><Nullable>",
+            StringComparison.Ordinal));
 
         var output = new StringWriter();
         var error = new StringWriter();
