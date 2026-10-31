@@ -17,7 +17,8 @@ Update this file in the same pull request when a WP is finished (move it to "Don
   (`dotnet_diagnostic.<ID>.severity`, `<id>.<option>`).
 - **Shell**: prefix every shell command with `rtk` (e.g. `rtk dotnet test Neolinter.slnx`). Use `rtk bypass <cmd>`
   only when the condensed output is unusable.
-- **Git**: one branch and one pull request per WP, branched from `main`. Commits are GPG-signed (this repository's
+- **Git**: one branch and one pull request per WP, branched from `main`, named with gitflow prefixes
+  (`feature/wp-NN-short-name`, `bugfix/...`). Commits are GPG-signed (this repository's
   local config points `gpg.program` to `C:/Program Files (x86)/GnuPG/bin/gpg.exe`; never bypass signing).
   **Never add `Co-Authored-By` lines, "Generated with Claude Code" or any AI attribution** to commits or PR
   descriptions. Never push to `main` directly, never force-push without asking.
@@ -34,7 +35,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP | Title | Depends on | Status |
 |---|---|---|---|
 | WP-00 | Merge the initial skeleton (PR #1) | — | in review |
-| WP-01 | Repository hygiene | WP-00 | todo |
+| WP-01 | Repository hygiene | WP-00 | done (branch protection pending) |
 | WP-02 | Release and publishing | WP-00 | todo |
 | WP-03 | CLI: dead code (NLD0001) | WP-00 | done |
 | WP-04 | CLI: duplicated code (NLC0001) | WP-00 | todo |
@@ -70,6 +71,14 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   `partialFingerprints["neolinter/v1"]` = SHA-256 of rule id, relative path, normalized start-line text and
   occurrence index (no line number, no message); baselined findings are dropped from the report and the exit
   code; text layout is `path(line,column): level RULEID: message` with indented `related:` lines.
+- **WP-01 repository hygiene**: `.gitattributes` (`* text=auto eol=lf`; the index was already LF, so
+  renormalizing changes nothing), Dependabot (weekly, minor/patch grouped, for NuGet, npm and GitHub Actions),
+  `SECURITY.md`, `CODE_OF_CONDUCT.md`, issue templates (bug, rule proposal), PR template with the clean-room
+  reminder. Decisions: security and conduct reports go through GitHub private vulnerability reporting (no
+  e-mail published). The 2 moderate `npm audit` findings (`minimatch` via `@vscode/vsce`, no fix upstream) are
+  accepted: dev dependency only, not shipped; recorded in `SECURITY.md`. **Maintainer to do in GitHub
+  settings**: enable private vulnerability reporting, and protect `main` as listed in
+  `docs/CONTRIBUTING.md` ("Branch protection").
 
 ---
 
@@ -80,7 +89,7 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
 - **Notes**: if CI fails, typical suspects are path separators, line endings and tool versions (TypeScript 7,
   Node 22 on CI vs Node 26 locally).
 
-## WP-01 — Repository hygiene
+## WP-01 — Repository hygiene — done
 
 - **Goal**: make the repository comfortable for contributors.
 - **Scope**:

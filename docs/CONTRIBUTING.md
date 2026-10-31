@@ -47,8 +47,22 @@ When you add a rule, add `Reported*` and `NotReported*` examples to the playgrou
 
 ## Pull requests
 
+- Branch from `main` with gitflow names: `feature/...`, `bugfix/...`. Commits are signed.
 - One topic per pull request, with tests.
 - `dotnet test` and `npm test` must pass; warnings are errors.
 - New rules follow [ADDING_A_RULE](ADDING_A_RULE.md).
 - Rule ids, `neolinter.json` and exit codes are public contracts (see [architecture](architecture.md)): changing
   them needs a discussion first.
+
+## Branch protection (maintainer)
+
+Settings to apply on `main` (Settings → Branches → Add branch ruleset, or classic protection rule):
+
+- Require a pull request before merging; at least 1 approval; dismiss stale approvals on new commits.
+- Require status checks to pass, branches up to date before merging: `.NET build, test and pack` and
+  `VS Code extension` (the jobs of `ci.yml`).
+- Require signed commits.
+- Require linear history.
+- Block force pushes and branch deletion; do not allow bypassing for administrators.
+
+Also enable (Settings → Code security): private vulnerability reporting and Dependabot security updates.
