@@ -7,7 +7,7 @@ Take the next free number, shared by all rules, with the letter of where the rul
 Create `rules/<ID>.yaml`:
 
 ```yaml
-id: NLR0004
+id: NLR0005
 title: Short imperative title          # must match the DiagnosticDescriptor title
 language: csharp
 type: realtime                         # realtime | cli
@@ -16,7 +16,7 @@ defaultSeverity: suggestion            # none | silent | suggestion | warning | 
 description: >-
   What the rule reports and why, written by you (see CLEAN_ROOM.md).
 options:
-  - key: nlr0004.some_option            # <id lowercase>.<name>
+  - key: nlr0005.some_option            # <id lowercase>.<name>
     type: integer                      # integer | boolean | string | enum (with values: [...])
     default: 3
     minimum: 1

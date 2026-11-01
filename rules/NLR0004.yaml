@@ -1,0 +1,16 @@
+id: NLR0004
+title: Use null-coalescing assignment
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  A variable, field or property that receives a value only while it is still null can use '??=' instead of
+  repeating its name. Reported for 'if (x == null) x = v;' (also 'null == x', 'x is null', and the assignment
+  inside braces) and for 'x = x ?? v;'. Needs C# 8 or later. To keep behaviour identical, nothing is reported
+  when the target is not a local, parameter, field (not volatile) or property, optionally reached through
+  'this', type names or other fields, locals and parameters (no call, indexer or property in the middle of the
+  path); when its type is not a reference type or a nullable value type; when '==' is a user-defined operator;
+  when the 'if' has an 'else', other statements or a comment; when the value is 'null', 'default' or a throw
+  expression; and, for 'x = x ?? v;', when the target is a property that is not a plain auto-property (its
+  setter would no longer run when the value is not null).
