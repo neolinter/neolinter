@@ -11,7 +11,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'resources');
 const SIZE = 256;
 const AA = 4;
 
-const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+const hex = (c) => [1, 3, 5].map((i) => Number.parseInt(c.slice(i, i + 2), 16));
 
 function quad(p0, c, p1, steps = 16) {
   return Array.from({ length: steps + 1 }, (_, i) => {
