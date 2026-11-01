@@ -21,3 +21,11 @@ section `[*.cs]`). The rest of the file, comments included, is left untouched.
 
 The rules themselves run inside the C# language server through the NuGet package; this extension only edits
 their configuration.
+
+## Icons
+
+`resources/icon.png` (256x256, Marketplace and extension list) is generated from the brand mark
+`resources/brand/neolinter-mark.svg`; `resources/icons/neolinter-{light,dark}.svg` (16x16 codicon-style glyph used by
+the command and the settings panel tab) are generated from `resources/brand/neolinter-glyph.svg`. The two files in
+`brand/` are the sources (graphite `#1C1917`, orange `#FB923C`, off-white `#FAFAF9`); regenerate the others with
+`npm run build-icons` (no dependency).
