@@ -4,14 +4,14 @@
   <DataTemplate.Resources>
     <DataTemplate x:Key="textOption">
       <StackPanel Margin="0,6,0,0">
-        <Label Content="{Binding Title}" />
+        <TextBlock Text="{Binding Title}" Margin="0,4,0,2" />
         <TextBox Text="{Binding Value, Mode=TwoWay}" MinWidth="120" HorizontalAlignment="Left" />
         <TextBlock Text="{Binding Hint}" TextWrapping="Wrap" Opacity="0.7" />
       </StackPanel>
     </DataTemplate>
     <DataTemplate x:Key="choiceOption">
       <StackPanel Margin="0,6,0,0">
-        <Label Content="{Binding Title}" />
+        <TextBlock Text="{Binding Title}" Margin="0,4,0,2" />
         <ComboBox ItemsSource="{Binding Choices}" SelectedItem="{Binding Value, Mode=TwoWay}" MinWidth="120" HorizontalAlignment="Left" />
         <TextBlock Text="{Binding Hint}" TextWrapping="Wrap" Opacity="0.7" />
       </StackPanel>
@@ -22,8 +22,8 @@
         <StackPanel>
           <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="16" TextWrapping="Wrap" />
           <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,6,0,6" />
-          <CheckBox IsChecked="{Binding Enabled, Mode=TwoWay}" Content="Enabled" />
-          <Label Content="Severity" />
+          <CheckBox IsChecked="{Binding Enabled, Mode=TwoWay}" Content="Enabled" Foreground="{DynamicResource {x:Static styles:VsBrushes.WindowTextKey}}" />
+          <TextBlock Text="Severity" Margin="0,8,0,2" />
           <ComboBox ItemsSource="{Binding Severities}" SelectedItem="{Binding Severity, Mode=TwoWay}" MinWidth="120" HorizontalAlignment="Left" />
           <ItemsControl ItemsSource="{Binding TextOptions}" ItemTemplate="{StaticResource textOption}" />
           <ItemsControl ItemsSource="{Binding ChoiceOptions}" ItemTemplate="{StaticResource choiceOption}" />
@@ -31,7 +31,7 @@
       </Border>
     </DataTemplate>
   </DataTemplate.Resources>
-  <ScrollViewer>
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
     <StackPanel Margin="16" TextElement.Foreground="{DynamicResource {x:Static styles:VsBrushes.WindowTextKey}}">
       <!-- Tab strip: "Solution analysis" stays disabled until the Visual Studio runner exists. -->
       <StackPanel Orientation="Horizontal">
