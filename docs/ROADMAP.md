@@ -40,7 +40,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-03 | CLI: dead code (NLD0001) | WP-00 | done |
 | WP-04 | CLI: duplicated code (NLC0001) | WP-00 | todo |
 | WP-05 | CLI: output and CI options | WP-03 or WP-04 | done |
-| WP-06 | VS Code: "Solution analysis" tab | WP-03 or WP-04 | todo |
+| WP-06 | VS Code: "Solution analysis" tab | WP-03 or WP-04 | done (F5 run not verified) |
 | WP-07 | Shared `.editorconfig` fixtures | WP-00 | todo |
 | WP-08 | Visual Studio 2022+ settings extension | WP-07 | todo |
 | WP-09 | Rider settings plugin | WP-07 | todo |
@@ -79,6 +79,13 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   accepted: dev dependency only, not shipped; recorded in `SECURITY.md`. **Maintainer to do in GitHub
   settings**: enable private vulnerability reporting, and protect `main` as listed in
   `docs/CONTRIBUTING.md` ("Branch protection").
+- **WP-06 VS Code "Solution analysis" tab**: tab enabled; `dead-code` only (`duplicates` hidden until WP-04);
+  results grouped by rule with links; optional Problems panel. Decisions (maintainer-approved): settings
+  `neolinter.cli.path` and `neolinter.cli.projectPath`; detection order setting path → local tool manifest →
+  global tool → project fallback; "Install…" offers global or local (creates the manifest if missing) and says the
+  package is not on nuget.org yet; "Show in Problems panel" off by default, stored per workspace. Exit code `1` is
+  findings, not an error. Pure logic in `src/sarif.ts` and `src/cli.ts` with `node:test` tests. Not verified: the
+  F5 run in a real VS Code window (the CLI output on `samples/Playground` was checked against the parser).
 
 ---
 
@@ -154,7 +161,9 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
 
 See "Done" above.
 
-## WP-06 — VS Code: "Solution analysis" tab
+## WP-06 — VS Code: "Solution analysis" tab — done
+
+See "Done" above. Original scope:
 
 - **Goal**: enable the disabled tab in `src/ide/vscode`.
 - **Scope**: detect the `neolinter` tool (global or local tool manifest), offer to install it, run

@@ -57,7 +57,8 @@ and use a local package source.
 ### Settings screen
 
 Each IDE gets a native settings screen that edits the same `.editorconfig` keys. Available today: VS Code
-(`src/ide/vscode`, command **Neolinter: Open Settings**). Planned: Visual Studio, then Rider, then Zed.
+(`src/ide/vscode`, command **Neolinter: Open Settings**, with a "Solution analysis" tab that runs the command
+line, see below). Planned: Visual Studio, then Rider, then Zed.
 
 ### Command line
 

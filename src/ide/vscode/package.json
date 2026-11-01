@@ -24,7 +24,22 @@
         "title": "Open Settings",
         "category": "Neolinter"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Neolinter",
+      "properties": {
+        "neolinter.cli.path": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to the `neolinter` executable used by the Solution analysis tab. Empty: use the local tool manifest, then the global tool."
+        },
+        "neolinter.cli.projectPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to `Neolinter.Cli.csproj`, run with `dotnet run --project` when no installed tool is found (useful until the package is published)."
+        }
+      }
+    }
   },
   "scripts": {
     "embed-rules": "node scripts/embed-rules.mjs",
