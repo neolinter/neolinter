@@ -58,7 +58,8 @@ and use a local package source.
 
 Each IDE gets a native settings screen that edits the same `.editorconfig` keys. Available today: VS Code
 (`src/ide/vscode`, command **Neolinter: Open Settings**, with a "Solution analysis" tab that runs the command
-line, see below). Planned: Visual Studio, then Rider, then Zed.
+line, see below), and Visual Studio 2022 17.14 / 2026 (`src/ide/visualstudio`, **Extensions > Neolinter Settings**,
+"Solution analysis" tab disabled for now). Planned: Rider, then Zed.
 
 ### Command line
 

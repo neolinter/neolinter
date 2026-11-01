@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Neolinter.EditorConfig</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="YamlDotNet" Version="18.1.0" />
+  </ItemGroup>
+
+  <!-- The rule catalog is the /rules folder, the same source as the VS Code extension. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\..\rules\*.yaml" LogicalName="rules/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

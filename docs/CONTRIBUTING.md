@@ -30,6 +30,15 @@ npm run package
 
 To debug the extension, open the repository in VS Code and press F5 ("Run Neolinter extension").
 
+Visual Studio extension (Windows, .NET 8 SDK or later; the `.editorconfig` logic is tested by `Neolinter.slnx`):
+
+```bash
+dotnet build src/ide/visualstudio/Neolinter.VisualStudio -c Release
+```
+
+The `.vsix` is written to `src/ide/visualstudio/Neolinter.VisualStudio/bin/Release/net8.0-windows8.0/`. To debug,
+open the project in Visual Studio (with the "Visual Studio extension development" workload) and press F5.
+
 ## Trying the rules live
 
 `samples/Playground` is a small project that loads the analyzers and code fixes straight from their build
