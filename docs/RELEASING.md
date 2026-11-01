@@ -56,8 +56,11 @@ in `.github/scripts/release-version.sh`.
    first release by hand once: temporary API key (<https://www.nuget.org/account/apikeys>, owner `neolinter`, glob
    `Neolinter*`, short expiry), `dotnet nuget push` of the two `.nupkg` of the dry run, delete the key, then use the
    workflow from the next version on.
-3. **ID prefix reservation**: request the `Neolinter.` prefix at <https://www.nuget.org/account/requestidprefix>
-   (owner `neolinter`). It protects `Neolinter.*` ids from look-alikes.
+3. **ID prefix reservation** (optional, can wait for the first release): it protects `Neolinter.*` ids from look-alikes. The
+   documented way is an e-mail to account@nuget.org with the nuget.org display name of the owner (`neolinter`) and the
+   prefix `Neolinter.` (<https://learn.microsoft.com/nuget/nuget-org/id-prefix-reservation>, a page last updated in 2022;
+   there is no web form). Whether an organization can own it and whether packages must exist first is not stated there:
+   ask in the same e-mail, and push the first release before if they require it.
 4. **VS Code Marketplace** (trusted publishing, no token): sign in to <https://marketplace.visualstudio.com/manage> with
    the Microsoft account that will own it and create the publisher with the id `neolinter` (it must equal `publisher` in
    `package.json`). Open the publisher > **Trusted Publishing** > **Create**: a policy name (free), repository owner
