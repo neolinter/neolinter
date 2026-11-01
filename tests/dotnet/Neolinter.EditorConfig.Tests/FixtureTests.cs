@@ -78,8 +78,10 @@ public class FixtureTests
         var rules = Rule.LoadEmbedded();
         var nlr0001 = Assert.Single(rules, r => r.Id == "NLR0001");
         Assert.Equal("suggestion", nlr0001.DefaultSeverity);
-        Assert.Equal("nlr0001.min_statements", Assert.Single(nlr0001.Options).Key);
-        Assert.Equal("3", nlr0001.Options[0].Default);
+        Assert.Equal(new[] { "nlr0001.min_statements", "nlr0001.simplify_logical_operators", "nlr0001.guard_braces" }, nlr0001.Options.Select(o => o.Key));
+        Assert.Equal(new[] { "3", "false", "always" }, nlr0001.Options.Select(o => o.Default));
+        Assert.Equal(new[] { "always", "never" }, nlr0001.Options[2].Values);
+        Assert.All(nlr0001.Options, o => Assert.False(string.IsNullOrWhiteSpace(o.Description)));
     }
 
     [Theory]

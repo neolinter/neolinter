@@ -81,6 +81,62 @@ public class NLR0001Examples
         }
     }
 
+    public IEnumerable<int> ReportedIteratorLeavesWithYieldBreak(bool flag)
+    {
+        yield return 0;
+        if (flag)
+        {
+            yield return 1;
+            yield return 2;
+            yield return 3;
+        }
+    }
+
+    public IEnumerable<int> ReportedIteratorElseYieldBreak(bool flag)
+    {
+        if (flag)
+        {
+            yield return 1;
+        }
+        else
+        {
+            yield break;
+        }
+
+        yield return 2;
+    }
+
+    public void ReportedElseIfCascadeWithExitingElse(bool first, bool second)
+    {
+        // The final else only leaves: the fix writes if (!first && !second) { return; } and keeps the branches.
+        if (first)
+        {
+            Console.WriteLine("first");
+        }
+        else if (second)
+        {
+            Console.WriteLine("second");
+        }
+        else
+        {
+            return;
+        }
+
+        Console.WriteLine("done");
+    }
+
+    public void ReportedNegatedConjunction(bool ready, bool enabled)
+    {
+        // With nlr0001.simplify_logical_operators = true the fix writes !ready || !enabled instead of !(ready && enabled).
+        // With nlr0001.guard_braces = never the inserted return has no braces.
+        if (ready && enabled)
+        {
+            Console.WriteLine(1);
+            Console.WriteLine(2);
+            Console.WriteLine(3);
+        }
+    }
+
     // --- Not reported ----------------------------------------------------
 
     public void NotReportedBelowThreshold(bool flag)
@@ -131,14 +187,73 @@ public class NLR0001Examples
 
     private static int ComputeTotal() => 0;
 
-    public IEnumerable<int> NotReportedIterator(bool flag)
+    public IEnumerable<int> NotReportedIteratorCodeAfterIf(bool flag)
     {
-        yield return 0;
         if (flag)
         {
             yield return 1;
             yield return 2;
             yield return 3;
         }
+
+        yield return 4;
     }
+
+    public void NotReportedElseIfCascadeWithCall(bool first)
+    {
+        // The condition of the second branch has a call: the cascade would evaluate it twice.
+        if (first)
+        {
+            Console.WriteLine(1);
+        }
+        else if (IsReady())
+        {
+            Console.WriteLine(2);
+        }
+        else
+        {
+            return;
+        }
+
+        Console.WriteLine(3);
+    }
+
+    public void NotReportedElseIfCascadeBranchOnlyExits(int x)
+    {
+        if (x == 0)
+        {
+            Console.WriteLine(1);
+            Console.WriteLine(2);
+            Console.WriteLine(3);
+        }
+        else if (x == 1)
+        {
+            return;
+        }
+        else
+        {
+            return;
+        }
+    }
+
+    public void NotReportedElseIfCascadeFinalElseDoesMore(bool first, bool second)
+    {
+        if (first)
+        {
+            Console.WriteLine(1);
+        }
+        else if (second)
+        {
+            Console.WriteLine(2);
+        }
+        else
+        {
+            Console.WriteLine("neither");
+            return;
+        }
+
+        Console.WriteLine(3);
+    }
+
+    private static bool IsReady() => true;
 }

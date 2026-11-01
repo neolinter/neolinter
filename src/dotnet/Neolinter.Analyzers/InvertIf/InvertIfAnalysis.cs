@@ -14,6 +14,9 @@ internal enum InvertIfKind
 
     /// <summary><c>if</c>/<c>else</c> whose <c>else</c> only leaves the block.</summary>
     ElseExit,
+
+    /// <summary><c>if</c>/<c>else if</c> chain whose final <c>else</c> only leaves the block.</summary>
+    ElseIfCascade,
 }
 
 internal sealed class InvertIfCandidate
@@ -44,13 +47,17 @@ internal static class InvertIfAnalysis
 
     public static InvertIfCandidate? Analyze(IfStatementSyntax ifStatement, SemanticModel model, int minStatements, CancellationToken cancellationToken)
     {
-        // Parent is an ElseClause for "else if": cascades are out of scope for v1.
+        // Parent is an ElseClause for "else if": only the head of a cascade is analyzed.
         if (ifStatement.Parent is not BlockSyntax block
-            || ifStatement.Else?.Statement is IfStatementSyntax
             || ifStatement.ContainsDirectives
             || ifStatement.ContainsDiagnostics)
         {
             return null;
+        }
+
+        if (ifStatement.Else?.Statement is IfStatementSyntax)
+        {
+            return AnalyzeCascade(ifStatement, block, model, cancellationToken);
         }
 
         var body = GetStatements(ifStatement.Statement);
@@ -102,6 +109,117 @@ internal static class InvertIfAnalysis
         return null;
     }
 
+    /// <summary>
+    /// <c>if (c1) B1 else if (c2) B2 else EXIT</c> becomes <c>if (!c1 &amp;&amp; !c2) EXIT</c> followed by
+    /// <c>if (c1) B1 else B2</c>. The conditions are evaluated twice, so every one must be free of side effects.
+    /// </summary>
+    private static InvertIfCandidate? AnalyzeCascade(IfStatementSyntax head, BlockSyntax block, SemanticModel model, CancellationToken cancellationToken)
+    {
+        var current = head;
+        while (true)
+        {
+            var branch = SingleStatement(current.Statement);
+            if ((branch is not null && IsExit(branch)) || !IsPure(current.Condition, model, cancellationToken))
+            {
+                return null;
+            }
+
+            if (current.Else is not { } elseClause)
+            {
+                return null;
+            }
+
+            if (HasComment(elseClause.ElseKeyword.LeadingTrivia) || HasComment(elseClause.ElseKeyword.TrailingTrivia))
+            {
+                return null;
+            }
+
+            // The trailing trivia of the last branch is replaced by the end of the whole statement.
+            if (HasComment(current.Statement.GetLastToken().TrailingTrivia))
+            {
+                return null;
+            }
+
+            if (elseClause.Statement is IfStatementSyntax next)
+            {
+                // Comments here would be lost: the condition moves into the guard and its tokens disappear.
+                if (HasComment(next.IfKeyword.LeadingTrivia) || HasComment(next.IfKeyword.TrailingTrivia)
+                    || HasComment(next.OpenParenToken.TrailingTrivia) || HasComment(next.CloseParenToken.LeadingTrivia)
+                    || next.Condition.DescendantTrivia().Any(t => IsComment(t)))
+                {
+                    return null;
+                }
+
+                current = next;
+                continue;
+            }
+
+            var exit = SingleStatement(elseClause.Statement);
+            return exit is not null && IsExit(exit)
+                ? new InvertIfCandidate(head, block, InvertIfKind.ElseIfCascade, elseClause.Statement)
+                : null;
+        }
+    }
+
+    private static bool IsComment(SyntaxTrivia trivia) =>
+        trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia);
+
+    private static bool HasComment(SyntaxTriviaList trivia) => trivia.Any(IsComment);
+
+    /// <summary>
+    /// Expressions that can be evaluated twice without changing behaviour: names, literals, member reads
+    /// and built-in comparison and logical operators. Calls and user-defined operators are rejected.
+    /// </summary>
+    private static bool IsPure(ExpressionSyntax expression, SemanticModel model, CancellationToken cancellationToken)
+    {
+        switch (expression)
+        {
+            case LiteralExpressionSyntax or IdentifierNameSyntax or ThisExpressionSyntax or DefaultExpressionSyntax:
+                return true;
+            case ParenthesizedExpressionSyntax parenthesized:
+                return IsPure(parenthesized.Expression, model, cancellationToken);
+            case MemberAccessExpressionSyntax memberAccess:
+                return memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression) && IsPure(memberAccess.Expression, model, cancellationToken);
+            case PrefixUnaryExpressionSyntax prefix:
+                return prefix.Kind() is SyntaxKind.LogicalNotExpression or SyntaxKind.UnaryMinusExpression
+                    && IsPure(prefix.Operand, model, cancellationToken)
+                    && IsBuiltIn(prefix, model, cancellationToken);
+            case BinaryExpressionSyntax binary when binary.IsKind(SyntaxKind.IsExpression):
+                return IsPure(binary.Left, model, cancellationToken);
+            case BinaryExpressionSyntax binary:
+                return binary.Kind() is SyntaxKind.LogicalAndExpression or SyntaxKind.LogicalOrExpression
+                        or SyntaxKind.EqualsExpression or SyntaxKind.NotEqualsExpression
+                        or SyntaxKind.LessThanExpression or SyntaxKind.LessThanOrEqualExpression
+                        or SyntaxKind.GreaterThanExpression or SyntaxKind.GreaterThanOrEqualExpression
+                    && IsPure(binary.Left, model, cancellationToken)
+                    && IsPure(binary.Right, model, cancellationToken)
+                    && IsBuiltIn(binary, model, cancellationToken);
+            case IsPatternExpressionSyntax isPattern:
+                return IsPure(isPattern.Expression, model, cancellationToken) && IsPurePattern(isPattern.Pattern, model, cancellationToken);
+            default:
+                return false;
+        }
+    }
+
+    // Patterns that declare no variable and evaluate no call.
+    private static bool IsPurePattern(PatternSyntax pattern, SemanticModel model, CancellationToken cancellationToken) => pattern switch
+    {
+        ConstantPatternSyntax constant => IsPure(constant.Expression, model, cancellationToken),
+        RelationalPatternSyntax relational => IsPure(relational.Expression, model, cancellationToken),
+        TypePatternSyntax => true,
+        UnaryPatternSyntax unary => IsPurePattern(unary.Pattern, model, cancellationToken),
+        BinaryPatternSyntax binary => IsPurePattern(binary.Left, model, cancellationToken) && IsPurePattern(binary.Right, model, cancellationToken),
+        ParenthesizedPatternSyntax parenthesized => IsPurePattern(parenthesized.Pattern, model, cancellationToken),
+        _ => false,
+    };
+
+    // No symbol means a built-in operator (Roslyn reports none for && and ||). Strings and decimals report their
+    // operators as user-defined methods but they have no side effects.
+    private static bool IsBuiltIn(ExpressionSyntax operation, SemanticModel model, CancellationToken cancellationToken) =>
+        model.GetSymbolInfo(operation, cancellationToken).Symbol is not IMethodSymbol method
+        || method.MethodKind == MethodKind.BuiltinOperator
+        || method.ContainingType.SpecialType is SpecialType.System_String or SpecialType.System_Decimal;
+
     public static IReadOnlyList<StatementSyntax> GetStatements(StatementSyntax statement) =>
         statement is BlockSyntax block ? block.Statements : new[] { statement };
 
@@ -111,7 +229,8 @@ internal static class InvertIfAnalysis
             : statement;
 
     private static bool IsExit(StatementSyntax statement) =>
-        statement is ReturnStatementSyntax or ContinueStatementSyntax or BreakStatementSyntax or ThrowStatementSyntax;
+        statement is ReturnStatementSyntax or ContinueStatementSyntax or BreakStatementSyntax or ThrowStatementSyntax
+        || statement.IsKind(SyntaxKind.YieldBreakStatement);
 
     private static bool IsSimple(ExpressionSyntax expression) => expression switch
     {
@@ -128,9 +247,17 @@ internal static class InvertIfAnalysis
             return SyntaxFactory.ParseStatement("continue;");
         }
 
-        return IsFunctionBody(block) && ReturnsNothing(block, model, cancellationToken)
-            ? SyntaxFactory.ParseStatement("return;")
-            : null;
+        if (!IsFunctionBody(block))
+        {
+            return null;
+        }
+
+        if (IsIterator(block))
+        {
+            return SyntaxFactory.ParseStatement("yield break;");
+        }
+
+        return ReturnsNothing(block, model, cancellationToken) ? SyntaxFactory.ParseStatement("return;") : null;
     }
 
     // The search for an exit stops at the nearest function: lambdas and local functions are boundaries.

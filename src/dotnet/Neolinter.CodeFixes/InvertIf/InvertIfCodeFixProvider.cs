@@ -40,8 +40,18 @@ public sealed class InvertIfCodeFixProvider : CodeFixProvider
 
         // The analyzer already applied the configured threshold.
         var candidate = InvertIfAnalysis.Analyze(ifStatement, model, minStatements: 1, cancellationToken);
-        return candidate is null
-            ? document
-            : document.WithSyntaxRoot(root.ReplaceNode(candidate.Block, InvertIfRewriter.Rewrite(candidate, model, cancellationToken)));
+        if (candidate is null)
+        {
+            return document;
+        }
+
+        var options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(ifStatement.SyntaxTree);
+        var rewritten = InvertIfRewriter.Rewrite(
+            candidate,
+            model,
+            InvertIfOptions.GetSimplifyLogicalOperators(options),
+            InvertIfOptions.GetGuardBraces(options),
+            cancellationToken);
+        return document.WithSyntaxRoot(root.ReplaceNode(candidate.Block, rewritten));
     }
 }

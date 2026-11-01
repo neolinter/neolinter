@@ -8,20 +8,39 @@ namespace Neolinter.CodeFixes.InvertIf;
 /// <summary>Builds the logical negation of a condition, in its simplest readable form.</summary>
 internal static class ConditionNegator
 {
-    public static ExpressionSyntax Negate(ExpressionSyntax condition, SemanticModel model, CancellationToken cancellationToken)
+    /// <param name="simplifyLogicalOperators">Rewrite <c>!(a &amp;&amp; b)</c> as <c>!a || !b</c> (and the dual) when both operands are <c>bool</c>.</param>
+    public static ExpressionSyntax Negate(ExpressionSyntax condition, SemanticModel model, bool simplifyLogicalOperators, CancellationToken cancellationToken)
     {
         var supportsNotPattern = ((CSharpParseOptions)condition.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp9;
-        return NegateCore(condition, model, supportsNotPattern, cancellationToken).WithTriviaFrom(condition);
+        return NegateCore(condition, model, supportsNotPattern, simplifyLogicalOperators, cancellationToken).WithTriviaFrom(condition);
+    }
+
+    /// <summary>Wraps an expression in parentheses unless it already binds at least as tightly as <paramref name="joiner"/>.</summary>
+    public static ExpressionSyntax ParenthesizeFor(ExpressionSyntax expression, SyntaxKind joiner)
+    {
+        var safe = expression switch
+        {
+            PrefixUnaryExpressionSyntax or IsPatternExpressionSyntax => true,
+            BinaryExpressionSyntax binary => binary.Kind() is SyntaxKind.EqualsExpression or SyntaxKind.NotEqualsExpression
+                or SyntaxKind.LessThanExpression or SyntaxKind.LessThanOrEqualExpression or SyntaxKind.GreaterThanExpression
+                or SyntaxKind.GreaterThanOrEqualExpression or SyntaxKind.IsExpression or SyntaxKind.LogicalAndExpression
+                || (binary.IsKind(SyntaxKind.LogicalOrExpression) && joiner == SyntaxKind.LogicalOrExpression),
+            _ => IsPrimary(expression),
+        };
+
+        return safe
+            ? expression
+            : ParenthesizedExpression(PlainToken(SyntaxKind.OpenParenToken), expression.WithoutTrivia(), PlainToken(SyntaxKind.CloseParenToken)).WithTriviaFrom(expression);
     }
 
     // Nodes passed in stay attached to the original tree (needed by the semantic model).
     // New tokens are created without elastic trivia so the host formatter leaves the user's layout alone.
-    private static ExpressionSyntax NegateCore(ExpressionSyntax expression, SemanticModel model, bool supportsNotPattern, CancellationToken cancellationToken)
+    private static ExpressionSyntax NegateCore(ExpressionSyntax expression, SemanticModel model, bool supportsNotPattern, bool simplify, CancellationToken cancellationToken)
     {
         switch (expression)
         {
             case ParenthesizedExpressionSyntax parenthesized:
-                return NegateCore(parenthesized.Expression, model, supportsNotPattern, cancellationToken);
+                return NegateCore(parenthesized.Expression, model, supportsNotPattern, simplify, cancellationToken);
 
             case PrefixUnaryExpressionSyntax prefix when prefix.IsKind(SyntaxKind.LogicalNotExpression):
                 return StripParentheses(prefix.Operand);
@@ -44,6 +63,14 @@ internal static class ConditionNegator
             case IsPatternExpressionSyntax isPattern when supportsNotPattern:
                 return isPattern.WithPattern(NotPattern(isPattern.Pattern));
 
+            case BinaryExpressionSyntax binary when simplify && IsBoolLogical(binary, model, cancellationToken):
+                var (kind, token) = binary.IsKind(SyntaxKind.LogicalAndExpression)
+                    ? (SyntaxKind.LogicalOrExpression, SyntaxKind.BarBarToken)
+                    : (SyntaxKind.LogicalAndExpression, SyntaxKind.AmpersandAmpersandToken);
+                var left = ParenthesizeFor(NegateCore(binary.Left, model, supportsNotPattern, simplify, cancellationToken).WithTriviaFrom(binary.Left), kind);
+                var right = ParenthesizeFor(NegateCore(binary.Right, model, supportsNotPattern, simplify, cancellationToken).WithTriviaFrom(binary.Right), kind);
+                return BinaryExpression(kind, left, Token(binary.OperatorToken.LeadingTrivia, token, binary.OperatorToken.TrailingTrivia), right);
+
             default:
                 var operand = IsPrimary(expression)
                     ? expression
@@ -51,6 +78,17 @@ internal static class ConditionNegator
                 return PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, PlainToken(SyntaxKind.ExclamationToken), operand);
         }
     }
+
+    // Only the built-in operators on bool: user-defined && and || (or operands with their own '!') could behave differently.
+    // Roslyn reports no symbol for the built-in && and ||, and a user-defined one needs operands that are not bool.
+    // There is no lifted form of && and ||, so nullable operands are rejected by the compiler and never reach here.
+    private static bool IsBoolLogical(BinaryExpressionSyntax binary, SemanticModel model, CancellationToken cancellationToken) =>
+        binary.Kind() is SyntaxKind.LogicalAndExpression or SyntaxKind.LogicalOrExpression
+        && IsBool(binary.Left, model, cancellationToken)
+        && IsBool(binary.Right, model, cancellationToken);
+
+    private static bool IsBool(ExpressionSyntax operand, SemanticModel model, CancellationToken cancellationToken) =>
+        model.GetTypeInfo(operand, cancellationToken).Type?.SpecialType == SpecialType.System_Boolean;
 
     private static SyntaxToken PlainToken(SyntaxKind kind) => Token(TriviaList(), kind, TriviaList());
 

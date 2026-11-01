@@ -544,8 +544,10 @@ public class InvertIfTests
         }
         """);
 
+    // --- Iterators: yield break is an exit --------------------------------------
+
     [Fact]
-    public Task Iterator_NoDiagnostic() => Verify.NoDiagnosticAsync(
+    public Task Iterator_LeavesWithYieldBreak() => Verify.FixAsync(
         """
         using System.Collections.Generic;
 
@@ -554,13 +556,162 @@ public class InvertIfTests
             IEnumerable<int> M(bool c)
             {
                 yield return 0;
-                if (c)
+                {|NLR0001:if|} (c)
                 {
                     yield return 1;
                     yield return 2;
                     yield return 3;
                 }
             }
+        }
+        """,
+        """
+        using System.Collections.Generic;
+
+        class C
+        {
+            IEnumerable<int> M(bool c)
+            {
+                yield return 0;
+                if (!c)
+                {
+                    yield break;
+                }
+
+                yield return 1;
+                yield return 2;
+                yield return 3;
+            }
+        }
+        """);
+
+    [Fact]
+    public Task Iterator_ElseYieldBreak_IsMovedFirst() => Verify.FixAsync(
+        """
+        using System.Collections.Generic;
+
+        class C
+        {
+            IEnumerable<int> M(bool c)
+            {
+                {|NLR0001:if|} (c)
+                {
+                    yield return 1;
+                }
+                else
+                {
+                    yield break;
+                }
+
+                yield return 2;
+            }
+        }
+        """,
+        """
+        using System.Collections.Generic;
+
+        class C
+        {
+            IEnumerable<int> M(bool c)
+            {
+                if (!c)
+                {
+                    yield break;
+                }
+
+                yield return 1;
+
+                yield return 2;
+            }
+        }
+        """);
+
+    [Fact]
+    public Task Iterator_StatementAfterIf_NoDiagnostic() => Verify.NoDiagnosticAsync(
+        """
+        using System.Collections.Generic;
+
+        class C
+        {
+            IEnumerable<int> M(bool c)
+            {
+                if (c)
+                {
+                    yield return 1;
+                    yield return 2;
+                    yield return 3;
+                }
+
+                yield return 4;
+            }
+        }
+        """);
+
+    [Fact]
+    public Task Iterator_BelowThreshold_NoDiagnostic() => Verify.NoDiagnosticAsync(
+        """
+        using System.Collections.Generic;
+
+        class C
+        {
+            IEnumerable<int> M(bool c)
+            {
+                if (c)
+                {
+                    yield return 1;
+                }
+            }
+        }
+        """);
+
+    [Fact]
+    public Task YieldInLocalFunction_DoesNotMakeOuterMethodAnIterator() => Verify.FixAsync(
+        """
+        using System.Collections.Generic;
+
+        class C
+        {
+            void M(bool c)
+            {
+                IEnumerable<int> Local()
+                {
+                    yield break;
+                }
+
+                {|NLR0001:if|} (c)
+                {
+                    A();
+                    A();
+                    A();
+                }
+            }
+
+            void A() { }
+        }
+        """,
+        """
+        using System.Collections.Generic;
+
+        class C
+        {
+            void M(bool c)
+            {
+                IEnumerable<int> Local()
+                {
+                    yield break;
+                }
+
+                if (!c)
+                {
+                    return;
+                }
+
+                A();
+                A();
+                A();
+            }
+
+            void A() { }
         }
         """);
 
@@ -854,4 +1005,968 @@ public class InvertIfTests
             void A() { }
         }
         """);
+
+    // --- else if cascades whose final else only exits -------------------------
+
+    [Fact]
+    public Task ElseIfCascade_FinalElseReturns_GuardGoesFirst() => Verify.FixAsync(
+        """
+        class C
+        {
+            void M(bool a, bool b)
+            {
+                {|NLR0001:if|} (a)
+                {
+                    A();
+                }
+                else if (b)
+                {
+                    B();
+                }
+                else
+                {
+                    return;
+                }
+
+                C2();
+            }
+
+            void A() { }
+            void B() { }
+            void C2() { }
+        }
+        """,
+        """
+        class C
+        {
+            void M(bool a, bool b)
+            {
+                if (!a && !b)
+                {
+                    return;
+                }
+
+                if (a)
+                {
+                    A();
+                }
+                else
+                {
+                    B();
+                }
+
+                C2();
+            }
+
+            void A() { }
+            void B() { }
+            void C2() { }
+        }
+        """);
+
+    [Fact]
+    public Task ElseIfCascade_ThreeBranchesInLoop_FinalElseContinues() => Verify.FixAsync(
+        """
+        class C
+        {
+            void M(int[] items)
+            {
+                foreach (var x in items)
+                {
+                    {|NLR0001:if|} (x == 0)
+                    {
+                        A();
+                    }
+                    else if (x == 1)
+                    {
+                        B();
+                    }
+                    else if (x > 5)
+                    {
+                        A();
+                        B();
+                    }
+                    else continue;
+
+                    A();
+                }
+            }
+
+            void A() { }
+            void B() { }
+        }
+        """,
+        """
+        class C
+        {
+            void M(int[] items)
+            {
+                foreach (var x in items)
+                {
+                    if (x != 0 && x != 1 && x <= 5)
+                    {
+                        continue;
+                    }
+
+                    if (x == 0)
+                    {
+                        A();
+                    }
+                    else if (x == 1)
+                    {
+                        B();
+                    }
+                    else
+                    {
+                        A();
+                        B();
+                    }
+
+                    A();
+                }
+            }
+
+            void A() { }
+            void B() { }
+        }
+        """);
+
+    [Fact]
+    public Task ElseIfCascade_KAndRBraces_AreKept() => Verify.FixAsync(
+        """
+        class C
+        {
+            void M(bool a, bool b) {
+                {|NLR0001:if|} (a || b) {
+                    A();
+                } else if (b) {
+                    A();
+                } else {
+                    throw new System.Exception();
+                }
+
+                A();
+            }
+
+            void A() { }
+        }
+        """,
+        """
+        class C
+        {
+            void M(bool a, bool b) {
+                if (!(a || b) && !b) {
+                    throw new System.Exception();
+                }
+
+                if (a || b) {
+                    A();
+                } else {
+                    A();
+                }
+
+                A();
+            }
+
+            void A() { }
+        }
+        """);
+
+    [Fact]
+    public Task ElseIfCascade_YieldBreakInFinalElse() => Verify.FixAsync(
+        """
+        using System.Collections.Generic;
+
+        class C
+        {
+            IEnumerable<int> M(bool a, bool b)
+            {
+                {|NLR0001:if|} (a)
+                {
+                    yield return 1;
+                }
+                else if (b)
+                {
+                    yield return 2;
+                }
+                else
+                {
+                    yield break;
+                }
+
+                yield return 3;
+            }
+        }
+        """,
+        """
+        using System.Collections.Generic;
+
+        class C
+        {
+            IEnumerable<int> M(bool a, bool b)
+            {
+                if (!a && !b)
+                {
+                    yield break;
+                }
+
+                if (a)
+                {
+                    yield return 1;
+                }
+                else
+                {
+                    yield return 2;
+                }
+
+                yield return 3;
+            }
+        }
+        """);
+
+    [Fact]
+    public Task ElseIfCascade_FixAllWithOtherIf() => Verify.FixAsync(
+        """
+        class C
+        {
+            void M1(bool a, bool b)
+            {
+                {|NLR0001:if|} (a) { A(); }
+                else if (b) { A(); }
+                else { return; }
+
+                A();
+            }
+
+            void M2(bool c)
+            {
+                {|NLR0001:if|} (c)
+                {
+                    A();
+                    A();
+                    A();
+                }
+            }
+
+            void A() { }
+        }
+        """,
+        """
+        class C
+        {
+            void M1(bool a, bool b)
+            {
+                if (!a && !b) {
+                    return;
+                }
+
+                if (a) { A(); }
+                else { A(); }
+
+                A();
+            }
+
+            void M2(bool c)
+            {
+                if (!c)
+                {
+                    return;
+                }
+
+                A();
+                A();
+                A();
+            }
+
+            void A() { }
+        }
+        """);
+
+    [Fact]
+    public Task ElseIfCascade_BranchThatOnlyExits_NoDiagnostic() => Verify.NoDiagnosticAsync(
+        """
+        class C
+        {
+            void M(int x)
+            {
+                if (x == 0)
+                {
+                    A();
+                    A();
+                    A();
+                }
+                else if (x == 1)
+                {
+                    return;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            void A() { }
+        }
+        """);
+
+    [Fact]
+    public Task ElseIfCascade_ConditionWithCall_NoDiagnostic() => Verify.NoDiagnosticAsync(
+        """
+        class C
+        {
+            void M(bool a)
+            {
+                if (a)
+                {
+                    A();
+                }
+                else if (Check())
+                {
+                    A();
+                }
+                else
+                {
+                    return;
+                }
+
+                A();
+            }
+
+            bool Check() => true;
+            void A() { }
+        }
+        """);
+
+    [Fact]
+    public Task ElseIfCascade_ConditionDeclaresVariable_NoDiagnostic() => Verify.NoDiagnosticAsync(
+        """
+        class C
+        {
+            void M(object o)
+            {
+                if (o is int i)
+                {
+                    A(i);
+                }
+                else if (o is string)
+                {
+                    A(0);
+                }
+                else
+                {
+                    return;
+                }
+
+                A(1);
+            }
+
+            void A(int x) { }
+        }
+        """);
+
+    [Fact]
+    public Task ElseIfCascade_UserDefinedOperator_NoDiagnostic() => Verify.NoDiagnosticAsync(
+        """
+        struct V
+        {
+            public static bool operator ==(V l, V r) => true;
+            public static bool operator !=(V l, V r) => false;
+            public override bool Equals(object o) => true;
+            public override int GetHashCode() => 0;
+        }
+
+        class C
+        {
+            void M(bool a, V v, V w)
+            {
+                if (a)
+                {
+                    A();
+                }
+                else if (v == w)
+                {
+                    A();
+                }
+                else
+                {
+                    return;
+                }
+
+                A();
+            }
+
+            void A() { }
+        }
+        """);
+
+    [Fact]
+    public Task ElseIfCascade_FinalElseIsNotOnlyAnExit_NoDiagnostic() => Verify.NoDiagnosticAsync(
+        """
+        class C
+        {
+            void M(bool a, bool b)
+            {
+                if (a)
+                {
+                    A();
+                }
+                else if (b)
+                {
+                    A();
+                }
+                else
+                {
+                    A();
+                    return;
+                }
+
+                A();
+            }
+
+            void A() { }
+        }
+        """);
+
+    [Fact]
+    public Task ElseIfCascade_WithoutFinalElse_NoDiagnostic() => Verify.NoDiagnosticAsync(
+        """
+        class C
+        {
+            void M(bool a, bool b)
+            {
+                if (a)
+                {
+                    A();
+                }
+                else if (b)
+                {
+                    A();
+                }
+
+                A();
+            }
+
+            void A() { }
+        }
+        """);
+
+    [Fact]
+    public Task ElseIfCascade_CommentBetweenBranches_NoDiagnostic() => Verify.NoDiagnosticAsync(
+        """
+        class C
+        {
+            void M(bool a, bool b)
+            {
+                if (a)
+                {
+                    A();
+                }
+                // second case
+                else if (b)
+                {
+                    A();
+                }
+                else
+                {
+                    return;
+                }
+
+                A();
+            }
+
+            void A() { }
+        }
+        """);
+
+    // --- nlr0001.simplify_logical_operators ------------------------------------
+
+    [Theory]
+    [InlineData("a && b", "!a || !b")]
+    [InlineData("a || b", "!a && !b")]
+    [InlineData("a && !b", "!a || b")]
+    [InlineData("a && n > 0", "!a || n <= 0")]
+    [InlineData("a && (b || c)", "!a || !b && !c")]
+    [InlineData("(a || b) && c", "!a && !b || !c")]
+    [InlineData("!(a && b)", "a && b")]
+    [InlineData("a == b", "a != b")]
+    public Task SimplifyLogicalOperators_On(string condition, string negated) => Verify.FixAsync(
+        $$"""
+        class C
+        {
+            void M(bool a, bool b, bool c, int n)
+            {
+                {|NLR0001:if|} ({{condition}})
+                {
+                    A();
+                    A();
+                    A();
+                }
+            }
+
+            void A() { }
+        }
+        """,
+        $$"""
+        class C
+        {
+            void M(bool a, bool b, bool c, int n)
+            {
+                if ({{negated}})
+                {
+                    return;
+                }
+
+                A();
+                A();
+                A();
+            }
+
+            void A() { }
+        }
+        """,
+        editorConfig: "nlr0001.simplify_logical_operators = true");
+
+    [Theory]
+    [InlineData("a && b", "!(a && b)")]
+    [InlineData("a || b", "!(a || b)")]
+    public Task SimplifyLogicalOperators_OffByDefault(string condition, string negated) => Verify.FixAsync(
+        $$"""
+        class C
+        {
+            void M(bool a, bool b)
+            {
+                {|NLR0001:if|} ({{condition}})
+                {
+                    A();
+                    A();
+                    A();
+                }
+            }
+
+            void A() { }
+        }
+        """,
+        $$"""
+        class C
+        {
+            void M(bool a, bool b)
+            {
+                if ({{negated}})
+                {
+                    return;
+                }
+
+                A();
+                A();
+                A();
+            }
+
+            void A() { }
+        }
+        """);
+
+    [Fact]
+    public Task SimplifyLogicalOperators_InvalidValueMeansOff() => Verify.FixAsync(
+        """
+        class C
+        {
+            void M(bool a, bool b)
+            {
+                {|NLR0001:if|} (a && b)
+                {
+                    A();
+                    A();
+                    A();
+                }
+            }
+
+            void A() { }
+        }
+        """,
+        """
+        class C
+        {
+            void M(bool a, bool b)
+            {
+                if (!(a && b))
+                {
+                    return;
+                }
+
+                A();
+                A();
+                A();
+            }
+
+            void A() { }
+        }
+        """,
+        editorConfig: "nlr0001.simplify_logical_operators = maybe");
+
+    [Fact]
+    public Task SimplifyLogicalOperators_UserDefinedOperators_AreLeftAlone() => Verify.FixAsync(
+        """
+        struct Flag
+        {
+            public static Flag operator &(Flag l, Flag r) => l;
+            public static Flag operator |(Flag l, Flag r) => l;
+            public static bool operator true(Flag f) => true;
+            public static bool operator false(Flag f) => false;
+            public static bool operator !(Flag f) => false;
+        }
+
+        class C
+        {
+            void M(Flag a, Flag b)
+            {
+                {|NLR0001:if|} (a && b)
+                {
+                    A();
+                    A();
+                    A();
+                }
+            }
+
+            void A() { }
+        }
+        """,
+        """
+        struct Flag
+        {
+            public static Flag operator &(Flag l, Flag r) => l;
+            public static Flag operator |(Flag l, Flag r) => l;
+            public static bool operator true(Flag f) => true;
+            public static bool operator false(Flag f) => false;
+            public static bool operator !(Flag f) => false;
+        }
+
+        class C
+        {
+            void M(Flag a, Flag b)
+            {
+                if (!(a && b))
+                {
+                    return;
+                }
+
+                A();
+                A();
+                A();
+            }
+
+            void A() { }
+        }
+        """,
+        editorConfig: "nlr0001.simplify_logical_operators = true");
+
+    [Fact]
+    public Task SimplifyLogicalOperators_AppliesToCascadeGuard() => Verify.FixAsync(
+        """
+        class C
+        {
+            void M(bool a, bool b, bool c)
+            {
+                {|NLR0001:if|} (a || b)
+                {
+                    A();
+                }
+                else if (c)
+                {
+                    A();
+                }
+                else
+                {
+                    return;
+                }
+
+                A();
+            }
+
+            void A() { }
+        }
+        """,
+        """
+        class C
+        {
+            void M(bool a, bool b, bool c)
+            {
+                if (!a && !b && !c)
+                {
+                    return;
+                }
+
+                if (a || b)
+                {
+                    A();
+                }
+                else
+                {
+                    A();
+                }
+
+                A();
+            }
+
+            void A() { }
+        }
+        """,
+        editorConfig: "nlr0001.simplify_logical_operators = true");
+
+    // --- nlr0001.guard_braces ----------------------------------------------------
+
+    [Fact]
+    public Task GuardBraces_Never_ReturnWithoutBraces() => Verify.FixAsync(
+        """
+        class C
+        {
+            void M(bool c)
+            {
+                {|NLR0001:if|} (c)
+                {
+                    A();
+                    A();
+                    A();
+                }
+            }
+
+            void A() { }
+        }
+        """,
+        """
+        class C
+        {
+            void M(bool c)
+            {
+                if (!c)
+                    return;
+
+                A();
+                A();
+                A();
+            }
+
+            void A() { }
+        }
+        """,
+        editorConfig: "nlr0001.guard_braces = never");
+
+    [Fact]
+    public Task GuardBraces_Never_ElseThrowWithoutBraces() => Verify.FixAsync(
+        """
+        using System;
+
+        class C
+        {
+            int M(bool active)
+            {
+                {|NLR0001:if|} (active)
+                {
+                    A();
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
+
+                return 1;
+            }
+
+            void A() { }
+        }
+        """,
+        """
+        using System;
+
+        class C
+        {
+            int M(bool active)
+            {
+                if (!active)
+                    throw new InvalidOperationException();
+
+                A();
+
+                return 1;
+            }
+
+            void A() { }
+        }
+        """,
+        editorConfig: "nlr0001.guard_braces = never");
+
+    [Fact]
+    public Task GuardBraces_Never_ElseOnSameLine() => Verify.FixAsync(
+        """
+        class C
+        {
+            void M(int[] items)
+            {
+                foreach (var x in items)
+                {
+                    {|NLR0001:if|} (x == 0)
+                    {
+                        A();
+                        A();
+                    }
+                    else break;
+                    A();
+                }
+            }
+
+            void A() { }
+        }
+        """,
+        """
+        class C
+        {
+            void M(int[] items)
+            {
+                foreach (var x in items)
+                {
+                    if (x != 0)
+                        break;
+
+                    A();
+                    A();
+                    A();
+                }
+            }
+
+            void A() { }
+        }
+        """,
+        editorConfig: "nlr0001.guard_braces = never");
+
+    [Fact]
+    public Task GuardBraces_Never_CascadeGuard() => Verify.FixAsync(
+        """
+        class C
+        {
+            void M(bool a, bool b)
+            {
+                {|NLR0001:if|} (a)
+                {
+                    A();
+                }
+                else if (b)
+                {
+                    A();
+                }
+                else
+                {
+                    return;
+                }
+
+                A();
+            }
+
+            void A() { }
+        }
+        """,
+        """
+        class C
+        {
+            void M(bool a, bool b)
+            {
+                if (!a && !b)
+                    return;
+
+                if (a)
+                {
+                    A();
+                }
+                else
+                {
+                    A();
+                }
+
+                A();
+            }
+
+            void A() { }
+        }
+        """,
+        editorConfig: "nlr0001.guard_braces = never");
+
+    [Fact]
+    public Task GuardBraces_Never_KeepsBracesAroundComments() => Verify.FixAsync(
+        """
+        class C
+        {
+            void M(bool c)
+            {
+                {|NLR0001:if|} (c)
+                {
+                    A();
+                }
+                else
+                { // nothing to do
+                    return;
+                }
+
+                A();
+            }
+
+            void A() { }
+        }
+        """,
+        """
+        class C
+        {
+            void M(bool c)
+            {
+                if (!c)
+                { // nothing to do
+                    return;
+                }
+
+                A();
+
+                A();
+            }
+
+            void A() { }
+        }
+        """,
+        editorConfig: "nlr0001.guard_braces = never");
+
+    [Theory]
+    [InlineData("nlr0001.guard_braces = always")]
+    [InlineData("nlr0001.guard_braces = sometimes")]
+    public Task GuardBraces_AlwaysOrInvalid_KeepsBraces(string editorConfig) => Verify.FixAsync(
+        """
+        class C
+        {
+            void M(bool c)
+            {
+                {|NLR0001:if|} (c)
+                {
+                    A();
+                    A();
+                    A();
+                }
+            }
+
+            void A() { }
+        }
+        """,
+        """
+        class C
+        {
+            void M(bool c)
+            {
+                if (!c)
+                {
+                    return;
+                }
+
+                A();
+                A();
+                A();
+            }
+
+            void A() { }
+        }
+        """,
+        editorConfig: editorConfig);
 }
