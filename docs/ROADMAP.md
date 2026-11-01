@@ -42,7 +42,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-05 | CLI: output and CI options | WP-03 or WP-04 | done |
 | WP-06 | VS Code: "Solution analysis" tab | WP-03 or WP-04 | done (F5 run not verified) |
 | WP-07 | Shared `.editorconfig` fixtures | WP-00 | done |
-| WP-08 | Visual Studio 2022+ settings extension | WP-07 | done (not run in Visual Studio) |
+| WP-08 | Visual Studio 2022+ settings extension | WP-07 | done (window opened in VS 2026, writing not verified) |
 | WP-09 | Rider settings plugin | WP-07 | todo |
 | WP-10 | Zed: feasibility and integration | WP-00 | todo |
 | WP-11 | NL0001 v2 | WP-00 | todo |
@@ -99,8 +99,9 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   uploads the VSIX). Decisions: VisualStudio.Extensibility over the classic VSSDK (maintainer-approved after the
   comparison in `docs/architecture.md`); the window sits in the document well, opened from Extensions > Neolinter
   Settings; the "Solution analysis" tab is a disabled button; the VSIX uses the VS Code icon. **Remaining**: the
-  VSIX builds, but the window was never opened in Visual Studio (the Remote UI XAML is only parsed at runtime: F5 it
-  and check controls and bindings); minimum Visual Studio is 17.14 (SDK version), not 17.8, so lowering it means
+  VSIX builds and the window opens (F5, VS Community 2026 18.11: tab strip, rule card, severity and option controls
+  displayed); not verified: writing to a real solution's `.editorconfig` from the window, the dark/light theme
+  colors (text is bound to `VsBrushes.WindowTextKey`, border is a fixed gray), other VS versions; minimum Visual Studio is 17.14 (SDK version), not 17.8, so lowering it means
   trying an older SDK; adding the package from the window is not offered (banner shows the command); the project
   files are not part of `Neolinter.slnx` (Windows only); the "Solution analysis" runner is not implemented.
 
