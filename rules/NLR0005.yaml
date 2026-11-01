@@ -1,0 +1,13 @@
+id: NLR0005
+title: Simplify comparison with a boolean literal
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  Comparing a boolean with 'true' or 'false' only restates the value. Reported for 'x == true' and 'true == x'
+  (written 'x'), 'x == false' and 'false == x' (written '!x'), 'x != true' (written '!x') and 'x != false'
+  (written 'x'). Parentheses are added only where the meaning needs them. Nothing is reported when 'x' is not
+  exactly 'bool' (a 'bool?' comparison means something else, and a type that merely converts to 'bool' may define
+  its own '=='), when the operator is user-defined, when both sides are literals, or when a comment or directive
+  sits inside the comparison.

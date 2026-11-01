@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Two real-time rules (NLR0001, NLR0004); the command line analyses are not implemented yet.
+> Status: early development (0.1). Three real-time rules (NLR0001, NLR0004, NLR0005); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -67,6 +67,12 @@ NLR0004 has no option. It reports `if (x == null) x = v;` (also `null == x`, `x 
 - the value is not `null`, `default` or a `throw` expression;
 - `x = x ?? v;` on a property is reported only for a plain auto-property that is not `virtual`/`override`, because the
   long form calls the setter even when the value is not null and `??=` does not.
+
+NLR0005 has no option. It reports a `bool` compared with a literal: `x == true`, `true == x` and `x != false` (fix: `x`),
+`x == false`, `false == x` and `x != true` (fix: `!x`). The fix adds parentheses only where the meaning needs them
+(`o is string == false` becomes `!(o is string)`, `a && b == false` becomes `a && !b`) and removes a double negation
+(`!y == false` becomes `y`). Not reported: a `bool?` operand (its comparison has another meaning), a type that only
+converts to `bool` or defines its own `==`, `true == false`, and a comparison with a comment or `#if` inside.
 
 The rules then show up wherever Roslyn analyzers are loaded:
 
@@ -145,6 +151,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 |---|---|---|---|
 | [NLR0001](rules/NLR0001.yaml) | Invert 'if' to reduce nesting | real-time, code fix | suggestion |
 | [NLR0004](rules/NLR0004.yaml) | Use null-coalescing assignment | real-time, code fix | suggestion |
+| [NLR0005](rules/NLR0005.yaml) | Simplify comparison with a boolean literal | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 
