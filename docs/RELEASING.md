@@ -35,29 +35,49 @@ in `.github/scripts/release-version.sh`.
 
 ## One-time setup (maintainer)
 
-1. **nuget.org**: the `neolinter` organization exists. Create an API key
-   (<https://www.nuget.org/account/apikeys>), owner `neolinter`, scope "Push new packages and package versions",
-   glob pattern `Neolinter*`, an expiry you will remember. Add it as the repository secret `NUGET_API_KEY`
-   (Settings > Secrets and variables > Actions). Trusted publishing (OIDC, no stored key) exists on nuget.org but was not
-   checked against an organization-owned, not yet existing package ID, so the key is used.
-2. **ID prefix reservation**: request the `Neolinter.` prefix at <https://www.nuget.org/account/requestidprefix>
-   (owner `neolinter`). It protects `Neolinter.*` ids from look-alikes. `Neolinter` itself must be pushed once by the
-   key's owner to exist; the first release does that.
-3. **VS Code Marketplace**: sign in to <https://marketplace.visualstudio.com/manage> with the Microsoft account that will
+1. **GitHub environment**: Settings > Environments > New environment `release` (optionally add required reviewers: the
+   `publish` job then waits for your approval before anything is pushed). The nuget.org policy below matches this name.
+2. **nuget.org trusted publishing policy** (no API key, no NuGet secret): sign in to nuget.org as a member of the
+   `neolinter` organization, open your username menu > **Trusted Publishing** > add a policy:
+   - **Policy owner**: the `neolinter` organization (the policy then covers the packages that organization owns; you must
+     stay an active member, otherwise the policy goes inactive);
+   - **Repository owner**: `neolinter`, **Repository**: `neolinter`;
+   - **Workflow file**: `release.yml` (file name only, no path);
+   - **Environment**: `release`;
+   - **Scope**: allow publishing new packages and new versions, package glob `Neolinter*`.
+
+   The workflow calls `NuGet/login@v1` with `user: neolinter`, which swaps the job's GitHub OIDC token for a one-hour API
+   key (`id-token: write` is set on the `publish` job only). If the policy is owned by a personal account instead of the
+   organization, change `user:` in `.github/workflows/release.yml` to that account's nuget.org username.
+   If the policy shows "temporarily active for 7 days" (private repositories), the first successful publish within 7
+   days makes it permanent; it can be restarted.
+   **Bootstrap, not verified**: the nuget.org documentation does not say whether a policy can be created before the
+   package id `Neolinter` exists. The policy scope offers "new packages", so it should work. If nuget.org refuses, push the
+   first release by hand once: temporary API key (<https://www.nuget.org/account/apikeys>, owner `neolinter`, glob
+   `Neolinter*`, short expiry), `dotnet nuget push` of the two `.nupkg` of the dry run, delete the key, then use the
+   workflow from the next version on.
+3. **ID prefix reservation**: request the `Neolinter.` prefix at <https://www.nuget.org/account/requestidprefix>
+   (owner `neolinter`). It protects `Neolinter.*` ids from look-alikes.
+4. **VS Code Marketplace**: sign in to <https://marketplace.visualstudio.com/manage> with the Microsoft account that will
    own it, create the publisher with the id `neolinter` (it must equal `publisher` in `package.json`). Then create a
    Personal Access Token at <https://dev.azure.com> (User settings > Personal access tokens): organization "All
    accessible organizations", scope **Marketplace > Manage**. Add it as the repository secret `VSCE_PAT`. The PAT expires
    (at most one year): calendar the renewal.
-4. **Protect tags** (Settings > Rules > Rulesets > New tag ruleset): target tag pattern `v*`, restrict creation to
+5. **Protect tags** (Settings > Rules > Rulesets > New tag ruleset): target tag pattern `v*`, restrict creation to
    maintainers, block deletion and updates. A pushed `v*` tag publishes, so only trusted people may create one.
-5. Optional: create a GitHub environment `release` with required reviewers and use it in the `publish` job for a manual
-   approval before anything is pushed (not enabled by default).
+
+   `vsce` also supports trusted publishing (`vsce publish --oidc`, with a policy created on the publisher at
+   <https://marketplace.visualstudio.com/manage> > Trusted Publishing: repository owner/name, workflow `release.yml`,
+   environment `release`) and Microsoft Entra credentials. Azure DevOps announced the retirement of global personal
+   access tokens on 2026-12-01, so the `VSCE_PAT` secret may stop working soon. **Open decision for the maintainer**: the
+   workflow still uses `VSCE_PAT`; switching is two lines (`--oidc` instead of the secret, `id-token: write` is already
+   set) once the policy exists.
 
 ## Dry run
 
 Actions > Release > Run workflow, leave **dry-run** checked, pick a branch and a version (default `0.1.0-preview.1`).
 It builds, tests and packs the NuGet packages, the VS Code extension and the Visual Studio extension, prints their
-contents in the log and uploads them as workflow artifacts; the `publish` job is skipped and no secret is read. A run
+contents in the log and uploads them as workflow artifacts; the `publish` job is skipped: no secret is read and the OIDC exchange is not exercised (only a real tag proves it). A run
 with `dry-run` unchecked on a branch fails on purpose: a real release needs a tag.
 
 ## Cut a release
@@ -92,7 +112,7 @@ The workflow could not be run on GitHub from the session that wrote it. Verified
 `dotnet pack` with the version override (package contents, metadata, icon, installing the tool from the local nupkg),
 `vsce package` with the converted version and `--pre-release`, and the Visual Studio `.vsix` build with the converted version
 on Windows. Not verified: the Actions run itself (dry run to do first), the nuget.org and Marketplace pushes, the
-`neolinter` publisher and API key scopes, and the `Neolinter.` prefix reservation.
+`neolinter` publisher, the trusted publishing policy (and whether it can precede the first push) and the `Neolinter.` prefix reservation.
 
 ## Visual Studio extension on the Visual Studio Marketplace (not done)
 

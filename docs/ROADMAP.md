@@ -120,15 +120,15 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   files are not part of `Neolinter.slnx` (Windows only); the "Solution analysis" runner is not implemented.
 - **WP-02 release and publishing**: `.github/workflows/release.yml` (tags `v*` or a manual dry run), version
   resolution in `.github/scripts/release-version.sh`, `docs/RELEASING.md` (manual steps, versions, bad release).
-  Decisions (maintainer): nuget.org organization `neolinter`, secrets `NUGET_API_KEY` and `VSCE_PAT`, VS Marketplace
+  Decisions (maintainer): nuget.org organization `neolinter`, nuget.org trusted publishing (OIDC, environment `release`, no NuGet secret; policy to create), secret `VSCE_PAT` (vsce also supports `--oidc`, PATs are announced as retired 2026-12-01: decision pending), VS Marketplace
   publisher `neolinter`, pre-release naming `0.1.0-preview.1`. Own choices: version comes from the tag through
   `-p:Version=` (no new dependency; `Directory.Build.props` keeps `0.1.0` as the local default); `vsce package <version>
   --no-update-package-json` sets the VS Code version; a pre-release `X.Y.Z-label.N` is `X.Y.(Z*1000+N)` for the VS Code
   Marketplace (`--pre-release`) and the Visual Studio manifest, so the first stable after previews of a line must raise
-  the minor; API key instead of nuget trusted publishing (not confirmed for an organization-owned new id); publish only
+  the minor; publish only
   runs for a tag reachable from `main`; the Visual Studio `.vsix` is only attached to the GitHub release; NuGet icon is the
-  VS Code `icon.png`, README is the repository README. **Remaining**: the maintainer creates the publisher, PAT, API key,
-  secrets, prefix reservation and tag protection, then runs the dry run and cuts `v0.1.0-preview.1`; the workflow itself was
+  VS Code `icon.png`, README is the repository README. **Remaining**: the maintainer creates the publisher, PAT, `release` environment,
+  nuget.org policy (first-push bootstrap unverified), prefix reservation and tag protection, then runs the dry run and cuts `v0.1.0-preview.1`; the workflow itself was
   never run on GitHub (steps were run locally); the Visual Studio Marketplace publication (listed in
   `docs/RELEASING.md`).
 

@@ -178,8 +178,11 @@ jobs:
     needs: [prepare, dotnet, vscode, visualstudio]
     if: needs.prepare.outputs.publish == 'true'
     runs-on: ubuntu-latest
+    # The nuget.org trusted publishing policy matches this environment name (docs/RELEASING.md).
+    environment: release
     permissions:
       contents: write
+      id-token: write
     env:
       TAG: ${{ github.ref_name }}
       PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
@@ -190,11 +193,18 @@ jobs:
         with:
           path: dist
 
+      # Trusted publishing: exchanges the GitHub OIDC token for a one-hour nuget.org API key, no stored secret.
+      - name: NuGet login (OIDC)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: neolinter
+
       # nuget.org versions cannot be deleted: publish nothing else if this fails. --skip-duplicate makes a
       # re-run after a later failure safe.
       - name: Push to nuget.org
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: >
           dotnet nuget push "dist/nuget-packages/*.nupkg"
           --api-key "$NUGET_API_KEY"
