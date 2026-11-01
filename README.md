@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Four real-time rules (NLR0001, NLR0004, NLR0005, NLR0006); the command line analyses are not implemented yet.
+> Status: early development (0.1). Five real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -91,6 +91,24 @@ database then returns every row and column and the application does the work:
   skipped, and only the first operator after the loading call is reported. Lists that did not come from such a query
   are never reported.
 
+NLR0007 has no option (it reads the standard `csharp_prefer_braces` for the fix). It reports a conditional expression that
+contains another one, in its condition, true branch or false branch (`a ? x : b ? y : z` included), once per outermost
+expression, on the whole expression. A lambda, anonymous method or local function is a boundary. The fix is cautious and
+only for `return <expr>;`, `x = <expr>;` and `T x = <expr>;` directly in a block or switch section; it writes an
+`if` / `else if` / `else` chain of `return`s or assignments (`T x = ...` becomes `T x;` then the chain), evaluating the
+conditions in the same order. No fix when:
+
+- the nesting is not along the false branches (condition or true branch), or a branch contains a lambda;
+- a branch does not have exactly the type of the whole expression (`c ? 1 : null`, `c ? 1 : 2.5`, branches of related
+  types): converting the branches one by one could pick another conversion or overload;
+- the declaration uses `var`, `const`, `using`, `ref` or several declarators, or the assignment target is not a name
+  (`items[i++] = ...`, `Next().F = ...`, compound assignment): the target would be evaluated after the conditions;
+- `x = ...` or `T x = ...` declares a variable in a condition (`o is string s`): its scope would shrink (`return` is fine);
+- a comment or `#if` sits next to `?` or `:` (comments inside operands are kept), or the statement does not start its line.
+
+Braces follow `csharp_prefer_braces` (`true`, `false`, `when_multiline`); without it the file's existing `if` / `else`
+style decides. Brace placement, indentation and line endings follow the enclosing code.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -170,6 +188,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0004](rules/NLR0004.yaml) | Use null-coalescing assignment | real-time, code fix | suggestion |
 | [NLR0005](rules/NLR0005.yaml) | Simplify comparison with a boolean literal | real-time, code fix | suggestion |
 | [NLR0006](rules/NLR0006.yaml) | Keep LINQ operators inside the Entity Framework Core query | real-time | warning |
+| [NLR0007](rules/NLR0007.yaml) | Avoid nested conditional expressions | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

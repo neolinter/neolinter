@@ -46,7 +46,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-09 | Rider settings plugin | WP-07 | todo |
 | WP-10 | Zed: feasibility and integration | WP-00 | todo |
 | WP-11 | NLR0001 v2 | WP-00 | done |
-| WP-12 | New real-time rules | WP-00 | in progress (NLR0004, NLR0005, NLR0006 done, one rule per PR) |
+| WP-12 | New real-time rules | WP-00 | in progress (NLR0004, NLR0005, NLR0006, NLR0007 done, one rule per PR) |
 | WP-13 | Second language | WP-02 | todo |
 | WP-14 | Localized messages | WP-00 | decision needed |
 
@@ -163,6 +163,17 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   Own choices: the loaded-result-in-a-variable form is left out as too risky (a list may be loaded once and reused
   deliberately), `IQueryable` parameters are not traced, only the first operator after the load is reported; all listed
   as known limits in `rules/NLR0006.yaml` and the README. The repository's own sources produce no NLR0006 diagnostic.
+- **WP-12, fourth rule: NLR0007 nested conditional expressions** (maintainer's pick). Reports any `c ? a : b` that
+  contains another conditional expression in its condition, true branch or false branch (flat chains included), once per
+  outermost expression, on the whole expression; suggestion level, no option. Code fix (and fix all) is cautious: only
+  `return <expr>;`, `x = <expr>;` and `T x = <expr>;` (explicit type, written `T x;` then the chain) directly in a block or
+  switch section, rewritten as `if` / `else if` / `else` with `return`s or assignments, nesting along the false branches
+  only. Own choices: a lambda, anonymous method or local function is a boundary (a conditional inside one is judged on its
+  own); no fix unless every branch has exactly the type of the whole expression (target-typed and mixed-type cases
+  skipped), the assignment target is a plain name (or `this.x`, or a member of a local, parameter or type), no variable is
+  declared in a condition (except with `return`), and no comment or `#if` sits next to `?` or `:`; braces follow
+  `csharp_prefer_braces`, else the file's existing `if` style; brace placement, indentation and line endings follow
+  the enclosing code. Details in `rules/NLR0007.yaml`, the README and `docs/architecture.md`.
 
 ---
 
@@ -300,9 +311,9 @@ See "Done" above. Original scope: `else if` cascades, De Morgan option, braces o
 
 ## WP-12 — New real-time rules
 
-- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0006`.
+- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0008`.
 - **Done**: use the null-coalescing assignment `??=` (NLR0004); simplify boolean comparisons (NLR0005); keep LINQ
-  operators inside the Entity Framework Core query (NLR0006).
+  operators inside the Entity Framework Core query (NLR0006); avoid nested conditional expressions (NLR0007).
 - **Remaining candidate ideas** (general practices, descriptions to be written from scratch, **maintainer picks**):
   merge nested `if` statements without `else`; remove `else` after a branch that always exits; avoid empty `catch` blocks.
 - **Wider backlog**: `docs/RULES_CATALOG.md` lists many more candidate rules (naming, async, bugs, simplification,

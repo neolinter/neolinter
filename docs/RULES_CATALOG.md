@@ -75,6 +75,7 @@ command line, one global numbering).
 - [ ] `x == true` / `x == false` (F; skip `bool?`)
 - [ ] `if (x) return true; else return false;` (F)
 - [ ] `x ? true : false` (F)
+- [x] NLR0007 nested conditional expressions `a ? x : b ? y : z` (F, only for `return`, assignment and typed declaration)
 - [ ] Nested `if` without `else` merged with `&&` (F)
 - [ ] `else` after a branch that always exits (F; check overlap with NLR0001 first)
 - [ ] `is null` / `is not null` instead of `== null` / `!= null` (F, O)
