@@ -219,11 +219,10 @@ jobs:
 
       - name: Publish VS Code extension
         working-directory: src/ide/vscode
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        # Trusted publishing: the Marketplace trusts this repository, workflow and environment (no stored secret).
         run: |
           npm ci --ignore-scripts
-          npx vsce publish --packagePath "$(ls ../../../dist/vscode-extension/*.vsix)"
+          npx vsce publish --oidc --packagePath "$(ls ../../../dist/vscode-extension/*.vsix)"
 
       - name: Create GitHub release
         env:

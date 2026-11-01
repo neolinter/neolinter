@@ -58,20 +58,16 @@ in `.github/scripts/release-version.sh`.
    workflow from the next version on.
 3. **ID prefix reservation**: request the `Neolinter.` prefix at <https://www.nuget.org/account/requestidprefix>
    (owner `neolinter`). It protects `Neolinter.*` ids from look-alikes.
-4. **VS Code Marketplace**: sign in to <https://marketplace.visualstudio.com/manage> with the Microsoft account that will
-   own it, create the publisher with the id `neolinter` (it must equal `publisher` in `package.json`). Then create a
-   Personal Access Token at <https://dev.azure.com> (User settings > Personal access tokens): organization "All
-   accessible organizations", scope **Marketplace > Manage**. Add it as the repository secret `VSCE_PAT`. The PAT expires
-   (at most one year): calendar the renewal.
+4. **VS Code Marketplace** (trusted publishing, no token): sign in to <https://marketplace.visualstudio.com/manage> with
+   the Microsoft account that will own it and create the publisher with the id `neolinter` (it must equal `publisher` in
+   `package.json`). Open the publisher > **Trusted Publishing** > **Create**: a policy name (free), repository owner
+   `neolinter`, repository `neolinter`, workflow `release.yml`, environment `release`. The workflow runs
+   `vsce publish --oidc`; the Marketplace credential lasts 15 minutes. If the policy is created while the repository is
+   private, use it within 48 hours: the first successful publish activates it. No `VSCE_PAT` secret exists anymore (Azure
+   DevOps retires global personal access tokens on 2026-12-01). Not verified: the exact form of the policy and whether it
+   can be created before the first publication of the extension.
 5. **Protect tags** (Settings > Rules > Rulesets > New tag ruleset): target tag pattern `v*`, restrict creation to
    maintainers, block deletion and updates. A pushed `v*` tag publishes, so only trusted people may create one.
-
-   `vsce` also supports trusted publishing (`vsce publish --oidc`, with a policy created on the publisher at
-   <https://marketplace.visualstudio.com/manage> > Trusted Publishing: repository owner/name, workflow `release.yml`,
-   environment `release`) and Microsoft Entra credentials. Azure DevOps announced the retirement of global personal
-   access tokens on 2026-12-01, so the `VSCE_PAT` secret may stop working soon. **Open decision for the maintainer**: the
-   workflow still uses `VSCE_PAT`; switching is two lines (`--oidc` instead of the secret, `id-token: write` is already
-   set) once the policy exists.
 
 ## Dry run
 
