@@ -30,4 +30,8 @@
     <Content Include="..\..\..\..\LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest" IncludeInVSIX="true" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include=".vsextension\string-resources.json" />
+  </ItemGroup>
+
 </Project>
