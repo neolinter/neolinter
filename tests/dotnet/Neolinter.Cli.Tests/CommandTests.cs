@@ -61,19 +61,6 @@ public class CommandTests
     }
 
     [Fact]
-    public async Task DuplicatesLoadsTheProjectThenReportsNotImplemented()
-    {
-        using var directory = new TestPaths.TempDirectory();
-        var project = WriteProject(directory);
-
-        var (exitCode, _, error) = await RunAsync(directory.Path, "analyze", "duplicates", project);
-
-        Assert.Equal(ExitCodes.Error, exitCode);
-        Assert.Contains("Loaded 1 project(s)", error);
-        Assert.Contains("not implemented", error);
-    }
-
-    [Fact]
     public async Task SolutionLoaderOpensProjectDocuments()
     {
         using var directory = new TestPaths.TempDirectory();

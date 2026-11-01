@@ -51,5 +51,10 @@ public static class Program
     {
         using var disposable = new NotReportedDisposable();
         Console.WriteLine(new DeadCodeExamples().NotReportedUsedByProgram());
+
+        // Keeps the duplicate examples from also showing up as dead code.
+        int[] values = [1, 2, 3];
+        Console.WriteLine(DuplicateExamples.ReportedFirstCopy(values) + DuplicateExamples.ReportedSecondCopy(values));
+        Console.WriteLine(DuplicateExamples.NotReportedShort(values) + DuplicateExamples.NotReportedAlmostACopy(values));
     }
 }

@@ -7,5 +7,6 @@ defaultSeverity: warning
 description: >-
   A sequence of statements repeated elsewhere in the solution, ignoring identifier names and
   literal values. Reported by "neolinter analyze duplicates" once it reaches the minimum
-  length set in neolinter.json (8 statements by default). Generated files are ignored.
+  length set in neolinter.json (8 statements and 50 tokens by default, keys duplicates.minStatements and
+  duplicates.minTokens). Generated files are ignored.
 options: []

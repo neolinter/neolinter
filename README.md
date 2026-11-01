@@ -69,9 +69,14 @@ neolinter analyze dead-code MySolution.slnx --output dead-code.sarif
 neolinter analyze duplicates MySolution.slnx
 ```
 
-Exit codes: `0` nothing to report, `1` findings reported, `2` error. Restore the solution first (`dotnet restore`).
-`dead-code` is available; `duplicates` still stops with "not implemented" (exit code 2) after loading the
-solution.
+Exit codes: `0` nothing to report, `1` findings reported, `2` error. Restore the solution first (`dotnet restore`;
+`duplicates` only reads source files, `dead-code` needs the framework references).
+
+`duplicates` reports sequences of at least `duplicates.minStatements` statements (default 8) and
+`duplicates.minTokens` tokens (default 50) that appear more than once in the solution, in one file or across
+projects, whatever the identifier names and literal values. One result per group; the other copies are its
+related locations. Both keys, `excludePaths` and `excludeGenerated` live in the `duplicates` section of
+`neolinter.json` (see [Architecture](docs/architecture.md)).
 
 Options of every analysis:
 
@@ -107,7 +112,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 |---|---|---|---|
 | [NL0001](rules/NL0001.yaml) | Invert 'if' to reduce nesting | real-time, code fix | suggestion |
 | [NLD0001](rules/NLD0001.yaml) | Unused member | command line | warning |
-| [NLC0001](rules/NLC0001.yaml) | Duplicated code | command line (planned) | warning |
+| [NLC0001](rules/NLC0001.yaml) | Duplicated code | command line | warning |
 
 ## Documentation
 

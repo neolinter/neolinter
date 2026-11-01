@@ -1,7 +1,7 @@
 export const cliPackageId = 'Neolinter.Cli';
 
-/** Analyses the tab can run. `duplicates` exists in the CLI but is not implemented yet. */
-export const analyses = ['dead-code'] as const;
+/** Analyses the tab can run. */
+export const analyses = ['dead-code', 'duplicates'] as const;
 export type Analysis = (typeof analyses)[number];
 
 export interface CliCommand {

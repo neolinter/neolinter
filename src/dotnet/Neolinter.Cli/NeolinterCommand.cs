@@ -42,7 +42,13 @@ internal static class NeolinterCommand
             output,
             error,
             currentDirectory));
-        analyze.Subcommands.Add(CreateAnalysis("duplicates", "Report sequences of statements repeated across the solution.", null, output, error, currentDirectory));
+        analyze.Subcommands.Add(CreateAnalysis(
+            "duplicates",
+            "Report sequences of statements repeated across the solution.",
+            (solution, config, root, ct) => DuplicatesAnalyzer.AnalyzeAsync(solution, config.Duplicates, root, ct),
+            output,
+            error,
+            currentDirectory));
 
         return new RootCommand("Neolinter command line: solution-wide analyses that are too expensive to run while typing.")
         {
@@ -52,8 +58,7 @@ internal static class NeolinterCommand
 
     private delegate Task<IReadOnlyList<Finding>> Analysis(Solution solution, NeolinterConfig config, string rootDirectory, CancellationToken cancellationToken);
 
-    /// <param name="analysis">Null while the analysis is not implemented.</param>
-    private static Command CreateAnalysis(string name, string description, Analysis? analysis, TextWriter output, TextWriter error, string currentDirectory)
+    private static Command CreateAnalysis(string name, string description, Analysis analysis, TextWriter output, TextWriter error, string currentDirectory)
     {
         var path = new Argument<string?>("path")
         {
@@ -112,12 +117,6 @@ internal static class NeolinterCommand
 
                 // Progress goes to the error stream: the standard output may carry the SARIF log.
                 await error.WriteLineAsync($"Loaded {loaded.Solution.Projects.Count()} project(s) from {solutionPath}.").ConfigureAwait(false);
-                if (analysis is null)
-                {
-                    await error.WriteLineAsync($"The {name} analysis is not implemented yet.").ConfigureAwait(false);
-                    return ExitCodes.Error;
-                }
-
                 var root = Path.GetDirectoryName(solutionPath)!;
                 var findings = await analysis(loaded.Solution, neolinterConfig, root, cancellationToken).ConfigureAwait(false);
                 var report = new AnalysisReport(Version, root, CliRules.All, findings);

@@ -38,7 +38,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-01 | Repository hygiene | WP-00 | done (branch protection pending) |
 | WP-02 | Release and publishing | WP-00 | todo |
 | WP-03 | CLI: dead code (NLD0001) | WP-00 | done |
-| WP-04 | CLI: duplicated code (NLC0001) | WP-00 | todo |
+| WP-04 | CLI: duplicated code (NLC0001) | WP-00 | done |
 | WP-05 | CLI: output and CI options | WP-03 or WP-04 | done |
 | WP-06 | VS Code: "Solution analysis" tab | WP-03 or WP-04 | done (F5 run not verified) |
 | WP-07 | Shared `.editorconfig` fixtures | WP-00 | done |
@@ -79,7 +79,17 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   accepted: dev dependency only, not shipped; recorded in `SECURITY.md`. **Maintainer to do in GitHub
   settings**: enable private vulnerability reporting, and protect `main` as listed in
   `docs/CONTRIBUTING.md` ("Branch protection").
-- **WP-06 VS Code "Solution analysis" tab**: tab enabled; `dead-code` only (`duplicates` hidden until WP-04);
+- **WP-04 duplicated code**: `neolinter analyze duplicates` (NLC0001), algorithm and exclusions in
+  `docs/architecture.md`, tests in `DuplicatesTests`, playground `DuplicateExamples.cs` (one expected group), the
+  VS Code "Solution analysis" tab now offers it. Decisions (maintainer-approved): copies are compared across projects
+  and inside one file; a minimum token count is applied in addition to the statement count. **New optional key
+  `duplicates.minTokens`** (default 50, 0 disables it; additive, backward compatible change of the frozen
+  `neolinter.json`; documented in `docs/architecture.md`, `rules/NLC0001.yaml` and the README). Own choices:
+  analysis on syntax only (no restore needed), all literals share one placeholder and all identifiers another,
+  windows are chained into maximal ranges, copies overlapping inside one block keep the first, and a group lying
+  entirely inside copies of a larger group is dropped. Not covered: edited or reordered copies (type-3 clones) and
+  top-level statements.
+- **WP-06 VS Code "Solution analysis" tab**: tab enabled; `dead-code` only (`duplicates` was hidden until WP-04, now enabled);
   results grouped by rule with links; optional Problems panel. Decisions (maintainer-approved): settings
   `neolinter.cli.path` and `neolinter.cli.projectPath`; detection order setting path → local tool manifest →
   global tool → project fallback; "Install…" offers global or local (creates the manifest if missing) and says the
@@ -159,7 +169,9 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   small in-house matcher (prefer `Microsoft.Extensions.FileSystemGlobbing`, already in the .NET ecosystem).
 - **Done when**: command reports the playground finding, all exclusions tested, docs updated.
 
-## WP-04 — CLI: duplicated code (NLC0001)
+## WP-04 — CLI: duplicated code (NLC0001) — done
+
+See "Done" above. Original scope:
 
 - **Goal**: implement `neolinter analyze duplicates` (rule `NLC0001`, see `rules/NLC0001.yaml`).
 - **Design**: a `CSharpSyntaxWalker` collects statement lists of every block; each statement is normalized
