@@ -139,6 +139,13 @@ subject to the retirement of global Azure DevOps tokens on 2026-12-01).
 Not verified: the install on Professional and Enterprise (the manifest lists the `Microsoft.VisualStudio.Community`
 target, which Visual Studio is expected to apply to every edition; check on one). The window writing to a real solution's `.editorconfig` is also still unverified (WP-08 in `docs/ROADMAP.md`).
 
+**Tried and ruled out (2026-11-01)**: the older `VsixPublisher.exe` of the `windows-2022` image (Visual Studio 2022
+17.14) has no `-oidc` option at all (only `-personalAccessToken`), so no installed tool version publishes the Visual Studio
+extension with trusted publishing today: 17.14 lacks the option and 18.11 has it but the Marketplace refuses its exchange.
+
+Not verified: the install on Professional and Enterprise (the manifest lists the `Microsoft.VisualStudio.Community`
+target, which Visual Studio is expected to apply to every edition; check on one). The window writing to a real solution's `.editorconfig` is also still unverified (WP-08 in `docs/ROADMAP.md`).
+
 **Temporary test job**: `republish-visualstudio` (remove it afterwards). Run Actions > Release > Run workflow with
 `visualstudio-release-tag` set to an existing release (for example `v0.1.0-preview.3`) and `dry-run` unchecked is not
 needed: when that input is filled, every other job is skipped and only this one runs, on `windows-2022` (Visual Studio 2022
