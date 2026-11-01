@@ -377,7 +377,7 @@ function renderHtml(webview: vscode.Webview, media: vscode.Uri): string {
     </div>
     <div class="row">
       <label for="analysis">Analysis</label>
-      <select id="analysis"><option value="dead-code">Dead code (NLD0001)</option></select>
+      <select id="analysis"><option value="dead-code">Dead code (NLD0001)</option><option value="duplicates">Duplicated code (NLC0001)</option></select>
       <button id="run" type="button">Run</button>
     </div>
     <div class="row">

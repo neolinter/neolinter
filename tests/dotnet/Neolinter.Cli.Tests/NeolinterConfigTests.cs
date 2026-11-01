@@ -10,6 +10,7 @@ public class NeolinterConfigTests
         var config = NeolinterConfig.Load(Path.Combine(Path.GetTempPath(), "does-not-exist", NeolinterConfig.FileName));
 
         Assert.Equal(8, config.Duplicates.MinStatements);
+        Assert.Equal(50, config.Duplicates.MinTokens);
         Assert.True(config.Duplicates.ExcludeGenerated);
         Assert.True(config.DeadCode.CountTestReferences);
         Assert.False(config.DeadCode.IncludePublicApi);
@@ -32,7 +33,7 @@ public class NeolinterConfigTests
                 "countTestReferences": false,
                 "testProjects": ["tests/**/*.csproj"],
               },
-              "duplicates": { "minStatements": 12, "excludePaths": ["legacy/**"], "excludeGenerated": false }
+              "duplicates": { "minStatements": 12, "minTokens": 80, "excludePaths": ["legacy/**"], "excludeGenerated": false }
             }
             """);
 
@@ -45,6 +46,7 @@ public class NeolinterConfigTests
         Assert.False(config.DeadCode.CountTestReferences);
         Assert.Equal(["tests/**/*.csproj"], config.DeadCode.TestProjects);
         Assert.Equal(12, config.Duplicates.MinStatements);
+        Assert.Equal(80, config.Duplicates.MinTokens);
         Assert.Equal(["legacy/**"], config.Duplicates.ExcludePaths);
         Assert.False(config.Duplicates.ExcludeGenerated);
     }
@@ -53,6 +55,7 @@ public class NeolinterConfigTests
     [InlineData("""{ "duplicates": { "minStatement": 5 } }""")]
     [InlineData("""{ "version": 2 }""")]
     [InlineData("""{ "duplicates": { "minStatements": 1 } }""")]
+    [InlineData("""{ "duplicates": { "minTokens": -1 } }""")]
     [InlineData("""{ "deadCode": [] }""")]
     [InlineData("null")]
     [InlineData("not json")]

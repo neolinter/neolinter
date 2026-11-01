@@ -63,6 +63,11 @@ public sealed class NeolinterConfig
         {
             throw new ConfigException($"{path}: duplicates.minStatements must be at least 2.");
         }
+
+        if (Duplicates.MinTokens < 0)
+        {
+            throw new ConfigException($"{path}: duplicates.minTokens must not be negative.");
+        }
     }
 }
 
@@ -91,6 +96,9 @@ public sealed class DuplicatesConfig
 {
     /// <summary>Smallest number of consecutive statements reported as a duplicate.</summary>
     public int MinStatements { get; init; } = 8;
+
+    /// <summary>Smallest number of tokens of a reported sequence; skips runs of trivial statements. 0 turns the check off.</summary>
+    public int MinTokens { get; init; } = 50;
 
     /// <summary>Glob patterns, relative to the solution directory, of files that are ignored.</summary>
     public IReadOnlyList<string> ExcludePaths { get; init; } = [];
