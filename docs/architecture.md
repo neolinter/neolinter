@@ -139,7 +139,7 @@ These are frozen from 0.1 on; changing them is a breaking change.
 
 One numbering for all rules, shared across prefixes; the letter says where the rule runs.
 
-- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`.
+- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`.
 - `NLC` (**C**ommand line): `neolinter analyze`. `NLC0002` = unused member (`dead-code`), `NLC0003` = duplicated
   statements (`duplicates`).
 
@@ -161,6 +161,16 @@ longer matches (the fingerprint includes the rule id): regenerate it.
 - Fix-only options (the diagnostics do not depend on them): `nlr0001.simplify_logical_operators` (default `false`,
   De Morgan on built-in `&&`/`||` with `bool` operands only) and `nlr0001.guard_braces` (`always`, the default and the
   v1 behaviour, or `never`). Both are additive: `.editorconfig` files written for v1 keep working unchanged.
+
+### NLR0004 details
+
+- Shapes: `if (x == null) x = v;`, `if (null == x) ...`, `if (x is null) ...` (statement or block with that single
+  assignment, no `else`) and the expression statement `x = x ?? v;`. The diagnostic sits on the `if` keyword or on the `=`.
+- Safety checks, in `NullCoalescingAssignmentAnalysis`: language version >= C# 8; target path made of locals,
+  parameters, non-volatile fields, `this`, type names and one final non-indexer property; reference or nullable value
+  type; built-in `==` only; no comment or directive inside the statement; value is not `null`, `default`, `throw` or
+  `ref`; for `x = x ?? v;` a property must be a non-virtual auto-property.
+- The fix replaces the whole statement by `target ??= value;` and keeps the statement's leading and trailing trivia.
 
 ### neolinter.json
 

@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Neolinter.Analyzers.InvertIf;
+using Neolinter.Analyzers.NullCoalescingAssignment;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -9,7 +10,7 @@ namespace Neolinter.Tests;
 /// <summary>Keeps /rules/*.yaml (read by the IDE settings screens) in sync with the analyzers.</summary>
 public class RuleFilesTests
 {
-    private static readonly DiagnosticAnalyzer[] Analyzers = [new InvertIfAnalyzer()];
+    private static readonly DiagnosticAnalyzer[] Analyzers = [new InvertIfAnalyzer(), new NullCoalescingAssignmentAnalyzer()];
 
     public static TheoryData<string> RealtimeRuleIds() => new(LoadRules().Where(r => r.Type == "realtime").Select(r => r.Id));
 

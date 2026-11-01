@@ -46,7 +46,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-09 | Rider settings plugin | WP-07 | todo |
 | WP-10 | Zed: feasibility and integration | WP-00 | todo |
 | WP-11 | NLR0001 v2 | WP-00 | done |
-| WP-12 | New real-time rules | WP-00 | todo |
+| WP-12 | New real-time rules | WP-00 | in progress (NLR0004 done, one rule per PR) |
 | WP-13 | Second language | WP-02 | todo |
 | WP-14 | Localized messages | WP-00 | decision needed |
 
@@ -144,6 +144,12 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   nuget.org policy (first-push bootstrap unverified), prefix reservation and tag protection, then runs the dry run and cuts `v0.1.0-preview.1`; the workflow itself was
   never run on GitHub (steps were run locally); the Visual Studio Marketplace publication (listed in
   `docs/RELEASING.md`).
+- **WP-12, first rule: NLR0004 `??=`** (maintainer's pick). Detects `if (x == null) x = v;` (`== null`, `null ==`,
+  `is null`, braces or not) and `x = x ?? v;`; the fix and fix all write `x ??= v;`. No option, suggestion level.
+  Conservative on purpose (details in `rules/NLR0004.yaml`, README and `docs/architecture.md`): C# 8 or later, side-effect
+  free target path, reference or nullable value type, built-in `==` only, no comments inside, and `x = x ?? v;` on a
+  property only for a plain non-virtual auto-property. Own choices: a `null`/`default`/`throw` value is not reported; the
+  repository's own sources produce no NLR0004 diagnostic (checked).
 
 ---
 
@@ -281,10 +287,11 @@ See "Done" above. Original scope: `else if` cascades, De Morgan option, braces o
 
 ## WP-12 — New real-time rules
 
-- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0004`.
-- **Candidate ideas** (general practices, descriptions to be written from scratch, **maintainer picks**):
+- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0005`.
+- **Done**: use the null-coalescing assignment `??=` (NLR0004).
+- **Remaining candidate ideas** (general practices, descriptions to be written from scratch, **maintainer picks**):
   merge nested `if` statements without `else`; remove `else` after a branch that always exits; simplify boolean
-  comparisons (`x == true`); use the null-coalescing assignment `??=`; avoid empty `catch` blocks.
+  comparisons (`x == true`); avoid empty `catch` blocks.
 - **Each rule**: analyzer, code fix with fix all when safe, YAML, tests, playground examples, README table.
 
 ## WP-13 — Second language

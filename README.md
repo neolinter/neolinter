@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). One real-time rule (NLR0001); the command line analyses are not implemented yet.
+> Status: early development (0.1). Two real-time rules (NLR0001, NLR0004); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -52,6 +52,21 @@ NLR0001 options (all optional; the values above are the defaults):
 | `nlr0001.min_statements` | integer >= 1 | Smallest `if` body (without `else`) that is reported. |
 | `nlr0001.simplify_logical_operators` | `true` / `false` | The fix rewrites `!(a && b)` as `!a || !b` and `!(a || b)` as `!a && !b`. Only for the built-in operators on `bool`; nullable and user-defined operators are never rewritten. |
 | `nlr0001.guard_braces` | `always` / `never` | `never` writes the inserted exit as one statement without braces (braces that carry comments are kept). |
+
+NLR0004 has no option. It reports `if (x == null) x = v;` (also `null == x`, `x is null`, with or without braces) and
+`x = x ?? v;`, and the fix writes `x ??= v;`. Exact rules, all meant to keep behaviour identical:
+
+- needs C# 8 or later (read from the project's language version);
+- the target is a local, a parameter, a field (not `volatile`) or a property, reached at most through `this`, type
+  names and other fields, locals or parameters (no call, indexer or property in the middle of the path), so evaluating
+  it more than once has no effect;
+- the type is a reference type or a nullable value type (not a non-nullable value type, `dynamic` or an unconstrained
+  type parameter);
+- `x == null` is skipped when `==` is a user-defined operator (`x is null` is fine, `??=` never calls it);
+- the `if` has no `else`, a single assignment as its body and no comment or `#if` inside; same for `x = x ?? v;`;
+- the value is not `null`, `default` or a `throw` expression;
+- `x = x ?? v;` on a property is reported only for a plain auto-property that is not `virtual`/`override`, because the
+  long form calls the setter even when the value is not null and `??=` does not.
 
 The rules then show up wherever Roslyn analyzers are loaded:
 
@@ -129,6 +144,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | Id | Title | Kind | Default |
 |---|---|---|---|
 | [NLR0001](rules/NLR0001.yaml) | Invert 'if' to reduce nesting | real-time, code fix | suggestion |
+| [NLR0004](rules/NLR0004.yaml) | Use null-coalescing assignment | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 
