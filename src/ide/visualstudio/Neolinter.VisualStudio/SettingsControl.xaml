@@ -5,14 +5,14 @@
     <DataTemplate x:Key="textOption">
       <StackPanel Margin="0,6,0,0">
         <TextBlock Text="{Binding Title}" Margin="0,4,0,2" />
-        <TextBox Background="{DynamicResource {x:Static styles:VsBrushes.WindowKey}}" Foreground="{DynamicResource {x:Static styles:VsBrushes.WindowTextKey}}" BorderBrush="{DynamicResource {x:Static styles:VsBrushes.ActiveBorderKey}}" Text="{Binding Value, Mode=TwoWay}" MinWidth="120" HorizontalAlignment="Left" />
+        <TextBox Style="{StaticResource {x:Static styles:VsResourceKeys.TextBoxStyleKey}}" Text="{Binding Value, Mode=TwoWay}" MinWidth="120" HorizontalAlignment="Left" />
         <TextBlock Text="{Binding Hint}" TextWrapping="Wrap" Opacity="0.7" />
       </StackPanel>
     </DataTemplate>
     <DataTemplate x:Key="choiceOption">
       <StackPanel Margin="0,6,0,0">
         <TextBlock Text="{Binding Title}" Margin="0,4,0,2" />
-        <ComboBox Background="{DynamicResource {x:Static styles:VsBrushes.WindowKey}}" Foreground="{DynamicResource {x:Static styles:VsBrushes.WindowTextKey}}" BorderBrush="{DynamicResource {x:Static styles:VsBrushes.ActiveBorderKey}}" ItemsSource="{Binding Choices}" SelectedItem="{Binding Value, Mode=TwoWay}" MinWidth="120" HorizontalAlignment="Left" />
+        <ComboBox Style="{StaticResource {x:Static styles:VsResourceKeys.ComboBoxStyleKey}}" ItemsSource="{Binding Choices}" SelectedItem="{Binding Value, Mode=TwoWay}" MinWidth="120" HorizontalAlignment="Left" />
         <TextBlock Text="{Binding Hint}" TextWrapping="Wrap" Opacity="0.7" />
       </StackPanel>
     </DataTemplate>
@@ -22,9 +22,9 @@
         <StackPanel>
           <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="16" TextWrapping="Wrap" />
           <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Margin="0,6,0,6" />
-          <CheckBox IsChecked="{Binding Enabled, Mode=TwoWay}" Content="Enabled" Foreground="{DynamicResource {x:Static styles:VsBrushes.WindowTextKey}}" />
+          <CheckBox IsChecked="{Binding Enabled, Mode=TwoWay}" Content="Enabled" Style="{StaticResource {x:Static styles:VsResourceKeys.CheckBoxStyleKey}}" />
           <TextBlock Text="Severity" Margin="0,8,0,2" />
-          <ComboBox Background="{DynamicResource {x:Static styles:VsBrushes.WindowKey}}" Foreground="{DynamicResource {x:Static styles:VsBrushes.WindowTextKey}}" BorderBrush="{DynamicResource {x:Static styles:VsBrushes.ActiveBorderKey}}" ItemsSource="{Binding Severities}" SelectedItem="{Binding Severity, Mode=TwoWay}" MinWidth="120" HorizontalAlignment="Left" />
+          <ComboBox Style="{StaticResource {x:Static styles:VsResourceKeys.ComboBoxStyleKey}}" ItemsSource="{Binding Severities}" SelectedItem="{Binding Severity, Mode=TwoWay}" MinWidth="120" HorizontalAlignment="Left" />
           <ItemsControl ItemsSource="{Binding TextOptions}" ItemTemplate="{StaticResource textOption}" />
           <ItemsControl ItemsSource="{Binding ChoiceOptions}" ItemTemplate="{StaticResource choiceOption}" />
         </StackPanel>
@@ -35,8 +35,8 @@
     <StackPanel Margin="16" TextElement.Foreground="{DynamicResource {x:Static styles:VsBrushes.WindowTextKey}}">
       <!-- Tab strip: "Solution analysis" stays disabled until the Visual Studio runner exists. -->
       <StackPanel Orientation="Horizontal">
-        <Button Background="{DynamicResource {x:Static styles:VsBrushes.ButtonFaceKey}}" Foreground="{DynamicResource {x:Static styles:VsBrushes.ButtonTextKey}}" BorderBrush="{DynamicResource {x:Static styles:VsBrushes.ActiveBorderKey}}" Content="Settings" Padding="12,4" />
-        <Button Background="{DynamicResource {x:Static styles:VsBrushes.ButtonFaceKey}}" Foreground="{DynamicResource {x:Static styles:VsBrushes.ButtonTextKey}}" BorderBrush="{DynamicResource {x:Static styles:VsBrushes.ActiveBorderKey}}" Content="Solution analysis" Padding="12,4" Margin="8,0,0,0" IsEnabled="False" ToolTip="Coming soon" />
+        <Button Style="{StaticResource {x:Static styles:VsResourceKeys.ButtonStyleKey}}" Content="Settings" Padding="12,4" />
+        <Button Style="{StaticResource {x:Static styles:VsResourceKeys.ButtonStyleKey}}" Content="Solution analysis" Padding="12,4" Margin="8,0,0,0" IsEnabled="False" ToolTip="Coming soon" />
       </StackPanel>
       <TextBlock Text="{Binding Location}" Margin="0,12,0,0" Opacity="0.7" TextWrapping="Wrap" />
       <TextBlock Text="{Binding PackageBanner}" Margin="0,8,0,0" TextWrapping="Wrap" />
