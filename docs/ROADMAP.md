@@ -292,6 +292,8 @@ See "Done" above. Original scope: `else if` cascades, De Morgan option, braces o
 - **Remaining candidate ideas** (general practices, descriptions to be written from scratch, **maintainer picks**):
   merge nested `if` statements without `else`; remove `else` after a branch that always exits; simplify boolean
   comparisons (`x == true`); avoid empty `catch` blocks.
+- **Wider backlog**: `docs/RULES_CATALOG.md` lists many more candidate rules (naming, async, bugs, simplification,
+  metrics, API, tests, project analyses) with a suggested order.
 - **Each rule**: analyzer, code fix with fix all when safe, YAML, tests, playground examples, README table.
 
 ## WP-13 — Second language
