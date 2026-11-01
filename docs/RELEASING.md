@@ -138,3 +138,9 @@ subject to the retirement of global Azure DevOps tokens on 2026-12-01).
 
 Not verified: the install on Professional and Enterprise (the manifest lists the `Microsoft.VisualStudio.Community`
 target, which Visual Studio is expected to apply to every edition; check on one). The window writing to a real solution's `.editorconfig` is also still unverified (WP-08 in `docs/ROADMAP.md`).
+
+**Temporary test job**: `republish-visualstudio` (remove it afterwards). Run Actions > Release > Run workflow with
+`visualstudio-release-tag` set to an existing release (for example `v0.1.0-preview.3`) and `dry-run` unchecked is not
+needed: when that input is filled, every other job is skipped and only this one runs, on `windows-2022` (Visual Studio 2022
+17.14 and its older `VsixPublisher.exe`). It prints the tool version and its options, fails if `-oidc` is missing, then
+publishes the `.vsix` of that release **for real** to the Visual Studio Marketplace.

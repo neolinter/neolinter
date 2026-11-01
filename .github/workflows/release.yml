@@ -16,6 +16,10 @@ on:
         description: Version to pack when not run on a tag (X.Y.Z or X.Y.Z-label.N)
         type: string
         default: 0.1.0-preview.1
+      visualstudio-release-tag:
+        description: "TEMPORARY test: only publish the .vsix of this existing release (for example v0.1.0-preview.3) to the Visual Studio Marketplace, from a windows-2022 runner; everything else is skipped"
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -23,6 +27,8 @@ permissions:
 jobs:
   prepare:
     name: Resolve version
+    # Skipping it skips every job that needs it, so the temporary test below runs alone.
+    if: inputs.visualstudio-release-tag == ''
     runs-on: ubuntu-latest
     outputs:
       nuget: ${{ steps.version.outputs.nuget }}
@@ -262,4 +268,36 @@ jobs:
           if (-not (Test-Path $tool)) { throw "VsixPublisher.exe not found under $vs" }
           $vsix = (Get-ChildItem dist -Recurse -Filter *.vsix | Select-Object -First 1).FullName
           & $tool publish -payload $vsix -publishManifest src/ide/visualstudio/publishManifest.json -oidc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+  # TEMPORARY (remove once VsixPublisher accepts the OIDC exchange on windows-latest): republishes the .vsix of an
+  # existing GitHub release with the older Visual Studio 2022 tool of the windows-2022 image. Only by hand.
+  republish-visualstudio:
+    name: Republish Visual Studio extension (test)
+    if: github.event_name == 'workflow_dispatch' && inputs.visualstudio-release-tag != ''
+    runs-on: windows-2022
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RELEASE_TAG: ${{ inputs.visualstudio-release-tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download the vsix of the release
+        run: gh release download $env:RELEASE_TAG --pattern Neolinter.VisualStudio.vsix --dir dist
+
+      - name: Show the tool and publish
+        run: |
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -property installationPath
+          $tool = Join-Path $vs 'VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe'
+          if (-not (Test-Path $tool)) { throw "VsixPublisher.exe not found under $vs" }
+          "Visual Studio: $vs"
+          (Get-Item $tool).VersionInfo.FileVersion
+          $help = & $tool publish 2>&1 | Out-String
+          $help
+          if ($help -notmatch '-oidc') { throw 'This VsixPublisher has no -oidc option.' }
+          & $tool publish -payload (Resolve-Path dist\Neolinter.VisualStudio.vsix) -publishManifest src/ide/visualstudio/publishManifest.json -oidc
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
