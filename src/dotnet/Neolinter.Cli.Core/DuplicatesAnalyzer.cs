@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Neolinter.Cli.Core;
 
 /// <summary>
-/// NLC0001: finds sequences of statements that appear more than once in the solution, ignoring identifier names,
+/// NLC0003: finds sequences of statements that appear more than once in the solution, ignoring identifier names,
 /// literal values and trivia. Algorithm and exclusions are described in docs/architecture.md ("duplicates").
 /// </summary>
 public static class DuplicatesAnalyzer

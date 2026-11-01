@@ -46,7 +46,7 @@ Detection logic that the code fix also needs lives in the analyzer assembly as a
 `InvertIfAnalysis`). Code fixes keep the user's formatting: they reuse existing trivia and never create
 elastic trivia, which would let the host reformat surrounding code.
 
-Rule options are `.editorconfig` keys named `<id lowercase>.<option>`, e.g. `nl0001.min_statements`, read through
+Rule options are `.editorconfig` keys named `<id lowercase>.<option>`, e.g. `nlr0001.min_statements`, read through
 `AnalyzerConfigOptionsProvider`. Invalid values fall back to the default.
 
 ## Settings screens
@@ -137,9 +137,17 @@ These are frozen from 0.1 on; changing them is a breaking change.
 
 ### Rule ids
 
-- `NL0001`…: real-time rules.
-- `NLD0001`…: dead code (`neolinter analyze dead-code`). `NLD0001` = unused member.
-- `NLC0001`…: duplicated code (`neolinter analyze duplicates`). `NLC0001` = duplicated statements.
+One numbering for all rules, shared across prefixes; the letter says where the rule runs.
+
+- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`.
+- `NLC` (**C**ommand line): `neolinter analyze`. `NLC0002` = unused member (`dead-code`), `NLC0003` = duplicated
+  statements (`duplicates`).
+
+Migration from the first ids (`NL0001`, `NLD0001`, `NLC0001`, before any release): `NL0001` is now `NLR0001`,
+`NLD0001` is `NLC0002` and `NLC0001` is `NLC0003`. In `.editorconfig`, rename `dotnet_diagnostic.NL0001.severity`
+to `dotnet_diagnostic.NLR0001.severity` and the `nl0001.*` options to `nlr0001.*`; suppressions
+(`#pragma warning disable`, `[SuppressMessage]`) use the new id. A SARIF baseline written with the old ids no
+longer matches (the fingerprint includes the rule id): regenerate it.
 
 ### neolinter.json
 
@@ -181,7 +189,7 @@ are rejected so typos do not go unnoticed. Comments and trailing commas are allo
 
 The solution must be restored: a project without framework references stops the analysis with exit code 2.
 
-#### dead-code (NLD0001)
+#### dead-code (NLC0002)
 
 `DeadCodeAnalyzer` looks at every type, method, constructor, operator, property, field and event declared in
 source, whatever its accessibility (the compiler only warns about some private members). Each one goes through
@@ -215,7 +223,7 @@ Types deriving from or implementing one of `entryPointBaseTypes` (full name with
 `MyApp.IHandler` for `IHandler<T>`) are skipped with all their members. Projects matching `testProjects` are not
 reported; references from them count unless `countTestReferences` is false.
 
-#### duplicates (NLC0001)
+#### duplicates (NLC0003)
 
 `DuplicatesAnalyzer` works on syntax trees only (no binding, so it does not need a restored solution):
 
@@ -244,7 +252,7 @@ looked at.
 
 C# is the first language, not the only one. What is already language-neutral:
 
-- rule files (`language` field), rule ids (one global numbering for `NL`, `NLD`, `NLC`), `neolinter.json`
+- rule files (`language` field), rule ids (one global numbering, `NLR` or `NLC` prefix), `neolinter.json`
   sections per analysis, SARIF output and exit codes;
 - settings screens, which are organized per IDE, not per language.
 

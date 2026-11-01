@@ -7,7 +7,7 @@ using Neolinter.CodeFixes.InvertIf;
 
 namespace Neolinter.Tests;
 
-/// <summary>Runs NL0001 analyzer and code fix tests. Mark expected diagnostics with <c>{|NL0001:if|}</c>.</summary>
+/// <summary>Runs NLR0001 analyzer and code fix tests. Mark expected diagnostics with <c>{|NLR0001:if|}</c>.</summary>
 internal static class Verify
 {
     public static Task NoDiagnosticAsync(string source, LanguageVersion languageVersion = LanguageVersion.Latest, string? editorConfig = null) =>

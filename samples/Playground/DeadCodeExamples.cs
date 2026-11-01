@@ -1,6 +1,6 @@
-// NLD0001: unused member, reported by "neolinter analyze dead-code samples/Playground".
+// NLC0002: unused member, reported by "neolinter analyze dead-code samples/Playground".
 // Members named Reported* get a finding; NotReported* must stay silent.
-// neolinter.json excludes NL0001Examples.cs, whose methods exist only to show NL0001.
+// neolinter.json excludes NLR0001Examples.cs, whose methods exist only to show NLR0001.
 using System;
 using System.Runtime.CompilerServices;
 

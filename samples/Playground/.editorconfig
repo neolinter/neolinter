@@ -1,5 +1,5 @@
 # Neolinter settings for the playground. Edit by hand or with "Neolinter: Open Settings".
 
 [*.cs]
-dotnet_diagnostic.NL0001.severity = warning
-nl0001.min_statements = 3
+dotnet_diagnostic.NLR0001.severity = warning
+nlr0001.min_statements = 3

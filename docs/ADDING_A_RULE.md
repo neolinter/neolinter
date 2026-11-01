@@ -2,12 +2,12 @@
 
 ## 1. Pick an id and describe the rule
 
-Take the next free id: `NL` for real-time rules, `NLD` for dead code, `NLC` for clones. Ids are never reused.
+Take the next free number, shared by all rules, with the letter of where the rule runs: `NLR` for real-time rules (Roslyn, `.editorconfig`), `NLC` for command line analyses. Ids are never reused.
 
 Create `rules/<ID>.yaml`:
 
 ```yaml
-id: NL0002
+id: NLR0004
 title: Short imperative title          # must match the DiagnosticDescriptor title
 language: csharp
 type: realtime                         # realtime | cli
@@ -16,7 +16,7 @@ defaultSeverity: suggestion            # none | silent | suggestion | warning | 
 description: >-
   What the rule reports and why, written by you (see CLEAN_ROOM.md).
 options:
-  - key: nl0002.some_option            # <id lowercase>.<name>
+  - key: nlr0004.some_option            # <id lowercase>.<name>
     type: integer                      # integer | boolean | string | enum (with values: [...])
     default: 3
     minimum: 1

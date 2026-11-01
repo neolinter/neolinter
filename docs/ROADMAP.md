@@ -12,7 +12,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 - **Read first**: `README.md`, `docs/architecture.md`, `docs/CLEAN_ROOM.md`, `docs/ADDING_A_RULE.md`.
 - **Clean room**: no reverse engineering, no code, rule ids, messages or descriptions copied or paraphrased from
   other analyzers (ReSharper/JetBrains, Sonar, etc.). No third-party brand in names. Write texts yourself.
-- **Frozen contracts** (changing them is a breaking change, ask first): rule ids (`NL*`, `NLD*`, `NLC*`),
+- **Frozen contracts** (changing them is a breaking change, ask first): rule ids (`NLR*`, `NLC*`),
   `neolinter.json` format, CLI exit codes `0` ok / `1` findings / `2` error, `.editorconfig` keys
   (`dotnet_diagnostic.<ID>.severity`, `<id>.<option>`).
 - **Shell**: prefix every shell command with `rtk` (e.g. `rtk dotnet test Neolinter.slnx`). Use `rtk bypass <cmd>`
@@ -37,15 +37,15 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-00 | Merge the initial skeleton (PR #1) | — | in review |
 | WP-01 | Repository hygiene | WP-00 | done (branch protection pending) |
 | WP-02 | Release and publishing | WP-00 | todo |
-| WP-03 | CLI: dead code (NLD0001) | WP-00 | done |
-| WP-04 | CLI: duplicated code (NLC0001) | WP-00 | done |
+| WP-03 | CLI: dead code (NLC0002) | WP-00 | done |
+| WP-04 | CLI: duplicated code (NLC0003) | WP-00 | done |
 | WP-05 | CLI: output and CI options | WP-03 or WP-04 | done |
 | WP-06 | VS Code: "Solution analysis" tab | WP-03 or WP-04 | done (F5 run not verified) |
 | WP-07 | Shared `.editorconfig` fixtures | WP-00 | done |
 | WP-08 | Visual Studio 2022+ settings extension | WP-07 | done (window opened in VS 2026, writing not verified) |
 | WP-09 | Rider settings plugin | WP-07 | todo |
 | WP-10 | Zed: feasibility and integration | WP-00 | todo |
-| WP-11 | NL0001 v2 | WP-00 | todo |
+| WP-11 | NLR0001 v2 | WP-00 | todo |
 | WP-12 | New real-time rules | WP-00 | todo |
 | WP-13 | Second language | WP-02 | todo |
 | WP-14 | Localized messages | WP-00 | decision needed |
@@ -56,9 +56,9 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
 
 ## Done
 
-- **0.1 skeleton** (PR #1): monorepo, NL0001 analyzer + code fix + fix all, VS Code settings extension,
+- **0.1 skeleton** (PR #1): monorepo, NLR0001 analyzer + code fix + fix all, VS Code settings extension,
   CLI skeleton (solution loading, `neolinter.json`, SARIF export), CI, playground, docs.
-- **WP-03 dead code**: `neolinter analyze dead-code` (NLD0001), exclusions documented in
+- **WP-03 dead code**: `neolinter analyze dead-code` (NLC0002), exclusions documented in
   `docs/architecture.md`, one test per exclusion, playground `neolinter.json`. Decisions: members of every
   accessibility are reported, private included; `excludePaths`/`testProjects` globs use
   `Microsoft.Extensions.FileSystemGlobbing`; an unused type is reported once instead of member by member;
@@ -79,12 +79,16 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   accepted: dev dependency only, not shipped; recorded in `SECURITY.md`. **Maintainer to do in GitHub
   settings**: enable private vulnerability reporting, and protect `main` as listed in
   `docs/CONTRIBUTING.md` ("Branch protection").
-- **WP-04 duplicated code**: `neolinter analyze duplicates` (NLC0001), algorithm and exclusions in
+- **Rule ids renamed**: one global numbering, third letter for where the rule runs: `NL0001` → `NLR0001`,
+  `NLD0001` → `NLC0002`, `NLC0001` → `NLC0003`; next ids `NLR0004`, `NLC0005`… Breaking change of the frozen ids,
+  accepted by the maintainer before any release. Migration note in `docs/architecture.md` ("Rule ids").
+  Mentions of the old ids below are updated to the new ones.
+- **WP-04 duplicated code**: `neolinter analyze duplicates` (NLC0003), algorithm and exclusions in
   `docs/architecture.md`, tests in `DuplicatesTests`, playground `DuplicateExamples.cs` (one expected group), the
   VS Code "Solution analysis" tab now offers it. Decisions (maintainer-approved): copies are compared across projects
   and inside one file; a minimum token count is applied in addition to the statement count. **New optional key
   `duplicates.minTokens`** (default 50, 0 disables it; additive, backward compatible change of the frozen
-  `neolinter.json`; documented in `docs/architecture.md`, `rules/NLC0001.yaml` and the README). Own choices:
+  `neolinter.json`; documented in `docs/architecture.md`, `rules/NLC0003.yaml` and the README). Own choices:
   analysis on syntax only (no restore needed), all literals share one placeholder and all identifiers another,
   windows are chained into maximal ranges, copies overlapping inside one block keep the first, and a group lying
   entirely inside copies of a larger group is dropped. Not covered: edited or reordered copies (type-3 clones) and
@@ -150,9 +154,9 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   `neolinter` creation and PAT; pre-release naming (`0.1.0-preview.1`?).
 - **Done when**: a test tag publishes all three artifacts (or a dry run proves it).
 
-## WP-03 — CLI: dead code (NLD0001) — done
+## WP-03 — CLI: dead code (NLC0002) — done
 
-- **Goal**: implement `neolinter analyze dead-code` (rule `NLD0001`, see `rules/NLD0001.yaml`).
+- **Goal**: implement `neolinter analyze dead-code` (rule `NLC0002`, see `rules/NLC0002.yaml`).
 - **Design** (from `docs/architecture.md`): load with `SolutionLoader`; for each public/internal method,
   property, field, event and type in source, `SymbolFinder.FindReferencesAsync`; report members with no
   reference outside their own declaration.
@@ -169,11 +173,11 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   small in-house matcher (prefer `Microsoft.Extensions.FileSystemGlobbing`, already in the .NET ecosystem).
 - **Done when**: command reports the playground finding, all exclusions tested, docs updated.
 
-## WP-04 — CLI: duplicated code (NLC0001) — done
+## WP-04 — CLI: duplicated code (NLC0003) — done
 
 See "Done" above. Original scope:
 
-- **Goal**: implement `neolinter analyze duplicates` (rule `NLC0001`, see `rules/NLC0001.yaml`).
+- **Goal**: implement `neolinter analyze duplicates` (rule `NLC0003`, see `rules/NLC0003.yaml`).
 - **Design**: a `CSharpSyntaxWalker` collects statement lists of every block; each statement is normalized
   (identifiers and literals replaced by placeholders, trivia dropped) and hashed; a sliding window of
   `duplicates.minStatements` (default 8) hashes consecutive statements; collisions are grouped, then
@@ -239,11 +243,11 @@ See "Done" above. Original scope:
 
 - **Goal**: decide what "settings in Zed" can be.
 - **Scope**: check the current Zed extension API (Rust → WASM). As of 0.1 it offers no custom UI panel, so the
-  likely outcome is documentation (Roslyn language server setup so NL0001 works in Zed, `.editorconfig`
+  likely outcome is documentation (Roslyn language server setup so NLR0001 works in Zed, `.editorconfig`
   snippets) and possibly slash commands. Write the findings in `docs/architecture.md` and **ask** before building
   anything.
 
-## WP-11 — NL0001 v2
+## WP-11 — NLR0001 v2
 
 - **Scope**, each item to confirm with the maintainer first:
   - `else if` cascades whose final `else` only exits;
@@ -251,11 +255,11 @@ See "Done" above. Original scope:
     `nl0001.simplify_logical_operators`;
   - optional braces style for the inserted exit (`nl0001.guard_braces = always|never`);
   - `yield break` in iterators.
-- **Constraints**: new options go to `rules/NL0001.yaml`; every change keeps behaviour (add negative tests).
+- **Constraints**: new options go to `rules/NLR0001.yaml`; every change keeps behaviour (add negative tests).
 
 ## WP-12 — New real-time rules
 
-- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NL0002`.
+- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0004`.
 - **Candidate ideas** (general practices, descriptions to be written from scratch, **maintainer picks**):
   merge nested `if` statements without `else`; remove `else` after a branch that always exits; simplify boolean
   comparisons (`x == true`); use the null-coalescing assignment `??=`; avoid empty `catch` blocks.

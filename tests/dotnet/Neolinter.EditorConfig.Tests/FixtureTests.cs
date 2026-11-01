@@ -76,10 +76,10 @@ public class FixtureTests
     public void LoadsEmbeddedRules()
     {
         var rules = Rule.LoadEmbedded();
-        var nl0001 = Assert.Single(rules, r => r.Id == "NL0001");
-        Assert.Equal("suggestion", nl0001.DefaultSeverity);
-        Assert.Equal("nl0001.min_statements", Assert.Single(nl0001.Options).Key);
-        Assert.Equal("3", nl0001.Options[0].Default);
+        var nlr0001 = Assert.Single(rules, r => r.Id == "NLR0001");
+        Assert.Equal("suggestion", nlr0001.DefaultSeverity);
+        Assert.Equal("nlr0001.min_statements", Assert.Single(nlr0001.Options).Key);
+        Assert.Equal("3", nlr0001.Options[0].Default);
     }
 
     [Theory]

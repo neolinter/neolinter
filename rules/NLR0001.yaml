@@ -1,4 +1,4 @@
-id: NL0001
+id: NLR0001
 title: Invert 'if' to reduce nesting
 language: csharp
 type: realtime
@@ -11,7 +11,7 @@ description: >-
   body (exit with 'continue'), for an 'if' followed only by a simple 'return' (the return is
   repeated), and for an 'if'/'else' whose 'else' only contains return, continue, break or throw.
 options:
-  - key: nl0001.min_statements
+  - key: nlr0001.min_statements
     type: integer
     default: 3
     minimum: 1

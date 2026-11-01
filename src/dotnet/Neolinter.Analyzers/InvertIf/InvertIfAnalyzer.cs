@@ -7,12 +7,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Neolinter.Analyzers.InvertIf;
 
-/// <summary>NL0001: suggests inverting an <c>if</c> to leave early and reduce nesting.</summary>
+/// <summary>NLR0001: suggests inverting an <c>if</c> to leave early and reduce nesting.</summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class InvertIfAnalyzer : DiagnosticAnalyzer
 {
-    public const string DiagnosticId = "NL0001";
-    public const string MinStatementsOption = "nl0001.min_statements";
+    public const string DiagnosticId = "NLR0001";
+    public const string MinStatementsOption = "nlr0001.min_statements";
 
     internal static readonly DiagnosticDescriptor Rule = new(
         DiagnosticId,
@@ -22,7 +22,7 @@ public sealed class InvertIfAnalyzer : DiagnosticAnalyzer
         defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: true,
         description: "When the rest of a block sits inside an 'if' and the other path only leaves the block, inverting the condition and leaving first keeps the main code one level less indented.",
-        helpLinkUri: "https://github.com/neolinter/neolinter/blob/main/rules/NL0001.yaml");
+        helpLinkUri: "https://github.com/neolinter/neolinter/blob/main/rules/NLR0001.yaml");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 

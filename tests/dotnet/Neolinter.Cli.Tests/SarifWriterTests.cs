@@ -12,7 +12,7 @@ public class SarifWriterTests
         new("1.2.3", Root, CliRules.All, findings);
 
     private static Finding UnusedMember(string relativePath) => new(
-        "NLD0001",
+        "NLC0002",
         "'Helper.Unused()' is never referenced.",
         FindingLevel.Warning,
         new SourceLocation(Path.Combine(Root, relativePath), 10, 5, 10, 25));
@@ -37,7 +37,7 @@ public class SarifWriterTests
         Assert.Equal("Neolinter", driver.GetProperty("name").GetString());
         Assert.Equal("1.2.3", driver.GetProperty("version").GetString());
         var rules = driver.GetProperty("rules");
-        Assert.Equal(["NLD0001", "NLC0001"], rules.EnumerateArray().Select(r => r.GetProperty("id").GetString()));
+        Assert.Equal(["NLC0002", "NLC0003"], rules.EnumerateArray().Select(r => r.GetProperty("id").GetString()));
         Assert.Equal("warning", rules[0].GetProperty("defaultConfiguration").GetProperty("level").GetString());
         Assert.False(string.IsNullOrEmpty(rules[0].GetProperty("shortDescription").GetProperty("text").GetString()));
     }
@@ -54,7 +54,7 @@ public class SarifWriterTests
         var run = Run(SampleReport(UnusedMember(Path.Combine("src", "My App", "Helper.cs"))));
         var result = run.GetProperty("results")[0];
 
-        Assert.Equal("NLD0001", result.GetProperty("ruleId").GetString());
+        Assert.Equal("NLC0002", result.GetProperty("ruleId").GetString());
         Assert.Equal(0, result.GetProperty("ruleIndex").GetInt32());
         Assert.Equal("warning", result.GetProperty("level").GetString());
         Assert.Equal("'Helper.Unused()' is never referenced.", result.GetProperty("message").GetProperty("text").GetString());
@@ -88,7 +88,7 @@ public class SarifWriterTests
     public void DuplicateListsTheOtherCopiesAsRelatedLocations()
     {
         var finding = new Finding(
-            "NLC0001",
+            "NLC0003",
             "These 9 statements are repeated in 2 other places.",
             FindingLevel.Note,
             new SourceLocation(Path.Combine(Root, "A.cs"), 3, 9, 14, 10),

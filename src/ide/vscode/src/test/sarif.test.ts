@@ -9,25 +9,25 @@ const log = JSON.stringify({
   version: '2.1.0',
   runs: [
     {
-      tool: { driver: { name: 'Neolinter', rules: [{ id: 'NLD0001', shortDescription: { text: 'Unused member' } }] } },
+      tool: { driver: { name: 'Neolinter', rules: [{ id: 'NLC0002', shortDescription: { text: 'Unused member' } }] } },
       originalUriBaseIds: { SRCROOT: { uri: root } },
       results: [
         {
-          ruleId: 'NLD0001',
+          ruleId: 'NLC0002',
           level: 'warning',
           message: { text: 'B is never used.' },
           locations: [{ physicalLocation: { artifactLocation: { uri: 'src/My%20Dir/B.cs', uriBaseId: 'SRCROOT' }, region: { startLine: 4, startColumn: 3, endLine: 4, endColumn: 9 } } }],
         },
         {
-          ruleId: 'NLC0001',
+          ruleId: 'NLC0003',
           level: 'error',
           message: { text: 'Duplicate.' },
           locations: [{ physicalLocation: { artifactLocation: { uri: 'A.cs', uriBaseId: 'SRCROOT' }, region: { startLine: 1 } } }],
           relatedLocations: [{ id: 0, physicalLocation: { artifactLocation: { uri: pathToFileURL('/elsewhere/C.cs').href }, region: { startLine: 7, startColumn: 1, endLine: 9, endColumn: 2 } } }],
         },
-        { ruleId: 'NLD0001', message: { text: 'No location.' } },
+        { ruleId: 'NLC0002', message: { text: 'No location.' } },
         {
-          ruleId: 'NLD0001',
+          ruleId: 'NLC0002',
           message: { text: 'Default level.' },
           locations: [{ physicalLocation: { artifactLocation: { uri: 'A.cs', uriBaseId: 'SRCROOT' }, region: { startLine: 2 } } }],
         },
@@ -69,7 +69,7 @@ test('rejects text that is not JSON', () => {
 test('groups by rule id, sorted, with the description from the log', () => {
   const groups = groupByRule(parseSarif(log), log);
   assert.deepEqual(groups.map((g) => [g.ruleId, g.findings.length, g.description]), [
-    ['NLC0001', 1, undefined],
-    ['NLD0001', 2, 'Unused member'],
+    ['NLC0002', 2, 'Unused member'],
+    ['NLC0003', 1, undefined],
   ]);
 });

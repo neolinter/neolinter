@@ -1,7 +1,7 @@
 {
   "version": 1,
   "deadCode": {
-    // NL0001 examples are never called on purpose.
-    "excludePaths": ["NL0001Examples.cs"]
+    // NLR0001 examples are never called on purpose.
+    "excludePaths": ["NLR0001Examples.cs"]
   }
 }

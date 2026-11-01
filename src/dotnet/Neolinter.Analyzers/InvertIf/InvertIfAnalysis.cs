@@ -37,7 +37,7 @@ internal sealed class InvertIfCandidate
     public StatementSyntax Exit { get; }
 }
 
-/// <summary>Detection shared by the NL0001 analyzer and its code fix.</summary>
+/// <summary>Detection shared by the NLR0001 analyzer and its code fix.</summary>
 internal static class InvertIfAnalysis
 {
     public const int DefaultMinStatements = 3;
