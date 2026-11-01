@@ -1,4 +1,4 @@
-// NL0001: invert 'if' to reduce nesting.
+// NLR0001: invert 'if' to reduce nesting.
 // Methods named Reported* get the diagnostic and a code fix; NotReported* must stay silent.
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Playground;
 
-public class NL0001Examples
+public class NLR0001Examples
 {
     // --- Reported --------------------------------------------------------
 

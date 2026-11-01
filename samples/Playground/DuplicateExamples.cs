@@ -1,4 +1,4 @@
-// NLC0001: duplicated code, reported by "neolinter analyze duplicates samples/Playground".
+// NLC0003: duplicated code, reported by "neolinter analyze duplicates samples/Playground".
 // One group is expected: ReportedFirstCopy and ReportedSecondCopy repeat the same 8 statements
 // (names and literals differ, which does not matter). NotReported* methods must stay silent.
 using System;

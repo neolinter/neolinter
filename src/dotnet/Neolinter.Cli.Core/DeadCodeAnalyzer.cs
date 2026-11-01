@@ -7,7 +7,7 @@ using Microsoft.Extensions.FileSystemGlobbing;
 namespace Neolinter.Cli.Core;
 
 /// <summary>
-/// NLD0001: finds types and members of any accessibility that nothing in the solution references.
+/// NLC0002: finds types and members of any accessibility that nothing in the solution references.
 /// Built-in exclusions are listed in docs/architecture.md ("dead-code").
 /// </summary>
 public static class DeadCodeAnalyzer

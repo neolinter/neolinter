@@ -13,7 +13,7 @@ public class InvertIfTests
         {
             void M(object o)
             {
-                {|NL0001:if|} (o != null)
+                {|NLR0001:if|} (o != null)
                 {
                     A();
                     B();
@@ -57,7 +57,7 @@ public class InvertIfTests
             {
                 {{loop}}
                 {
-                    {|NL0001:if|} (c)
+                    {|NLR0001:if|} (c)
                     {
                         A();
                         A();
@@ -100,7 +100,7 @@ public class InvertIfTests
             {
                 do
                 {
-                    {|NL0001:if|} (c)
+                    {|NLR0001:if|} (c)
                     {
                         A();
                         A();
@@ -145,7 +145,7 @@ public class InvertIfTests
         {
             async Task M(bool c)
             {
-                {|NL0001:if|} (c)
+                {|NLR0001:if|} (c)
                 {
                     await Task.Yield();
                     await Task.Yield();
@@ -181,7 +181,7 @@ public class InvertIfTests
             int M(int[] items)
             {
                 var count = 0;
-                {|NL0001:if|} (items.Length > 0)
+                {|NLR0001:if|} (items.Length > 0)
                 {
                     count++;
                     count++;
@@ -242,7 +242,7 @@ public class InvertIfTests
             {
                 Action a = () =>
                 {
-                    {|NL0001:if|} (c)
+                    {|NLR0001:if|} (c)
                     {
                         A();
                         A();
@@ -290,7 +290,7 @@ public class InvertIfTests
 
                 void Local()
                 {
-                    {|NL0001:if|} (c)
+                    {|NLR0001:if|} (c)
                     {
                         A();
                         A();
@@ -338,7 +338,7 @@ public class InvertIfTests
         {
             int M(bool active)
             {
-                {|NL0001:if|} (active)
+                {|NLR0001:if|} (active)
                 {
                     A();
                 }
@@ -383,7 +383,7 @@ public class InvertIfTests
             {
                 foreach (var x in items)
                 {
-                    {|NL0001:if|} (x == 0)
+                    {|NLR0001:if|} (x == 0)
                     {
                         A();
                         A();
@@ -472,7 +472,7 @@ public class InvertIfTests
         {
             void M(bool c)
             {
-                {|NL0001:if|} (c)
+                {|NLR0001:if|} (c)
                 {
                     A();
                 }
@@ -497,7 +497,7 @@ public class InvertIfTests
             void A() { }
         }
         """,
-        editorConfig: "nl0001.min_statements = 1");
+        editorConfig: "nlr0001.min_statements = 1");
 
     [Fact]
     public Task StatementAfterIf_NoDiagnostic() => Verify.NoDiagnosticAsync(
@@ -636,7 +636,7 @@ public class InvertIfTests
         {
             void M(int a, int b, bool flag, double d, int? n, object o)
             {
-                {|NL0001:if|} ({{condition}})
+                {|NLR0001:if|} ({{condition}})
                 {
                     A();
                     A();
@@ -675,7 +675,7 @@ public class InvertIfTests
         {
             void M(object o)
             {
-                {|NL0001:if|} (o is null)
+                {|NLR0001:if|} (o is null)
                 {
                     A();
                     A();
@@ -716,7 +716,7 @@ public class InvertIfTests
             void M(bool c)
             {
                 // Only when c is set.
-                {|NL0001:if|} (c)
+                {|NLR0001:if|} (c)
                 { // start
                     // first call
                     A();
@@ -762,7 +762,7 @@ public class InvertIfTests
         class C
         {
             void M(bool c) {
-                {|NL0001:if|} (c) {
+                {|NLR0001:if|} (c) {
                     A();
                     A();
                     A();
@@ -791,7 +791,7 @@ public class InvertIfTests
 
     [Fact]
     public Task TabIndentation() => Verify.FixAsync(
-        "class C\n{\n\tvoid M(bool c)\n\t{\n\t\t{|NL0001:if|} (c)\n\t\t{\n\t\t\tA();\n\t\t\tA();\n\t\t\tA();\n\t\t}\n\t}\n\n\tvoid A() { }\n}\n",
+        "class C\n{\n\tvoid M(bool c)\n\t{\n\t\t{|NLR0001:if|} (c)\n\t\t{\n\t\t\tA();\n\t\t\tA();\n\t\t\tA();\n\t\t}\n\t}\n\n\tvoid A() { }\n}\n",
         "class C\n{\n\tvoid M(bool c)\n\t{\n\t\tif (!c)\n\t\t{\n\t\t\treturn;\n\t\t}\n\n\t\tA();\n\t\tA();\n\t\tA();\n\t}\n\n\tvoid A() { }\n}\n");
 
     // --- Fix all -------------------------------------------------------------
@@ -803,7 +803,7 @@ public class InvertIfTests
         {
             void M1(bool c)
             {
-                {|NL0001:if|} (c)
+                {|NLR0001:if|} (c)
                 {
                     A();
                     A();
@@ -813,7 +813,7 @@ public class InvertIfTests
 
             void M2(bool c)
             {
-                {|NL0001:if|} (!c)
+                {|NLR0001:if|} (!c)
                 {
                     A();
                     A();

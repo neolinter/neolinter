@@ -279,7 +279,7 @@ public partial class DeadCodeTests
 
         Assert.Equal(ExitCodes.Findings, exitCode);
         var sarif = await File.ReadAllTextAsync(Path.Combine(directory.Path, "out.sarif"));
-        Assert.Contains("\"ruleId\": \"NLD0001\"", sarif);
+        Assert.Contains("\"ruleId\": \"NLC0002\"", sarif);
         Assert.Contains("\"uri\": \"C.cs\"", sarif);
         Assert.Empty(output.ToString());
     }

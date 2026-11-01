@@ -1,4 +1,4 @@
 {
-  "key": "dotnet_diagnostic.NL0001.severity",
+  "key": "dotnet_diagnostic.NLR0001.severity",
   "value": "error"
 }

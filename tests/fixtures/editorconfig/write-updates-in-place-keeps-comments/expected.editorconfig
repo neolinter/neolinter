@@ -1,4 +1,4 @@
 # Top comment
 [*.cs]
-  dotnet_diagnostic.NL0001.severity = error ; keep me
+  dotnet_diagnostic.NLR0001.severity = error ; keep me
 # trailing

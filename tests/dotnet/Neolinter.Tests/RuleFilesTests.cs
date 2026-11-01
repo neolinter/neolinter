@@ -41,7 +41,7 @@ public class RuleFilesTests
 
         Assert.All(LoadRules(), rule =>
         {
-            Assert.Matches("^(NL|NLD|NLC)[0-9]{4}$", rule.Id);
+            Assert.Matches("^NL[RC][0-9]{4}$", rule.Id);
             Assert.Contains(rule.Type, new[] { "realtime", "cli" });
             Assert.Contains(rule.DefaultSeverity, severities);
             Assert.False(string.IsNullOrWhiteSpace(rule.Title));

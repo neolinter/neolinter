@@ -56,7 +56,7 @@ public class DuplicatesTests
         var findings = Analyze(Defaults, ("A.cs", Class("A", Statements("a", 5))), ("B.cs", Class("B", Statements("a", 5))));
 
         var finding = Assert.Single(findings);
-        Assert.Equal("NLC0001", finding.RuleId);
+        Assert.Equal("NLC0003", finding.RuleId);
         Assert.Equal("A.cs", Relative(finding));
         Assert.Equal("B.cs", Path.GetFileName(Assert.Single(finding.RelatedLocations).FilePath));
         Assert.Contains("8 statements", finding.Message);
@@ -263,7 +263,7 @@ public class DuplicatesTests
         var exitCode = await NeolinterCommand.RunAsync(["analyze", "duplicates", "App.csproj", "--format", "text"], output, new StringWriter(), directory.Path);
 
         Assert.Equal(ExitCodes.Findings, exitCode);
-        Assert.Contains("NLC0001", output.ToString());
+        Assert.Contains("NLC0003", output.ToString());
         Assert.Contains("related:", output.ToString());
     }
 
@@ -275,7 +275,7 @@ public class DuplicatesTests
 
         Assert.Equal(ExitCodes.Findings, exitCode);
         var report = output.ToString();
-        Assert.Equal(1, report.Split("NLC0001", StringSplitOptions.None).Length - 1);
+        Assert.Equal(1, report.Split("NLC0003", StringSplitOptions.None).Length - 1);
         Assert.Contains("DuplicateExamples.cs", report);
         Assert.DoesNotContain("NotReported", report);
     }

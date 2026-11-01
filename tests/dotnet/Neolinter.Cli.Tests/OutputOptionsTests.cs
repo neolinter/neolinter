@@ -8,7 +8,7 @@ public class OutputOptionsTests
     private static AnalysisReport Report(TestPaths.TempDirectory directory, params Finding[] findings) =>
         new("1.0.0", directory.Path, CliRules.All, findings);
 
-    private static Finding At(TestPaths.TempDirectory directory, string file, int line, string ruleId = "NLD0001", FindingLevel level = FindingLevel.Warning) =>
+    private static Finding At(TestPaths.TempDirectory directory, string file, int line, string ruleId = "NLC0002", FindingLevel level = FindingLevel.Warning) =>
         new(ruleId, "message", level, new SourceLocation(Path.Combine(directory.Path, file), line, 5, line, 9));
 
     [Fact]
@@ -37,7 +37,7 @@ public class OutputOptionsTests
             At(directory, "A.cs", 2), // same text: told apart by occurrence index
             At(directory, "A.cs", 3), // other text
             At(directory, "B.cs", 1), // other file
-            At(directory, "A.cs", 1, "NLC0001"))); // other rule
+            At(directory, "A.cs", 1, "NLC0003"))); // other rule
 
         Assert.Equal(5, fingerprints.Distinct().Count());
     }
@@ -73,7 +73,7 @@ public class OutputOptionsTests
         directory.Write("A.cs", "int x;\n");
         var report = Report(directory, At(directory, "A.cs", 1));
 
-        var empty = directory.Write("empty.sarif", """{ "version": "2.1.0", "runs": [ { "results": [ { "ruleId": "NLD0001" } ] } ] }""");
+        var empty = directory.Write("empty.sarif", """{ "version": "2.1.0", "runs": [ { "results": [ { "ruleId": "NLC0002" } ] } ] }""");
         Assert.Single(Baseline.Load(empty).Filter(report));
 
         var invalid = directory.Write("invalid.sarif", "not json");
@@ -86,9 +86,9 @@ public class OutputOptionsTests
         using var directory = new TestPaths.TempDirectory();
         var location = new SourceLocation(Path.Combine(directory.Path, "src", "A.cs"), 3, 7, 3, 9);
         var related = new SourceLocation(Path.Combine(directory.Path, "B.cs"), 10, 1, 12, 2);
-        var report = Report(directory, new Finding("NLC0001", "Duplicated.", FindingLevel.Note, location, [related]));
+        var report = Report(directory, new Finding("NLC0003", "Duplicated.", FindingLevel.Note, location, [related]));
 
-        Assert.Equal("src/A.cs(3,7): note NLC0001: Duplicated.\n  related: B.cs(10,1)\n", TextReportWriter.Write(report));
+        Assert.Equal("src/A.cs(3,7): note NLC0003: Duplicated.\n  related: B.cs(10,1)\n", TextReportWriter.Write(report));
     }
 
     private static async Task<(int ExitCode, string Output, string Error)> RunAsync(string directory, params string[] args)
@@ -147,7 +147,7 @@ public class OutputOptionsTests
         directory.Write("New.cs", "public class NewUnused { }");
         var added = await RunAsync(directory.Path, "analyze", "dead-code", "--format", "text", "--baseline", "baseline.sarif");
         Assert.Equal(ExitCodes.Findings, added.ExitCode);
-        Assert.Contains("New.cs(1,14): warning NLD0001:", added.Output);
+        Assert.Contains("New.cs(1,14): warning NLC0002:", added.Output);
         Assert.DoesNotContain("OldUnused", added.Output);
 
         // Findings below the --fail-on level are reported but keep exit code 0.

@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). One real-time rule (NL0001); the command line analyses are not implemented yet.
+> Status: early development (0.1). One real-time rule (NLR0001); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -18,7 +18,7 @@ command line only when you ask for them.
 | Delivered as | NuGet package `Neolinter` | .NET tool `Neolinter.Cli` |
 | Configured in | `.editorconfig` | `neolinter.json` |
 | Output | Editor diagnostics, build warnings | SARIF 2.1.0 |
-| Rule ids | `NL0001`, `NL0002`… | `NLD0001`… (dead code), `NLC0001`… (clones) |
+| Rule ids | `NLR0001`… | `NLC0002` (dead code), `NLC0003` (clones)… |
 
 ## Installation
 
@@ -37,8 +37,8 @@ Then configure the rules in `.editorconfig`:
 ```ini
 [*.cs]
 # none | silent | suggestion | warning | error
-dotnet_diagnostic.NL0001.severity = warning
-nl0001.min_statements = 3
+dotnet_diagnostic.NLR0001.severity = warning
+nlr0001.min_statements = 3
 ```
 
 The rules then show up wherever Roslyn analyzers are loaded:
@@ -110,9 +110,9 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 
 | Id | Title | Kind | Default |
 |---|---|---|---|
-| [NL0001](rules/NL0001.yaml) | Invert 'if' to reduce nesting | real-time, code fix | suggestion |
-| [NLD0001](rules/NLD0001.yaml) | Unused member | command line | warning |
-| [NLC0001](rules/NLC0001.yaml) | Duplicated code | command line | warning |
+| [NLR0001](rules/NLR0001.yaml) | Invert 'if' to reduce nesting | real-time, code fix | suggestion |
+| [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
+| [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 
 ## Documentation
 

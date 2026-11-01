@@ -4,4 +4,4 @@ root = true
 indent_style = space
 
 [*.cs]
-dotnet_diagnostic.NL0001.severity = none
+dotnet_diagnostic.NLR0001.severity = none

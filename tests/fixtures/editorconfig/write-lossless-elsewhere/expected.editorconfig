@@ -6,4 +6,4 @@ charset = utf-8
 
 [*.cs]
 # rules
-dotnet_diagnostic.NL0001.severity = warning
+dotnet_diagnostic.NLR0001.severity = warning
