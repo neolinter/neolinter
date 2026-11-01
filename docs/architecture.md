@@ -139,7 +139,7 @@ These are frozen from 0.1 on; changing them is a breaking change.
 
 One numbering for all rules, shared across prefixes; the letter says where the rule runs.
 
-- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison.
+- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison, `NLR0006` = keep LINQ operators inside the Entity Framework Core query.
 - `NLC` (**C**ommand line): `neolinter analyze`. `NLC0002` = unused member (`dead-code`), `NLC0003` = duplicated
   statements (`duplicates`).
 
@@ -171,6 +171,18 @@ longer matches (the fingerprint includes the rule id): regenerate it.
   type; built-in `==` only; no comment or directive inside the statement; value is not `null`, `default`, `throw` or
   `ref`; for `x = x ?? v;` a property must be a non-virtual auto-property.
 - The fix replaces the whole statement by `target ??= value;` and keeps the statement's leading and trailing trivia.
+
+### NLR0006 details
+
+- Shape: `<query>.<load>().<operator>(...)` where the operator is a method of `System.Linq.Enumerable` and `<load>` is
+  `ToList`, `ToArray`, `ToDictionary`, `AsEnumerable` (`Enumerable`) or `ToListAsync`, `ToArrayAsync`,
+  `ToDictionaryAsync` (any type in a `Microsoft.EntityFrameworkCore*` namespace), optionally wrapped in parentheses,
+  `!`, `await` and `ConfigureAwait`. The diagnostic sits on the operator name.
+- `<query>` is recognized by type, in `EfCoreClientLinqAnalysis`: a `Microsoft.EntityFrameworkCore.DbSet<T>` (or a
+  subclass), or an `IQueryable` produced from one by `System.Linq.Queryable` or `Microsoft.EntityFrameworkCore*`
+  extension methods. There is no package reference; tests declare stand-in types in that namespace.
+- Not followed (documented in `rules/NLR0006.yaml`): variables, `IQueryable` parameters, static call syntax, `?.`.
+- No code fix: an operator moved before the loading call may not be translatable to SQL.
 
 ### neolinter.json
 

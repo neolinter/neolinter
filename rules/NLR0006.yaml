@@ -1,0 +1,20 @@
+id: NLR0006
+title: Keep LINQ operators inside the Entity Framework Core query
+language: csharp
+type: realtime
+category: Performance
+defaultSeverity: warning
+description: >-
+  Loading an Entity Framework Core query and then processing the loaded objects with LINQ fetches every row and
+  every column first, and does the work in the application instead of the database. Reported when a LINQ operator
+  (Select, SelectMany, Where, OrderBy, OrderByDescending, ThenBy, ThenByDescending, GroupBy, Count, LongCount, Any,
+  All, First, FirstOrDefault, Single, SingleOrDefault, Last, LastOrDefault, Skip, Take, Distinct, Sum, Min, Max,
+  Average) is called directly on the result of ToList, ToArray, ToDictionary, AsEnumerable, ToListAsync,
+  ToArrayAsync or ToDictionaryAsync, also through parentheses, 'await' and ConfigureAwait, for example
+  'db.Orders.ToList().Select(o => o.Id)' or '(await db.Orders.ToListAsync()).Where(...)'. The query must start from
+  a 'Microsoft.EntityFrameworkCore.DbSet<T>' (a property, 'Set<T>()'), possibly followed by query operators such as
+  'Include' or 'Where'; Entity Framework Core is recognized by type name, no package reference is needed. There is
+  no code fix, because moving the operator before the loading call may not be translatable to SQL. Known limits, on
+  purpose: a loaded result kept in a variable and processed afterwards is not followed, a query received as an
+  'IQueryable' parameter is not traced back to its source, and only the first operator after the loading call is
+  reported. Nothing is reported for lists that did not come from such a query.

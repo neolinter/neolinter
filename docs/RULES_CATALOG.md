@@ -133,6 +133,20 @@ command line, one global numbering).
 - [ ] Missing `Nullable` and `TreatWarningsAsErrors`, outdated target frameworks
 - [ ] Packable project without license or README, inconsistent encoding and line endings
 
+## 11. Entity Framework Core
+
+Detected by type name (`Microsoft.EntityFrameworkCore.DbSet<T>`), without referencing the package.
+
+- [x] NLR0006 LINQ operators applied after the query was loaded (`ToList().Select(...)`, `(await q.ToListAsync()).Where(...)`)
+- [ ] Read-only query without `AsNoTracking` (O)
+- [ ] N+1 queries: a query or lazy navigation inside a loop over another query's result
+- [ ] Loaded result stored in a variable, then filtered or projected in memory (extension of NLR0006, more false positives)
+- [ ] `Include` chain without `AsSplitQuery` on several collections, or `Include` followed by a projection that ignores it
+- [ ] `SaveChanges` inside a loop instead of once after the loop
+- [ ] Synchronous `ToList`, `First`, `SaveChanges` in an `async` method where an `Async` form exists
+- [ ] `Contains` on an in-memory list inside a query that grows with the data (large `IN` clause)
+- [ ] Raw SQL built by string interpolation or concatenation instead of the parameterized forms
+
 ## Out of scope
 
 - Pure formatting (spacing, braces, `using` order): `dotnet format` and `.editorconfig` already do it. It can be
