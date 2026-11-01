@@ -2,6 +2,6 @@
   "version": 1,
   "deadCode": {
     // The NLR examples are never called on purpose.
-    "excludePaths": ["NLR0001Examples.cs", "NLR0004Examples.cs"]
+    "excludePaths": ["NLR0001Examples.cs", "NLR0004Examples.cs", "NLR0005Examples.cs"]
   }
 }

@@ -46,7 +46,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-09 | Rider settings plugin | WP-07 | todo |
 | WP-10 | Zed: feasibility and integration | WP-00 | todo |
 | WP-11 | NLR0001 v2 | WP-00 | done |
-| WP-12 | New real-time rules | WP-00 | in progress (NLR0004 done, one rule per PR) |
+| WP-12 | New real-time rules | WP-00 | in progress (NLR0004, NLR0005 done, one rule per PR) |
 | WP-13 | Second language | WP-02 | todo |
 | WP-14 | Localized messages | WP-00 | decision needed |
 
@@ -150,6 +150,10 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   free target path, reference or nullable value type, built-in `==` only, no comments inside, and `x = x ?? v;` on a
   property only for a plain non-virtual auto-property. Own choices: a `null`/`default`/`throw` value is not reported; the
   repository's own sources produce no NLR0004 diagnostic (checked).
+- **WP-12, second rule: NLR0005 boolean comparison** (wave 1 of the rules backlog). Reports `x == true`, `true == x`,
+  `x != false` (fix `x`) and `x == false`, `false == x`, `x != true` (fix `!x`) for a plain `bool` with the built-in
+  operator. Not reported: `bool?`, custom types, `true == false`, comments inside. Parentheses are added only when
+  needed, `!y == false` gives `y`, redundant parentheses around the operand are kept. No option, suggestion level.
 
 ---
 
@@ -287,11 +291,10 @@ See "Done" above. Original scope: `else if` cascades, De Morgan option, braces o
 
 ## WP-12 — New real-time rules
 
-- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0005`.
-- **Done**: use the null-coalescing assignment `??=` (NLR0004).
+- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0006`.
+- **Done**: use the null-coalescing assignment `??=` (NLR0004); simplify boolean comparisons (NLR0005).
 - **Remaining candidate ideas** (general practices, descriptions to be written from scratch, **maintainer picks**):
-  merge nested `if` statements without `else`; remove `else` after a branch that always exits; simplify boolean
-  comparisons (`x == true`); avoid empty `catch` blocks.
+  merge nested `if` statements without `else`; remove `else` after a branch that always exits; avoid empty `catch` blocks.
 - **Wider backlog**: `docs/RULES_CATALOG.md` lists many more candidate rules (naming, async, bugs, simplification,
   metrics, API, tests, project analyses) with a suggested order.
 - **Each rule**: analyzer, code fix with fix all when safe, YAML, tests, playground examples, README table.

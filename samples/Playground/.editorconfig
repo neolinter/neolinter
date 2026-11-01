@@ -4,3 +4,4 @@
 dotnet_diagnostic.NLR0001.severity = warning
 nlr0001.min_statements = 3
 dotnet_diagnostic.NLR0004.severity = warning
+dotnet_diagnostic.NLR0005.severity = warning
