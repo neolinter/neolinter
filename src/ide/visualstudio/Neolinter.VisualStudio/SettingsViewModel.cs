@@ -132,27 +132,52 @@ internal sealed class RuleViewModel : NotifyPropertyChangedObject
 [DataContract]
 internal sealed class SettingsViewModel : NotifyPropertyChangedObject
 {
+    private readonly Func<CancellationToken, Task<(string? EditorConfigPath, string PackageBanner)>> resolve;
     private string status = string.Empty;
+    private string location = string.Empty;
+    private string packageBanner = string.Empty;
 
-    public SettingsViewModel(string? editorConfigPath, string packageBanner)
+    public SettingsViewModel(Func<CancellationToken, Task<(string? EditorConfigPath, string PackageBanner)>> resolve)
     {
-        PackageBanner = packageBanner;
+        this.resolve = resolve;
+        ReloadCommand = new AsyncCommand(async (_, _, cancellationToken) => await ReloadAsync(cancellationToken));
+    }
+
+    /// <summary>Re-reads the open solution and its .editorconfig (also picks up edits made outside the window).</summary>
+    public async Task ReloadAsync(CancellationToken cancellationToken)
+    {
+        var (editorConfigPath, banner) = await resolve(cancellationToken);
         var store = new EditorConfigStore(editorConfigPath, message => Status = message);
         Location = editorConfigPath is null ? "No solution open." : $"Settings are stored in {editorConfigPath}";
+        PackageBanner = banner;
         var rules = Rule.LoadEmbedded().Where(r => r.Type == "realtime").ToList();
         var values = store.Read(rules.SelectMany(r => r.Options.Select(o => o.Key).Append(r.SeverityKey)));
+        Rules.Clear();
         foreach (var rule in rules)
         {
             Rules.Add(new RuleViewModel(store, rule, values, message => Status = message));
         }
+
+        Status = string.Empty;
     }
 
     [DataMember]
-    public string Location { get; }
+    public IAsyncCommand ReloadCommand { get; }
+
+    [DataMember]
+    public string Location
+    {
+        get => location;
+        private set => SetProperty(ref location, value);
+    }
 
     /// <summary>Empty when the solution references the Neolinter package (or has no C# project).</summary>
     [DataMember]
-    public string PackageBanner { get; }
+    public string PackageBanner
+    {
+        get => packageBanner;
+        private set => SetProperty(ref packageBanner, value);
+    }
 
     [DataMember]
     public ObservableList<RuleViewModel> Rules { get; } = [];

@@ -37,6 +37,7 @@
       <StackPanel Orientation="Horizontal">
         <Button Style="{StaticResource {x:Static styles:VsResourceKeys.ButtonStyleKey}}" Content="Settings" Padding="12,4" />
         <Button Style="{StaticResource {x:Static styles:VsResourceKeys.ButtonStyleKey}}" Content="Solution analysis" Padding="12,4" Margin="8,0,0,0" IsEnabled="False" ToolTip="Coming soon" />
+        <Button Style="{StaticResource {x:Static styles:VsResourceKeys.ButtonStyleKey}}" Content="Reload" Command="{Binding ReloadCommand}" Padding="12,4" Margin="8,0,0,0" ToolTip="Read the solution and its .editorconfig again" />
       </StackPanel>
       <TextBlock Text="{Binding Location}" Margin="0,12,0,0" Opacity="0.7" TextWrapping="Wrap" />
       <TextBlock Text="{Binding PackageBanner}" Margin="0,8,0,0" TextWrapping="Wrap" />

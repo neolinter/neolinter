@@ -19,9 +19,18 @@ internal sealed class SettingsToolWindow(VisualStudioExtensibility extensibility
     public override async Task InitializeAsync(CancellationToken cancellationToken)
     {
         Title = "Neolinter";
+        var viewModel = new SettingsViewModel(ResolveAsync);
+        await viewModel.ReloadAsync(cancellationToken);
+        content = new SettingsControl(viewModel);
+    }
+
+    private async Task<(string? EditorConfigPath, string PackageBanner)> ResolveAsync(CancellationToken cancellationToken)
+    {
         var solutionPath = (await Extensibility.Workspaces().QuerySolutionAsync(s => s.With(x => x.Path), cancellationToken)).FirstOrDefault()?.Path;
-        var projectPaths = (await Extensibility.Workspaces().QueryProjectsAsync(p => p.With(x => x.Path), cancellationToken)).Select(p => p.Path);
-        content = new SettingsControl(new SettingsViewModel(EditorConfigLocation(solutionPath), PackageBanner(solutionPath, projectPaths)));
+        var projectPaths = (await Extensibility.Workspaces().QueryProjectsAsync(p => p.With(x => x.Path), cancellationToken)).Select(p => p.Path).ToList();
+        // Folder or unusual solutions may report no solution file: fall back to the first project's directory.
+        var anchor = string.IsNullOrEmpty(solutionPath) ? projectPaths.FirstOrDefault(p => !string.IsNullOrEmpty(p)) : solutionPath;
+        return (EditorConfigLocation(anchor), PackageBanner(anchor, projectPaths));
     }
 
     public override Task<IRemoteUserControl> GetContentAsync(CancellationToken cancellationToken) =>
