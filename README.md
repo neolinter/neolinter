@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Three real-time rules (NLR0001, NLR0004, NLR0005); the command line analyses are not implemented yet.
+> Status: early development (0.1). Four real-time rules (NLR0001, NLR0004, NLR0005, NLR0006); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -73,6 +73,23 @@ NLR0005 has no option. It reports a `bool` compared with a literal: `x == true`,
 (`o is string == false` becomes `!(o is string)`, `a && b == false` becomes `a && !b`) and removes a double negation
 (`!y == false` becomes `y`). Not reported: a `bool?` operand (its comparison has another meaning), a type that only
 converts to `bool` or defines its own `==`, `true == false`, and a comparison with a comment or `#if` inside.
+
+NLR0006 has no option and no code fix (moving an operator before the loading call may not translate to SQL). Its default
+severity is `warning`. It reports a LINQ operator called directly on a loaded Entity Framework Core query, because the
+database then returns every row and column and the application does the work:
+
+- operators: `Select`, `SelectMany`, `Where`, `OrderBy`, `OrderByDescending`, `ThenBy`, `ThenByDescending`, `GroupBy`,
+  `Count`, `LongCount`, `Any`, `All`, `First`, `FirstOrDefault`, `Single`, `SingleOrDefault`, `Last`, `LastOrDefault`,
+  `Skip`, `Take`, `Distinct`, `Sum`, `Min`, `Max`, `Average`;
+- loading calls: `ToList`, `ToArray`, `ToDictionary`, `AsEnumerable` and `ToListAsync`, `ToArrayAsync`, `ToDictionaryAsync`,
+  also written `(await q.ToListAsync()).Select(...)`, with `ConfigureAwait`, parentheses or `!` around the call;
+- the query must start from a `Microsoft.EntityFrameworkCore.DbSet<T>` (a context property or `Set<T>()`), possibly
+  followed by query operators such as `Include`, `AsNoTracking` or `Where`. Entity Framework Core is recognized by type
+  name, so the analyzer needs no reference to it;
+- known limits, on purpose: a loaded result stored in a variable and processed later is not followed, an `IQueryable`
+  received as a parameter is not traced to its source, `Enumerable.Select(list, ...)` written as a static call is
+  skipped, and only the first operator after the loading call is reported. Lists that did not come from such a query
+  are never reported.
 
 The rules then show up wherever Roslyn analyzers are loaded:
 
@@ -152,6 +169,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0001](rules/NLR0001.yaml) | Invert 'if' to reduce nesting | real-time, code fix | suggestion |
 | [NLR0004](rules/NLR0004.yaml) | Use null-coalescing assignment | real-time, code fix | suggestion |
 | [NLR0005](rules/NLR0005.yaml) | Simplify comparison with a boolean literal | real-time, code fix | suggestion |
+| [NLR0006](rules/NLR0006.yaml) | Keep LINQ operators inside the Entity Framework Core query | real-time | warning |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

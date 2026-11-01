@@ -8,3 +8,4 @@ Rule ID | Category | Severity | Notes
 NLR0001  | Style    | Info     | InvertIfAnalyzer
 NLR0004  | Style    | Info     | NullCoalescingAssignmentAnalyzer
 NLR0005  | Style    | Info     | BooleanComparisonAnalyzer
+NLR0006  | Performance | Warning | EfCoreClientLinqAnalyzer

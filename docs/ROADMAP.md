@@ -46,7 +46,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-09 | Rider settings plugin | WP-07 | todo |
 | WP-10 | Zed: feasibility and integration | WP-00 | todo |
 | WP-11 | NLR0001 v2 | WP-00 | done |
-| WP-12 | New real-time rules | WP-00 | in progress (NLR0004, NLR0005 done, one rule per PR) |
+| WP-12 | New real-time rules | WP-00 | in progress (NLR0004, NLR0005, NLR0006 done, one rule per PR) |
 | WP-13 | Second language | WP-02 | todo |
 | WP-14 | Localized messages | WP-00 | decision needed |
 
@@ -154,6 +154,15 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   `x != false` (fix `x`) and `x == false`, `false == x`, `x != true` (fix `!x`) for a plain `bool` with the built-in
   operator. Not reported: `bool?`, custom types, `true == false`, comments inside. Parentheses are added only when
   needed, `!y == false` gives `y`, redundant parentheses around the operand are kept. No option, suggestion level.
+- **WP-12, third rule: NLR0006 Entity Framework Core client-side LINQ** (maintainer's pick). Reports every listed LINQ
+  operator (`Select`, `Where`, `OrderBy*`/`ThenBy*`, `GroupBy`, `Count`, `Any`, `All`, `First*`/`Single*`/`Last*`, `Skip`,
+  `Take`, `Distinct`, `Sum`/`Min`/`Max`/`Average`, `SelectMany`, `LongCount`) called directly on the result of `ToList`,
+  `ToArray`, `ToDictionary`, `AsEnumerable` or their `Async` forms (`(await q.ToListAsync()).Select(...)`) when the query
+  starts from a `Microsoft.EntityFrameworkCore.DbSet<T>`. Detection is by type name, so no package reference; tests and
+  the playground use stand-in types. Warning level, **no code fix** (the moved operator may not translate to SQL).
+  Own choices: the loaded-result-in-a-variable form is left out as too risky (a list may be loaded once and reused
+  deliberately), `IQueryable` parameters are not traced, only the first operator after the load is reported; all listed
+  as known limits in `rules/NLR0006.yaml` and the README. The repository's own sources produce no NLR0006 diagnostic.
 
 ---
 
@@ -292,7 +301,8 @@ See "Done" above. Original scope: `else if` cascades, De Morgan option, braces o
 ## WP-12 — New real-time rules
 
 - **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0006`.
-- **Done**: use the null-coalescing assignment `??=` (NLR0004); simplify boolean comparisons (NLR0005).
+- **Done**: use the null-coalescing assignment `??=` (NLR0004); simplify boolean comparisons (NLR0005); keep LINQ
+  operators inside the Entity Framework Core query (NLR0006).
 - **Remaining candidate ideas** (general practices, descriptions to be written from scratch, **maintainer picks**):
   merge nested `if` statements without `else`; remove `else` after a branch that always exits; avoid empty `catch` blocks.
 - **Wider backlog**: `docs/RULES_CATALOG.md` lists many more candidate rules (naming, async, bugs, simplification,
