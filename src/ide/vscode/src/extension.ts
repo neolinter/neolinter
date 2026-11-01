@@ -62,6 +62,10 @@ async function openSettings(context: vscode.ExtensionContext) {
     enableScripts: true,
     localResourceRoots: [media],
   });
+  panel.iconPath = {
+    light: vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', 'neolinter-light.svg'),
+    dark: vscode.Uri.joinPath(context.extensionUri, 'resources', 'icons', 'neolinter-dark.svg'),
+  };
   panel.webview.html = renderHtml(panel.webview, media);
 
   const refresh = async () => panel?.webview.postMessage({ type: 'state', ...(await readState(rules, editorConfig)) });

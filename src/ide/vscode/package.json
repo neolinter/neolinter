@@ -4,6 +4,7 @@
   "description": "Settings screen for Neolinter rules, stored in the workspace .editorconfig.",
   "version": "0.1.0",
   "publisher": "neolinter",
+  "icon": "resources/icon.png",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -22,7 +23,11 @@
       {
         "command": "neolinter.openSettings",
         "title": "Open Settings",
-        "category": "Neolinter"
+        "category": "Neolinter",
+        "icon": {
+          "light": "resources/icons/neolinter-light.svg",
+          "dark": "resources/icons/neolinter-dark.svg"
+        }
       }
     ],
     "configuration": {
@@ -47,7 +52,8 @@
     "watch": "tsc -watch -p .",
     "test": "npm run compile && node --test \"out/test/**/*.test.js\"",
     "package": "node -e \"require('fs').copyFileSync('../../../LICENSE', 'LICENSE')\" && vsce package",
-    "vscode:prepublish": "npm run compile"
+    "vscode:prepublish": "npm run compile",
+    "build-icons": "node scripts/build-icons.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
