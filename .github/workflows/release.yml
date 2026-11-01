@@ -232,3 +232,31 @@ jobs:
           if [[ "$PRERELEASE" == "true" ]]; then flags+=(--prerelease); fi
           mapfile -t assets < <(find dist -name '*.nupkg' -o -name '*.vsix')
           gh release create "$TAG" --verify-tag --generate-notes --title "$TAG" "${flags[@]}" "${assets[@]}"
+
+  # Separate job: the Visual Studio publisher tool only runs on Windows. It runs after `publish`, so a failure here
+  # leaves the NuGet packages, the VS Code extension and the GitHub release published.
+  publish-visualstudio:
+    name: Publish Visual Studio extension
+    needs: [prepare, publish]
+    runs-on: windows-latest
+    # The Marketplace trusted publishing policy matches this environment name (docs/RELEASING.md).
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: visualstudio-extension
+          path: dist
+
+      - name: Publish to the Visual Studio Marketplace
+        run: |
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -property installationPath
+          $tool = Join-Path $vs 'VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe'
+          if (-not (Test-Path $tool)) { throw "VsixPublisher.exe not found under $vs" }
+          $vsix = (Get-ChildItem dist -Recurse -Filter *.vsix | Select-Object -First 1).FullName
+          & $tool publish -payload $vsix -publishManifest src/ide/visualstudio/publishManifest.json -oidc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

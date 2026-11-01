@@ -8,7 +8,7 @@ A release is a Git tag `vX.Y.Z` or `vX.Y.Z-<label>.<N>` (for example `v0.1.0-pre
 | `Neolinter` (analyzers) | nuget.org | the tag, `0.1.0-preview.1` |
 | `Neolinter.Cli` (.NET tool) | nuget.org | the tag |
 | VS Code extension `.vsix` | VS Code Marketplace (publisher `neolinter`), pre-release channel for previews | see below |
-| Visual Studio extension `.vsix` | GitHub release only (not the Visual Studio Marketplace) | see below |
+| Visual Studio extension `.vsix` | Visual Studio Marketplace (trusted publishing) and the GitHub release | see below |
 
 The GitHub release carries the two NuGet packages and both `.vsix` files and is marked pre-release for previews.
 Nothing in the repository holds a version to bump: `Directory.Build.props` keeps `0.1.0` only as the local
@@ -114,11 +114,21 @@ The workflow could not be run on GitHub from the session that wrote it. Verified
 on Windows. Not verified: the Actions run itself (dry run to do first), the nuget.org and Marketplace pushes, the
 `neolinter` publisher, the trusted publishing policy (and whether it can precede the first push) and the `Neolinter.` prefix reservation.
 
-## Visual Studio extension on the Visual Studio Marketplace (not done)
+## Visual Studio Marketplace
 
-The `.vsix` is attached to the GitHub release only. Publishing it on the Visual Studio Marketplace still needs: a Marketplace
-publisher (a separate account from the VS Code one, at the same Manage page) with a PAT or the publish page's manual upload;
-an overview (`README.md`/`publish-manifest.json` with categories, `repo` and `identity.internalName`); the generated manifest
-lists only the `Microsoft.VisualStudio.Community` install target, so check that Professional and Enterprise can install it
-(add the targets if not); the extension's unverified items listed in `docs/ROADMAP.md` (WP-08); and a decision on
-Windows-only publishing from CI (`VsixPublisher.exe` is Windows only).
+The `publish-visualstudio` job (Windows) runs after `publish` with `VsixPublisher.exe publish ... -oidc` and
+`src/ide/visualstudio/publishManifest.json` (category, internal name `Neolinter`, publisher `neolinter`, overview
+`overview.md`). A failure there leaves the NuGet packages, the VS Code extension and the GitHub release published: fix the
+cause and re-run only that job.
+
+Maintainer setup: the publisher `neolinter` is the same one as for VS Code
+(<https://marketplace.visualstudio.com/manage/publishers>). Check that its Trusted Publishing policy (repository
+`neolinter/neolinter`, workflow `release.yml`, environment `release`) also allows the Visual Studio Marketplace; if
+it is a separate list, add the same policy there.
+
+Not verified: the publish itself (never run), that the policy covers this Marketplace, that `VsixPublisher.exe` of the
+`windows-latest` image supports `-oidc` (the job fails with the tool's usage message if it does not: then publish the
+first `.vsix` from the GitHub release by hand at <https://marketplace.visualstudio.com/vs> > Publish extensions, or
+use a `-personalAccessToken`), and the install on Professional and Enterprise (the manifest lists the
+`Microsoft.VisualStudio.Community` target, which Visual Studio is expected to apply to every edition; check on one).
+The window writing to a real solution's `.editorconfig` is also still unverified (WP-08 in `docs/ROADMAP.md`).
