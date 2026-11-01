@@ -252,7 +252,10 @@ jobs:
           name: visualstudio-extension
           path: dist
 
+      # Not blocking: with VsixPublisher 18.11 the OIDC exchange is refused by the Marketplace (VsixPub0047, "No
+      # api-version was supplied"). Until Microsoft fixes it, upload the .vsix by hand (docs/RELEASING.md).
       - name: Publish to the Visual Studio Marketplace
+        continue-on-error: true
         run: |
           $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -property installationPath
           $tool = Join-Path $vs 'VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe'
