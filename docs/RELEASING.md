@@ -49,7 +49,7 @@ in `.github/scripts/release-version.sh`.
    The workflow calls `NuGet/login` (pinned to the commit of v1.2.0), which swaps the job's GitHub OIDC token for a
    one-hour API key (`id-token: write` is set on the `publish` job only). Its `user:` must be the nuget.org username of the
    person who **created the policy**, not the organization that owns it (the first release attempt failed with a 401 on
-   that point). It is `JDedeWS` in `.github/workflows/release.yml`; change it if another maintainer recreates the policy.
+   that point). It is read from the repository secret `NUGET_USER` (Settings > Secrets and variables > Actions > New repository secret): add it with that username; update it if another maintainer recreates the policy.
    If the policy shows "temporarily active for 7 days" (private repositories), the first successful publish within 7
    days makes it permanent; it can be restarted.
    **Bootstrap, not verified**: the nuget.org documentation does not say whether a policy can be created before the
