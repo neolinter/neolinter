@@ -64,9 +64,23 @@ the SARIF (`src/sarif.ts`) and lists findings grouped by rule with links to the 
 offered. "Show in Problems panel" (off by default, remembered per workspace) copies the findings to a
 `DiagnosticCollection` with source `neolinter`. The webview sends only an index into the last results, never a path.
 
-Each IDE re-implements the small `.editorconfig` editor in its own language. To keep them consistent, new
-implementations must pass the same cases as `src/ide/vscode/src/test/editorconfig.test.ts`; moving these
-cases to shared fixture files is planned with the second IDE.
+### Shared `.editorconfig` fixtures
+
+Each IDE re-implements the small `.editorconfig` editor in its own language. To keep them consistent, every
+implementation must pass the cases in `tests/fixtures/editorconfig/<case>/`, one directory per case, plain files
+only (UTF-8, no TypeScript-specific content). A test runner lists the directories, so adding a case needs no code
+change. Files in a case:
+
+- `input.editorconfig` (required): the file before the operation, byte for byte.
+- `read.json` (optional): a read case, `{"keys": ["..."], "expected": {"key": "value"}}`. Reading `keys` from the input
+  must give exactly `expected`; a key that is not found is absent from `expected`. Key matching is case-insensitive, and
+  values come back without inline comments.
+- `change.json` (optional): a write case, `{"key": "...", "value": "..."}`. Setting `key` to `value` in the input must
+  give exactly the bytes of `expected.editorconfig` (required with `change.json`).
+
+A directory may hold both a read and a write case. Files are compared byte for byte, so line endings matter
+(`tests/fixtures/** -text` in `.gitattributes`). Glob recognition (`appliesToCSharp`) and anything that cannot be
+written as a file stay in each implementation's own tests. Removing a key is not supported by the editor yet.
 
 ## Command line contracts
 

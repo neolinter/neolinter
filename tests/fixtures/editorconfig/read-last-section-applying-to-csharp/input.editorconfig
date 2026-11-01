@@ -1,0 +1,10 @@
+root = true
+
+[*]
+dotnet_diagnostic.NL0001.severity = warning
+
+[*.cs]
+dotnet_diagnostic.NL0001.severity = error
+
+[*.vb]
+dotnet_diagnostic.NL0001.severity = none
