@@ -53,7 +53,16 @@ One native screen per IDE, in this order: VS Code (done), Visual Studio 2022+, R
 - reads and writes `dotnet_diagnostic.<id>.severity` and `<id>.*` in the workspace `.editorconfig`, changing only
   the affected line (it updates the effective line, else adds to the last `[*.cs]` section, else appends one);
 - offers to add the `Neolinter` package when no project references it;
-- has a "Solution analysis" tab, disabled until the command line analyses exist.
+- has a "Solution analysis" tab that runs the command line (VS Code: enabled, see below; other IDEs: disabled
+  until implemented).
+
+VS Code "Solution analysis" tab: finds the CLI in this order: setting `neolinter.cli.path`, local tool manifest
+(`dotnet tool run neolinter`), global tool, setting `neolinter.cli.projectPath` (`dotnet run --project <csproj> --`,
+for use before the package is published). It runs `neolinter analyze <analysis> --output <temp>.sarif` as a VS Code
+task in the first workspace folder, treats exit codes `0` and `1` as success and anything else as a failure, parses
+the SARIF (`src/sarif.ts`) and lists findings grouped by rule with links to the locations. Only `dead-code` is
+offered. "Show in Problems panel" (off by default, remembered per workspace) copies the findings to a
+`DiagnosticCollection` with source `neolinter`. The webview sends only an index into the last results, never a path.
 
 Each IDE re-implements the small `.editorconfig` editor in its own language. To keep them consistent, new
 implementations must pass the same cases as `src/ide/vscode/src/test/editorconfig.test.ts`; moving these

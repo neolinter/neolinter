@@ -120,10 +120,67 @@
     });
   }
 
+  for (const tab of tabs) {
+    tab.addEventListener('click', () => {
+      for (const other of tabs) {
+        const selected = other === tab;
+        other.setAttribute('aria-selected', String(selected));
+        other.tabIndex = selected ? 0 : -1;
+        const panel = document.getElementById(/** @type {string} */ (other.getAttribute('aria-controls')));
+        if (panel) panel.hidden = !selected;
+      }
+    });
+  }
+
+  const toolSources = { setting: 'the configured path', local: 'the local tool manifest', global: 'the global tool', project: 'dotnet run --project' };
+  const toolStatus = /** @type {HTMLElement} */ (document.getElementById('tool-status'));
+  const runButton = /** @type {HTMLButtonElement} */ (document.getElementById('run'));
+  const runStatus = /** @type {HTMLElement} */ (document.getElementById('run-status'));
+  const results = /** @type {HTMLElement} */ (document.getElementById('results'));
+  const problems = /** @type {HTMLInputElement} */ (document.getElementById('problems'));
+
+  document.getElementById('install')?.addEventListener('click', () => vscode.postMessage({ type: 'install' }));
+  document.getElementById('recheck')?.addEventListener('click', () => vscode.postMessage({ type: 'recheck' }));
+  document.getElementById('cli-settings')?.addEventListener('click', () => vscode.postMessage({ type: 'openCliSettings' }));
+  runButton.addEventListener('click', () => vscode.postMessage({ type: 'run', analysis: /** @type {HTMLSelectElement} */ (document.getElementById('analysis')).value }));
+  problems.addEventListener('change', () => vscode.postMessage({ type: 'setProblems', enabled: problems.checked }));
+
+  function renderAnalysis(state) {
+    toolStatus.textContent = state.tool
+      ? `neolinter command line found (${toolSources[state.tool]}).`
+      : 'The neolinter command line was not found. Install it, or set neolinter.cli.path / neolinter.cli.projectPath. The Neolinter.Cli package is not on nuget.org until the first release.';
+    runButton.disabled = state.status === 'running';
+    problems.checked = state.showInProblems;
+
+    const count = state.groups.reduce((total, group) => total + group.findings.length, 0);
+    runStatus.textContent =
+      state.status === 'running' ? 'Analysis running…'
+      : state.status === 'failed' ? state.message ?? 'The analysis failed.'
+      : state.status === 'done' ? (count === 0 ? 'No findings.' : `${count} finding(s).`)
+      : '';
+
+    results.replaceChildren();
+    for (const group of state.groups) {
+      const section = element('section', { class: 'rule', 'aria-labelledby': `result-${group.ruleId}` });
+      section.append(element('h2', { id: `result-${group.ruleId}` }, `${group.ruleId} — ${group.description ?? ''} (${group.findings.length})`));
+      const list = element('ul', { class: 'findings' });
+      for (const finding of group.findings) {
+        const item = element('li');
+        const link = element('button', { type: 'button', class: 'link' }, `${finding.file}:${finding.line}:${finding.column}`);
+        link.addEventListener('click', () => vscode.postMessage({ type: 'openFinding', index: finding.index }));
+        item.append(link, ' ', element('span', {}, finding.message));
+        list.append(item);
+      }
+      section.append(list);
+      results.append(section);
+    }
+  }
+
   window.addEventListener('message', (event) => {
     // Only the extension host (a vscode-webview origin) may drive the page.
     if (!event.origin.startsWith('vscode-webview://')) return;
     if (event.data.type === 'state') render(event.data);
+    if (event.data.type === 'analysis') renderAnalysis(event.data);
   });
   vscode.postMessage({ type: 'ready' });
 })();

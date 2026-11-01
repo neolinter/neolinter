@@ -116,3 +116,26 @@ input[type="text"] {
 input[type="checkbox"] {
   accent-color: var(--vscode-button-background);
 }
+
+.findings {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0;
+}
+
+.findings li {
+  margin: 4px 0;
+}
+
+button.link {
+  color: var(--vscode-textLink-foreground);
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
