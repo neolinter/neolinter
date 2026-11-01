@@ -7,6 +7,9 @@ namespace Neolinter.VisualStudio;
 /// <summary>Reads and writes the solution .editorconfig; shared by every view model of the window.</summary>
 internal sealed class EditorConfigStore(string? path, Action<string> report)
 {
+    /// <summary>UTC ticks of the last write made by the window, so the file watcher can ignore it.</summary>
+    public static long LastOwnWriteTicks;
+
     public string? Path { get; } = path;
 
     public IReadOnlyDictionary<string, string> Read(IEnumerable<string> keys) =>
@@ -20,6 +23,7 @@ internal sealed class EditorConfigStore(string? path, Action<string> report)
             return;
         }
 
+        Interlocked.Exchange(ref LastOwnWriteTicks, DateTime.UtcNow.Ticks);
         File.WriteAllText(Path, EditorConfigFile.SetValue(File.Exists(Path) ? File.ReadAllText(Path) : string.Empty, key, value));
         report($"Saved {key} = {value}");
     }
@@ -130,12 +134,16 @@ internal sealed class RuleViewModel : NotifyPropertyChangedObject
 }
 
 [DataContract]
-internal sealed class SettingsViewModel : NotifyPropertyChangedObject
+internal sealed class SettingsViewModel : NotifyPropertyChangedObject, IDisposable
 {
     private readonly Func<CancellationToken, Task<(string? EditorConfigPath, string PackageBanner)>> resolve;
     private string status = string.Empty;
     private string location = string.Empty;
     private string packageBanner = string.Empty;
+    private string? currentPath;
+    private FileSystemWatcher? watcher;
+    private readonly CancellationTokenSource stop = new();
+    private readonly SemaphoreSlim reloading = new(1, 1);
 
     public SettingsViewModel(Func<CancellationToken, Task<(string? EditorConfigPath, string PackageBanner)>> resolve)
     {
@@ -143,10 +151,91 @@ internal sealed class SettingsViewModel : NotifyPropertyChangedObject
         ReloadCommand = new AsyncCommand(async (_, _, cancellationToken) => await ReloadAsync(cancellationToken));
     }
 
+    /// <summary>
+    /// Keeps the window in sync without a manual reload: polls the open solution every few seconds (there is no
+    /// solution-changed event we could rely on) and a file watcher reloads when the .editorconfig is edited elsewhere.
+    /// </summary>
+    public void StartAutoReload()
+    {
+        _ = Task.Run(async () =>
+        {
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(3));
+            try
+            {
+                while (await timer.WaitForNextTickAsync(stop.Token))
+                {
+                    var (path, _) = await resolve(stop.Token);
+                    if (path != currentPath)
+                    {
+                        await ReloadAsync(stop.Token);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        });
+    }
+
+    private void Watch(string? editorConfigPath)
+    {
+        watcher?.Dispose();
+        watcher = null;
+        if (editorConfigPath is null)
+        {
+            return;
+        }
+
+        watcher = new FileSystemWatcher(Path.GetDirectoryName(editorConfigPath)!, Path.GetFileName(editorConfigPath))
+        {
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size,
+            EnableRaisingEvents = true,
+        };
+        FileSystemEventHandler changed = (_, _) =>
+        {
+            // The window's own saves must not rebuild the cards while the user is typing.
+            if (DateTime.UtcNow.Ticks - Interlocked.Read(ref EditorConfigStore.LastOwnWriteTicks) > TimeSpan.FromSeconds(1).Ticks)
+            {
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(300);
+                    await ReloadAsync(stop.Token);
+                });
+            }
+        };
+        watcher.Changed += changed;
+        watcher.Created += changed;
+        watcher.Deleted += changed;
+        watcher.Renamed += (sender, _) => changed(sender, null!);
+    }
+
+    public void Dispose()
+    {
+        stop.Cancel();
+        watcher?.Dispose();
+        stop.Dispose();
+        reloading.Dispose();
+    }
+
     /// <summary>Re-reads the open solution and its .editorconfig (also picks up edits made outside the window).</summary>
     public async Task ReloadAsync(CancellationToken cancellationToken)
     {
+        await reloading.WaitAsync(cancellationToken);
+        try
+        {
+            await ReloadCoreAsync(cancellationToken);
+        }
+        finally
+        {
+            reloading.Release();
+        }
+    }
+
+    private async Task ReloadCoreAsync(CancellationToken cancellationToken)
+    {
         var (editorConfigPath, banner) = await resolve(cancellationToken);
+        currentPath = editorConfigPath;
+        Watch(editorConfigPath);
         var store = new EditorConfigStore(editorConfigPath, message => Status = message);
         Location = editorConfigPath is null ? "No solution open." : $"Settings are stored in {editorConfigPath}";
         PackageBanner = banner;

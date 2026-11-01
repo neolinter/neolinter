@@ -10,6 +10,7 @@ namespace Neolinter.VisualStudio;
 internal sealed class SettingsToolWindow(VisualStudioExtensibility extensibility) : ToolWindow(extensibility)
 {
     private SettingsControl? content;
+    private SettingsViewModel? viewModel;
 
     public override ToolWindowConfiguration ToolWindowConfiguration => new()
     {
@@ -19,9 +20,20 @@ internal sealed class SettingsToolWindow(VisualStudioExtensibility extensibility
     public override async Task InitializeAsync(CancellationToken cancellationToken)
     {
         Title = "Neolinter";
-        var viewModel = new SettingsViewModel(ResolveAsync);
+        viewModel = new SettingsViewModel(ResolveAsync);
         await viewModel.ReloadAsync(cancellationToken);
+        viewModel.StartAutoReload();
         content = new SettingsControl(viewModel);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            viewModel?.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
 
     private async Task<(string? EditorConfigPath, string PackageBanner)> ResolveAsync(CancellationToken cancellationToken)

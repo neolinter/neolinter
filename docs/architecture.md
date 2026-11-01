@@ -90,7 +90,9 @@ solution). The window is opened from **Extensions > Neolinter Settings**, edits 
 solution file, and shows the "Solution analysis" tab disabled. The tab strip is two buttons, the second
 disabled, because a Remote UI tab control could not be checked without running the window. Booleans and enums are drop-downs; integers are validated against
 `minimum` before anything is written. Visual Studio's own `.editorconfig` editor already shows analyzer severities;
-the value here is the rule options and one place for every Neolinter setting. Not offered yet: adding the package
+the value here is the rule options and one place for every Neolinter setting. The window follows the open solution (checked every 3 seconds, there is no solution event we could rely on) and
+reloads when the `.editorconfig` is edited elsewhere (file watcher; its own saves are ignored); a Reload button
+forces it. Not offered yet: adding the package
 from the window (the banner shows the `dotnet add package` command; the package is not on nuget.org yet).
 
 ### Shared `.editorconfig` fixtures
