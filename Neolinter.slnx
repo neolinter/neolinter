@@ -5,9 +5,11 @@
     <Project Path="src/dotnet/Neolinter.Package/Neolinter.Package.csproj" />
     <Project Path="src/dotnet/Neolinter.Cli.Core/Neolinter.Cli.Core.csproj" />
     <Project Path="src/dotnet/Neolinter.Cli/Neolinter.Cli.csproj" />
+    <Project Path="src/ide/visualstudio/Neolinter.EditorConfig/Neolinter.EditorConfig.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/dotnet/Neolinter.Tests/Neolinter.Tests.csproj" />
     <Project Path="tests/dotnet/Neolinter.Cli.Tests/Neolinter.Cli.Tests.csproj" />
+    <Project Path="tests/dotnet/Neolinter.EditorConfig.Tests/Neolinter.EditorConfig.Tests.csproj" />
   </Folder>
 </Solution>

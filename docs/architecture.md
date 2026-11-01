@@ -27,9 +27,13 @@ src/dotnet/
   Neolinter.Cli              "neolinter" .NET tool (System.CommandLine)
 src/ide/
   vscode                     VS Code settings extension (TypeScript, webview)
+  visualstudio/
+    Neolinter.EditorConfig   .editorconfig editing, embedded rules, NuGet detection (netstandard2.0)
+    Neolinter.VisualStudio   Visual Studio extension (VisualStudio.Extensibility, Windows only, builds the .vsix)
 tests/dotnet/
   Neolinter.Tests            analyzer and code fix tests (Microsoft.CodeAnalysis.Testing), rule file checks
   Neolinter.Cli.Tests        SARIF, configuration, analysis and command line tests
+  Neolinter.EditorConfig.Tests  the shared .editorconfig fixtures, rule embedding and NuGet detection
 ```
 
 The analyzers target Roslyn 4.8 so they load in Visual Studio 2022 17.8+ and the .NET 8 SDK and later.
@@ -47,7 +51,8 @@ Rule options are `.editorconfig` keys named `<id lowercase>.<option>`, e.g. `nl0
 
 ## Settings screens
 
-One native screen per IDE, in this order: VS Code (done), Visual Studio 2022+, Rider, Zed. Each one:
+One native screen per IDE, in this order: VS Code (done), Visual Studio (done, "Solution analysis" disabled), Rider,
+Zed. Each one:
 
 - lists the rules embedded from `/rules` at build time;
 - reads and writes `dotnet_diagnostic.<id>.severity` and `<id>.*` in the workspace `.editorconfig`, changing only
@@ -63,6 +68,30 @@ task in the first workspace folder, treats exit codes `0` and `1` as success and
 the SARIF (`src/sarif.ts`) and lists findings grouped by rule with links to the locations. Only `dead-code` is
 offered. "Show in Problems panel" (off by default, remembered per workspace) copies the findings to a
 `DiagnosticCollection` with source `neolinter`. The webview sends only an index into the last results, never a path.
+
+Visual Studio (`src/ide/visualstudio`): built with VisualStudio.Extensibility (out of process, Remote UI), chosen
+over the classic VSSDK by the maintainer. Trade-offs that drove it:
+
+| | VisualStudio.Extensibility | Classic VSSDK |
+|---|---|---|
+| Supported VS | the SDK version sets the floor: SDK 17.14 gives 17.14 and later (2022 and 2026). Reaching 17.8 to 17.13 would need an older SDK (not tried) | 2022 17.8 and later, 2026 |
+| Maturity | newer API, still growing; no free-form WPF, only Remote UI controls | very mature, large documentation, full WPF |
+| Effort | small: attributes, no `.vsct` or pkgdef, view models are plain data contracts | more boilerplate (package, `.vsct`, `.pkgdef`, WPF control) |
+| Isolation | out of process: a bug cannot freeze or crash Visual Studio | in process |
+| Packaging | the build package writes `extension.vsixmanifest` and the `.vsix` | `.vsixmanifest` and package registration to maintain |
+| Testability | logic lives in `Neolinter.EditorConfig` (plain xUnit, runs on Linux too); the UI itself needs a Visual Studio instance | same split, UI also needs an instance |
+| CI | `windows-latest`, `dotnet build` produces the `.vsix` | `windows-latest` with MSBuild and the Visual Studio workload |
+
+The project is Windows only and is not part of `Neolinter.slnx`; the `visualstudio` CI job builds it. The
+`Neolinter.EditorConfig` library (netstandard2.0) holds the `.editorconfig` editor (a port of the VS Code one,
+passing the same fixtures), the rule catalog (`/rules/*.yaml` embedded at build time and read with YamlDotNet) and
+the NuGet detection (`PackageReference Include="Neolinter"` in project files and `Directory.Build.props` next to the
+solution). The window is opened from **Extensions > Neolinter Settings**, edits the `.editorconfig` next to the
+solution file, and shows the "Solution analysis" tab disabled. The tab strip is two buttons, the second
+disabled, because a Remote UI tab control could not be checked without running the window. Booleans and enums are drop-downs; integers are validated against
+`minimum` before anything is written. Visual Studio's own `.editorconfig` editor already shows analyzer severities;
+the value here is the rule options and one place for every Neolinter setting. Not offered yet: adding the package
+from the window (the banner shows the `dotnet add package` command; the package is not on nuget.org yet).
 
 ### Shared `.editorconfig` fixtures
 

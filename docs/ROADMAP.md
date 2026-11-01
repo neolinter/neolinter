@@ -42,7 +42,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-05 | CLI: output and CI options | WP-03 or WP-04 | done |
 | WP-06 | VS Code: "Solution analysis" tab | WP-03 or WP-04 | done (F5 run not verified) |
 | WP-07 | Shared `.editorconfig` fixtures | WP-00 | done |
-| WP-08 | Visual Studio 2022+ settings extension | WP-07 | todo |
+| WP-08 | Visual Studio 2022+ settings extension | WP-07 | done (not run in Visual Studio) |
 | WP-09 | Rider settings plugin | WP-07 | todo |
 | WP-10 | Zed: feasibility and integration | WP-00 | todo |
 | WP-11 | NL0001 v2 | WP-00 | todo |
@@ -93,6 +93,16 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   found is absent from `expected`; fixtures are `-text` in `.gitattributes` so CRLF cases stay byte exact; glob
   recognition stays in VS Code's own test; "remove key" is not expressed because the editor cannot remove keys yet
   (add a `change.json` form when it can).
+- **WP-08 Visual Studio settings extension**: `src/ide/visualstudio` (`Neolinter.EditorConfig` netstandard2.0 library
+  passing the WP-07 fixtures, rules embedded from `/rules`, NuGet detection; `Neolinter.VisualStudio` extension; new
+  test project `Neolinter.EditorConfig.Tests` in `Neolinter.slnx`; `visualstudio` CI job on `windows-latest` that
+  uploads the VSIX). Decisions: VisualStudio.Extensibility over the classic VSSDK (maintainer-approved after the
+  comparison in `docs/architecture.md`); the window sits in the document well, opened from Extensions > Neolinter
+  Settings; the "Solution analysis" tab is a disabled button; the VSIX uses the VS Code icon. **Remaining**: the
+  VSIX builds, but the window was never opened in Visual Studio (the Remote UI XAML is only parsed at runtime: F5 it
+  and check controls and bindings); minimum Visual Studio is 17.14 (SDK version), not 17.8, so lowering it means
+  trying an older SDK; adding the package from the window is not offered (banner shows the command); the project
+  files are not part of `Neolinter.slnx` (Windows only); the "Solution analysis" runner is not implemented.
 
 ---
 
@@ -190,7 +200,9 @@ See "Done" above. Original scope:
   `docs/architecture.md`.
 - **Done when**: VS Code tests run from the fixtures; adding a fixture needs no code change.
 
-## WP-08 — Visual Studio 2022+ settings extension
+## WP-08 — Visual Studio 2022+ settings extension — done
+
+See "Done" above. Original scope:
 
 - **Goal**: native settings screen in Visual Studio (2022 17.8 and later, including newer versions).
 - **Scope**: `src/ide/visualstudio`; choose between the classic VSSDK (in-process, WPF tool window) and
