@@ -65,7 +65,7 @@ line, see below), and Visual Studio 2022 17.14 / 2026 (`src/ide/visualstudio`, *
 The VS Code extension (`neolinter.neolinter` on the Marketplace) is published by the same release workflow, and every
 release also attaches both `.vsix` files to its
 [GitHub release](https://github.com/neolinter/neolinter/releases) (VS Code: `code --install-extension <file>`;
-Visual Studio: double-click the file). The Visual Studio extension is not on the Visual Studio Marketplace yet.
+Visual Studio: double-click the file). The Visual Studio extension is also published on the Visual Studio Marketplace by the release workflow, from the first release that includes that step.
 
 ### Command line
 
