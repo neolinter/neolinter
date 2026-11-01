@@ -139,7 +139,7 @@ These are frozen from 0.1 on; changing them is a breaking change.
 
 One numbering for all rules, shared across prefixes; the letter says where the rule runs.
 
-- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison, `NLR0006` = keep LINQ operators inside the Entity Framework Core query.
+- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison, `NLR0006` = keep LINQ operators inside the Entity Framework Core query, `NLR0007` = avoid nested conditional expressions.
 - `NLC` (**C**ommand line): `neolinter analyze`. `NLC0002` = unused member (`dead-code`), `NLC0003` = duplicated
   statements (`duplicates`).
 
@@ -183,6 +183,24 @@ longer matches (the fingerprint includes the rule id): regenerate it.
   extension methods. There is no package reference; tests declare stand-in types in that namespace.
 - Not followed (documented in `rules/NLR0006.yaml`): variables, `IQueryable` parameters, static call syntax, `?.`.
 - No code fix: an operator moved before the loading call may not be translatable to SQL.
+
+### NLR0007 details
+
+- Shape: a `ConditionalExpression` that has a conditional descendant and no conditional ancestor, in `NestedTernaryAnalysis`.
+  A lambda, anonymous method or local function stops both searches. The diagnostic spans the whole outer expression.
+- Fix (`NestedTernaryRewriter`): the expression must be the value of `return`, of a simple assignment statement or of a
+  one-declarator `T x = ...` (not `var`, const, `using`, `ref`), and the statement must sit directly in a block or switch
+  section and start its line. The chain follows the false branches (parentheses around a nested conditional are
+  skipped); every conditional of the expression must be part of that chain.
+- Equivalence checks: each branch has exactly the type of the whole expression (semantic model), so converting
+  the branches one by one equals converting the whole; the assignment target is a name, `this.name` or a member of a
+  local, parameter or type (it would otherwise be evaluated after the conditions instead of before); no variable
+  declared in a condition unless the statement is a `return`; no directive in the statement and no comment outside
+  the operands.
+- The new statements are parsed from text (explicit trivia, no elastic trivia): original leading trivia goes on the
+  first one, original trailing trivia on the last one, operand text is copied verbatim. Braces follow
+  `csharp_prefer_braces`, else the majority style of the file's `if` / `else` bodies; indentation unit, brace position and
+  line endings are read from the enclosing block.
 
 ### neolinter.json
 

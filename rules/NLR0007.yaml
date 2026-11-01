@@ -1,0 +1,25 @@
+id: NLR0007
+title: Avoid nested conditional expressions
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  A conditional expression 'c ? a : b' that contains another one, in its condition, its true branch or its false
+  branch, is hard to read because the reader must work out which condition each value belongs to. Reported once per
+  outermost conditional expression, on the whole expression, flat chains ('a ? x : b ? y : z') included. A lambda,
+  anonymous method or local function is a boundary: a conditional inside one is judged on its own, and does not make
+  the conditional around the lambda nested. The code fix is cautious and only offered for 'return <expr>;', a simple
+  assignment statement 'x = <expr>;' and a local declaration with an explicit type 'T x = <expr>;' (written as 'T x;'
+  followed by the chain), directly inside a block or a switch section, rewritten as an 'if' / 'else if' / 'else'
+  chain with 'return's or assignments. The conditions are evaluated in the same order and only as far as before.
+  No fix when the nesting is anywhere but along the false branches (condition, true branch, lambda), when the
+  branches do not all have exactly the type of the whole expression (target-typed 'c ? 1 : null', mixed
+  'c ? 1 : 2.5': the conversion or overload chosen could change), for 'var', const, 'using', 'ref' or several
+  declarators, when the assignment target is not a simple name ('this.x', a member of a local, parameter or type are
+  accepted; indexers and calls are not, as they would be evaluated later), when 'x = ...' or 'T x = ...' has a
+  variable declared in a condition ('is T t', 'out var v'; allowed with 'return'), when a comment or directive sits
+  next to '?' or ':' or anywhere outside the operands, or when the statement does not start its line. Braces follow
+  'csharp_prefer_braces' ('true', 'false', 'when_multiline'); without it, the file's existing 'if' / 'else' style
+  decides (braces unless most single-statement bodies have none). Brace placement and indentation follow the
+  enclosing block.
