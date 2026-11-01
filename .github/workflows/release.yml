@@ -1,0 +1,234 @@
+name: Release
+
+# Real release: push a tag `vX.Y.Z` or `vX.Y.Z-preview.N` (see docs/RELEASING.md).
+# Dry run: run the workflow by hand with `dry-run` checked (the default). It builds, tests and packs everything and
+# uploads the artifacts, but pushes nothing.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Build, test and pack only; push nothing (a real release needs a v* tag)
+        type: boolean
+        default: true
+      version:
+        description: Version to pack when not run on a tag (X.Y.Z or X.Y.Z-label.N)
+        type: string
+        default: 0.1.0-preview.1
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    name: Resolve version
+    runs-on: ubuntu-latest
+    outputs:
+      nuget: ${{ steps.version.outputs.nuget }}
+      extension: ${{ steps.version.outputs.extension }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+      publish: ${{ steps.mode.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Decide dry run or publish
+        id: mode
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          DRY_RUN: ${{ inputs.dry-run }}
+        run: |
+          if [[ "$REF_TYPE" == "tag" && "$DRY_RUN" != "true" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [[ "$DRY_RUN" == "false" && "$REF_TYPE" != "tag" ]]; then
+            echo "::error::A real release needs a v* tag; run on a branch only as a dry run."
+            exit 1
+          fi
+
+      # A release must come from main: the tagged commit has to be reachable from it.
+      - name: Check the tag is on main
+        if: steps.mode.outputs.publish == 'true'
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      - name: Resolve version
+        id: version
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "$REF_TYPE" == "tag" ]]; then version="${REF_NAME#v}"; else version="$INPUT_VERSION"; fi
+          .github/scripts/release-version.sh "$version"
+
+  dotnet:
+    name: NuGet packages
+    needs: prepare
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.prepare.outputs.nuget }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build Neolinter.slnx -c Release -p:Version="$VERSION"
+
+      # Before the tests: the dead-code tests analyse the restored playground.
+      - name: Build playground
+        run: dotnet build samples/Playground -c Release
+
+      - name: Test
+        run: dotnet test Neolinter.slnx -c Release --no-build
+
+      - name: Pack analyzers package and dotnet tool
+        run: dotnet pack Neolinter.slnx -c Release --no-build -p:Version="$VERSION" -o artifacts
+
+      - name: Show package contents
+        run: |
+          ls -l artifacts
+          for p in artifacts/*.nupkg; do echo "== $p"; unzip -l "$p"; done
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: nuget-packages
+          path: artifacts/*.nupkg
+          if-no-files-found: error
+
+  vscode:
+    name: VS Code extension
+    needs: prepare
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/ide/vscode
+    env:
+      EXTENSION_VERSION: ${{ needs.prepare.outputs.extension }}
+      PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/ide/vscode/package-lock.json
+
+      - run: npm ci --ignore-scripts
+
+      - name: Test
+        run: npm test
+
+      # The version comes from the tag: package.json is not modified (it keeps a development version).
+      - name: Package vsix
+        run: |
+          flags=(--no-git-tag-version --no-update-package-json)
+          if [[ "$PRERELEASE" == "true" ]]; then flags+=(--pre-release); fi
+          npm run package -- "$EXTENSION_VERSION" "${flags[@]}"
+
+      - name: Show vsix contents
+        run: |
+          ls -l *.vsix
+          unzip -l ./*.vsix
+          unzip -p ./*.vsix extension/package.json | grep '"version"'
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: vscode-extension
+          path: src/ide/vscode/*.vsix
+          if-no-files-found: error
+
+  visualstudio:
+    name: Visual Studio extension
+    needs: prepare
+    runs-on: windows-latest
+    env:
+      EXTENSION_VERSION: ${{ needs.prepare.outputs.extension }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Test editorconfig fixtures
+        run: dotnet test tests/dotnet/Neolinter.EditorConfig.Tests -c Release
+
+      # Numeric version only: the VSIX manifest does not accept a SemVer pre-release suffix.
+      - name: Build vsix
+        run: dotnet build src/ide/visualstudio/Neolinter.VisualStudio -c Release -p:Version=$env:EXTENSION_VERSION
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: visualstudio-extension
+          path: src/ide/visualstudio/Neolinter.VisualStudio/bin/Release/**/*.vsix
+          if-no-files-found: error
+
+  publish:
+    name: Publish
+    needs: [prepare, dotnet, vscode, visualstudio]
+    if: needs.prepare.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    # The nuget.org trusted publishing policy matches this environment name (docs/RELEASING.md).
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      TAG: ${{ github.ref_name }}
+      PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+
+      # Trusted publishing: exchanges the GitHub OIDC token for a one-hour nuget.org API key, no stored secret.
+      - name: NuGet login (OIDC)
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: neolinter
+
+      # nuget.org versions cannot be deleted: publish nothing else if this fails. --skip-duplicate makes a
+      # re-run after a later failure safe.
+      - name: Push to nuget.org
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: >
+          dotnet nuget push "dist/nuget-packages/*.nupkg"
+          --api-key "$NUGET_API_KEY"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/ide/vscode/package-lock.json
+
+      - name: Publish VS Code extension
+        working-directory: src/ide/vscode
+        # Trusted publishing: the Marketplace trusts this repository, workflow and environment (no stored secret).
+        run: |
+          npm ci --ignore-scripts
+          npx vsce publish --oidc --packagePath "$(ls ../../../dist/vscode-extension/*.vsix)"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=()
+          if [[ "$PRERELEASE" == "true" ]]; then flags+=(--prerelease); fi
+          mapfile -t assets < <(find dist -name '*.nupkg' -o -name '*.vsix')
+          gh release create "$TAG" --verify-tag --generate-notes --title "$TAG" "${flags[@]}" "${assets[@]}"

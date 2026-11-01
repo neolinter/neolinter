@@ -11,6 +11,7 @@
     <Description>Neolinter command line: on-demand solution-wide analyses (dead code, duplicated code) with SARIF output.</Description>
     <PackageTags>linter;csharp;sarif;dead-code;duplicates</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +29,7 @@
   <ItemGroup>
     <None Include="..\..\..\README.md" Pack="true" PackagePath="\" />
     <None Include="..\..\..\NOTICE" Pack="true" PackagePath="\" />
+    <None Include="..\..\ide\vscode\resources\icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

@@ -36,7 +36,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 |---|---|---|---|
 | WP-00 | Merge the initial skeleton (PR #1) | — | in review |
 | WP-01 | Repository hygiene | WP-00 | done (branch protection pending) |
-| WP-02 | Release and publishing | WP-00 | todo |
+| WP-02 | Release and publishing | WP-00 | done (workflow not run on GitHub yet; maintainer setup pending) |
 | WP-03 | CLI: dead code (NLC0002) | WP-00 | done |
 | WP-04 | CLI: duplicated code (NLC0003) | WP-00 | done |
 | WP-05 | CLI: output and CI options | WP-03 or WP-04 | done |
@@ -118,6 +118,19 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   colors (text is bound to `VsBrushes.WindowTextKey`, border is a fixed gray), other VS versions; minimum Visual Studio is 17.14 (SDK version), not 17.8, so lowering it means
   trying an older SDK; adding the package from the window is not offered (banner shows the command); the project
   files are not part of `Neolinter.slnx` (Windows only); the "Solution analysis" runner is not implemented.
+- **WP-02 release and publishing**: `.github/workflows/release.yml` (tags `v*` or a manual dry run), version
+  resolution in `.github/scripts/release-version.sh`, `docs/RELEASING.md` (manual steps, versions, bad release).
+  Decisions (maintainer): nuget.org organization `neolinter`, nuget.org trusted publishing (OIDC, environment `release`, no NuGet secret; policy to create), VS Code Marketplace trusted publishing too (`vsce publish --oidc`, no `VSCE_PAT`; PATs are announced as retired 2026-12-01), VS Marketplace
+  publisher `neolinter`, pre-release naming `0.1.0-preview.1`. Own choices: version comes from the tag through
+  `-p:Version=` (no new dependency; `Directory.Build.props` keeps `0.1.0` as the local default); `vsce package <version>
+  --no-update-package-json` sets the VS Code version; a pre-release `X.Y.Z-label.N` is `X.Y.(Z*1000+N)` for the VS Code
+  Marketplace (`--pre-release`) and the Visual Studio manifest, so the first stable after previews of a line must raise
+  the minor; publish only
+  runs for a tag reachable from `main`; the Visual Studio `.vsix` is only attached to the GitHub release; NuGet icon is the
+  VS Code `icon.png`, README is the repository README. **Remaining**: the maintainer creates the publisher and its trusted publishing policy, `release` environment,
+  nuget.org policy (first-push bootstrap unverified), prefix reservation and tag protection, then runs the dry run and cuts `v0.1.0-preview.1`; the workflow itself was
+  never run on GitHub (steps were run locally); the Visual Studio Marketplace publication (listed in
+  `docs/RELEASING.md`).
 
 ---
 
@@ -140,7 +153,9 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   - Branch protection on `main` (required CI, signed commits) — done by the maintainer in GitHub settings.
 - **Done when**: files merged, `git add --renormalize .` produces no diff afterwards.
 
-## WP-02 — Release and publishing
+## WP-02 — Release and publishing — done
+
+See "Done" above. Original scope:
 
 - **Goal**: publish `Neolinter` (analyzers) and `Neolinter.Cli` (tool) on nuget.org and the VS Code extension on
   the Marketplace, from tags.

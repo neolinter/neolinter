@@ -28,7 +28,7 @@ Reference the package in each project, or once for all projects in `Directory.Bu
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Neolinter" Version="0.1.0" PrivateAssets="all" />
+  <PackageReference Include="Neolinter" Version="0.1.0-preview.1" PrivateAssets="all" />
 </ItemGroup>
 ```
 
@@ -51,8 +51,9 @@ The rules then show up wherever Roslyn analyzers are loaded:
 | Editors using the Roslyn language server or OmniSharp (Neovim, Helix, Zed, Emacs…) | yes | yes, as LSP code actions |
 | `dotnet build` / CI | yes | — |
 
-The package is not published on nuget.org yet: build it with `dotnet pack` (see [CONTRIBUTING](docs/CONTRIBUTING.md))
-and use a local package source.
+The package, `Neolinter` on nuget.org, is published by the release workflow (see [Releasing](docs/RELEASING.md)).
+Until the first `v*` tag exists, build it with `dotnet pack` (see [CONTRIBUTING](docs/CONTRIBUTING.md)) and use a
+local package source. Pre-releases are versioned like `0.1.0-preview.1`: pick one explicitly.
 
 ### Settings screen
 
@@ -60,6 +61,11 @@ Each IDE gets a native settings screen that edits the same `.editorconfig` keys.
 (`src/ide/vscode`, command **Neolinter: Open Settings**, with a "Solution analysis" tab that runs the command
 line, see below), and Visual Studio 2022 17.14 / 2026 (`src/ide/visualstudio`, **Extensions > Neolinter Settings**,
 "Solution analysis" tab disabled for now). Planned: Rider, then Zed.
+
+The VS Code extension (`neolinter.neolinter` on the Marketplace) is published by the same release workflow, and every
+release also attaches both `.vsix` files to its
+[GitHub release](https://github.com/neolinter/neolinter/releases) (VS Code: `code --install-extension <file>`;
+Visual Studio: double-click the file). The Visual Studio extension is not on the Visual Studio Marketplace yet.
 
 ### Command line
 
@@ -117,6 +123,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 ## Documentation
 
 - [Roadmap](docs/ROADMAP.md): work packages and rules for picking them up
+- [Releasing](docs/RELEASING.md): tags, versions, secrets, unlisting a bad release
 - [Architecture](docs/architecture.md), including the `neolinter.json` format
 - [Contributing](docs/CONTRIBUTING.md)
 - [Adding a rule](docs/ADDING_A_RULE.md)
