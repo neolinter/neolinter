@@ -46,7 +46,7 @@ in `.github/scripts/release-version.sh`.
    - **Environment**: `release`;
    - **Scope**: allow publishing new packages and new versions, package glob `Neolinter*`.
 
-   The workflow calls `NuGet/login@v1` with `user: neolinter`, which swaps the job's GitHub OIDC token for a one-hour API
+   The workflow calls `NuGet/login` (pinned to the commit of v1.2.0) with `user: neolinter`, which swaps the job's GitHub OIDC token for a one-hour API
    key (`id-token: write` is set on the `publish` job only). If the policy is owned by a personal account instead of the
    organization, change `user:` in `.github/workflows/release.yml` to that account's nuget.org username.
    If the policy shows "temporarily active for 7 days" (private repositories), the first successful publish within 7
