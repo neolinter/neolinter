@@ -9,7 +9,9 @@ description: >-
   inverting the condition and leaving first keeps the main code one level less indented.
   Reported for an 'if' without 'else' that ends a method body (exit with 'return') or a loop
   body (exit with 'continue'), for an 'if' followed only by a simple 'return' (the return is
-  repeated), and for an 'if'/'else' whose 'else' only contains return, continue, break or throw.
+  repeated), for an 'if'/'else' whose 'else' only contains return, continue, break, throw or yield break,
+  and for an 'if'/'else if' chain whose final 'else' only exits, when every condition of the chain is
+  free of side effects. 'yield break' is the exit used inside iterators.
 options:
   - key: nlr0001.min_statements
     type: integer
@@ -17,3 +19,18 @@ options:
     minimum: 1
     title: Minimum statements
     description: Smallest number of statements inside an 'if' without 'else' for the rule to report it.
+  - key: nlr0001.simplify_logical_operators
+    type: boolean
+    default: false
+    title: Simplify negated 'and'/'or'
+    description: >-
+      When the fix has to negate a condition, rewrite !(a && b) as !a || !b and !(a || b) as !a && !b.
+      Only applied to the built-in operators on bool operands; other conditions keep the !( ... ) form.
+  - key: nlr0001.guard_braces
+    type: enum
+    values: [always, never]
+    default: always
+    title: Braces around the inserted exit
+    description: >-
+      'always' wraps the inserted return, continue, break, throw or yield break in braces, 'never' writes it
+      as a single statement without braces (braces that carry comments are kept).

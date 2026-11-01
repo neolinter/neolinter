@@ -39,7 +39,19 @@ Then configure the rules in `.editorconfig`:
 # none | silent | suggestion | warning | error
 dotnet_diagnostic.NLR0001.severity = warning
 nlr0001.min_statements = 3
+# optional, off by default: !(a && b) becomes !a || !b when the fix negates a condition
+nlr0001.simplify_logical_operators = false
+# always | never: braces around the return/continue/break/throw/yield break the fix inserts
+nlr0001.guard_braces = always
 ```
+
+NLR0001 options (all optional; the values above are the defaults):
+
+| Key | Values | Effect |
+|---|---|---|
+| `nlr0001.min_statements` | integer >= 1 | Smallest `if` body (without `else`) that is reported. |
+| `nlr0001.simplify_logical_operators` | `true` / `false` | The fix rewrites `!(a && b)` as `!a || !b` and `!(a || b)` as `!a && !b`. Only for the built-in operators on `bool`; nullable and user-defined operators are never rewritten. |
+| `nlr0001.guard_braces` | `always` / `never` | `never` writes the inserted exit as one statement without braces (braces that carry comments are kept). |
 
 The rules then show up wherever Roslyn analyzers are loaded:
 

@@ -149,6 +149,19 @@ to `dotnet_diagnostic.NLR0001.severity` and the `nl0001.*` options to `nlr0001.*
 (`#pragma warning disable`, `[SuppressMessage]`) use the new id. A SARIF baseline written with the old ids no
 longer matches (the fingerprint includes the rule id): regenerate it.
 
+### NLR0001 details
+
+- Exits: `return`, `continue`, `break`, `throw` and, inside iterators, `yield break` (also inserted when an `if` ends an
+  iterator body).
+- `else if` cascade: `if (c1) B1 else if (c2) B2 else EXIT`, followed by other code, becomes
+  `if (!c1 && !c2) EXIT` then `if (c1) B1 else B2`. Reported only when the final `else` is a single exit, no branch
+  consists of an exit alone, every condition is side-effect free (names, literals, member reads, `!`, `&&`, `||`,
+  comparisons, `is` without variable; no call, no user-defined operator) because conditions are evaluated twice, and no
+  comment sits between the branches.
+- Fix-only options (the diagnostics do not depend on them): `nlr0001.simplify_logical_operators` (default `false`,
+  De Morgan on built-in `&&`/`||` with `bool` operands only) and `nlr0001.guard_braces` (`always`, the default and the
+  v1 behaviour, or `never`). Both are additive: `.editorconfig` files written for v1 keep working unchanged.
+
 ### neolinter.json
 
 Looked up next to the solution, or passed with `--config`. Every property is optional; unknown properties

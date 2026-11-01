@@ -15,7 +15,9 @@ internal static class InvertIfRewriter
 {
     private const string DefaultIndentUnit = "    ";
 
-    public static BlockSyntax Rewrite(InvertIfCandidate candidate, SemanticModel model, CancellationToken cancellationToken)
+    /// <param name="simplifyLogicalOperators">Option <c>nlr0001.simplify_logical_operators</c>.</param>
+    /// <param name="guardBraces">Option <c>nlr0001.guard_braces</c>: <c>true</c> for <c>always</c>, <c>false</c> for <c>never</c>.</param>
+    public static BlockSyntax Rewrite(InvertIfCandidate candidate, SemanticModel model, bool simplifyLogicalOperators, bool guardBraces, CancellationToken cancellationToken)
     {
         var ifStatement = candidate.IfStatement;
         var block = candidate.Block;
@@ -24,11 +26,16 @@ internal static class InvertIfRewriter
         var ifIndent = IndentationOf(ifStatement.IfKeyword, text);
 
         var body = InvertIfAnalysis.GetStatements(ifStatement.Statement);
-        var firstToken = body[0].GetFirstToken();
-        var bodyIndent = StartsLine(firstToken, text) ? IndentationOf(firstToken, text) : null;
+        var bodyIndent = body.Count > 0 && StartsLine(body[0].GetFirstToken(), text) ? IndentationOf(body[0].GetFirstToken(), text) : null;
         var unit = bodyIndent is not null && bodyIndent.Length > ifIndent.Length && bodyIndent.StartsWith(ifIndent, StringComparison.Ordinal)
             ? bodyIndent.Substring(ifIndent.Length)
             : DefaultIndentUnit;
+
+        if (candidate.Kind == InvertIfKind.ElseIfCascade)
+        {
+            return RewriteCascade(candidate, model, simplifyLogicalOperators, guardBraces, text, eol, ifIndent, unit, cancellationToken);
+        }
+
         var dedenter = new Dedenter(text, unit);
 
         var hoisted = body.Select(s => (StatementSyntax)dedenter.Visit(s)).ToList();
@@ -74,18 +81,7 @@ internal static class InvertIfRewriter
             }
         }
 
-        var sameLineBrace = ifStatement.Statement is BlockSyntax b && LineOf(b.OpenBraceToken, text) == LineOf(ifStatement.CloseParenToken, text);
-        var closeParenTrailing = sameLineBrace
-            ? TriviaList(Space)
-            : HasComment(ifStatement.CloseParenToken.TrailingTrivia)
-                ? EnsureEndOfLine(ifStatement.CloseParenToken.TrailingTrivia, eol)
-                : TriviaList(eol);
-
-        var guard = ifStatement
-            .WithCondition(ConditionNegator.Negate(ifStatement.Condition, model, cancellationToken))
-            .WithCloseParenToken(ifStatement.CloseParenToken.WithTrailingTrivia(closeParenTrailing))
-            .WithStatement(GuardBody(candidate, text, ifIndent, unit, sameLineBrace, eol))
-            .WithElse(null);
+        var guard = BuildGuard(candidate, ConditionNegator.Negate(ifStatement.Condition, model, simplifyLogicalOperators, cancellationToken), text, ifIndent, unit, eol, guardBraces);
 
         if (!hoisted[0].GetLeadingTrivia().FirstOrDefault().IsKind(SyntaxKind.EndOfLineTrivia))
         {
@@ -111,14 +107,91 @@ internal static class InvertIfRewriter
         return block.WithStatements(List(statements)).WithCloseBraceToken(closeBrace);
     }
 
-    private static BlockSyntax GuardBody(InvertIfCandidate candidate, SourceText text, string ifIndent, string unit, bool sameLineBrace, SyntaxTrivia eol)
+    /// <summary>
+    /// <c>if (c1) B1 else if (c2) B2 else EXIT</c> becomes the guard <c>if (!c1 &amp;&amp; !c2) EXIT</c> followed by
+    /// <c>if (c1) B1 else B2</c>: the branches stay where they are, only the final <c>else</c> moves up.
+    /// </summary>
+    private static BlockSyntax RewriteCascade(
+        InvertIfCandidate candidate, SemanticModel model, bool simplifyLogicalOperators, bool guardBraces,
+        SourceText text, SyntaxTrivia eol, string ifIndent, string unit, CancellationToken cancellationToken)
+    {
+        var head = candidate.IfStatement;
+        var block = candidate.Block;
+
+        ExpressionSyntax? condition = null;
+        for (var current = head; ; current = (IfStatementSyntax)current.Else!.Statement)
+        {
+            var negated = ConditionNegator.ParenthesizeFor(
+                ConditionNegator.Negate(current.Condition, model, simplifyLogicalOperators, cancellationToken).WithoutTrivia(),
+                SyntaxKind.LogicalAndExpression);
+            condition = condition is null
+                ? negated
+                : BinaryExpression(SyntaxKind.LogicalAndExpression, condition, Token(TriviaList(Space), SyntaxKind.AmpersandAmpersandToken, TriviaList(Space)), negated);
+
+            if (current.Else!.Statement is not IfStatementSyntax)
+            {
+                break;
+            }
+        }
+
+        var guard = BuildGuard(candidate, condition!.WithTriviaFrom(head.Condition), text, ifIndent, unit, eol, guardBraces);
+        var remainder = DropFinalElse(head)
+            .WithLeadingTrivia(TriviaList(eol).AddRange(Indent(ifIndent)))
+            .WithTrailingTrivia(head.GetTrailingTrivia());
+
+        var index = block.Statements.IndexOf(head);
+        var statements = block.Statements.Take(index).Append(guard).Append(remainder).Concat(block.Statements.Skip(index + 1));
+        return block.WithStatements(List(statements));
+    }
+
+    // The last "else if (c) B" becomes "else B": its condition is known to hold once the guard has passed.
+    private static IfStatementSyntax DropFinalElse(IfStatementSyntax ifStatement)
+    {
+        var elseClause = ifStatement.Else!;
+        var next = (IfStatementSyntax)elseClause.Statement;
+        if (next.Else!.Statement is IfStatementSyntax)
+        {
+            return ifStatement.WithElse(elseClause.WithStatement(DropFinalElse(next)));
+        }
+
+        return ifStatement.WithElse(elseClause
+            .WithElseKeyword(elseClause.ElseKeyword.WithTrailingTrivia(next.CloseParenToken.TrailingTrivia))
+            .WithStatement(next.Statement));
+    }
+
+    private static IfStatementSyntax BuildGuard(
+        InvertIfCandidate candidate, ExpressionSyntax condition, SourceText text, string ifIndent, string unit, SyntaxTrivia eol, bool guardBraces)
+    {
+        var ifStatement = candidate.IfStatement;
+        var useBraces = guardBraces || NeedsBraces(candidate);
+        var sameLineBrace = useBraces && ifStatement.Statement is BlockSyntax b && LineOf(b.OpenBraceToken, text) == LineOf(ifStatement.CloseParenToken, text);
+        var closeParenTrailing = sameLineBrace
+            ? TriviaList(Space)
+            : HasComment(ifStatement.CloseParenToken.TrailingTrivia)
+                ? EnsureEndOfLine(ifStatement.CloseParenToken.TrailingTrivia, eol)
+                : TriviaList(eol);
+
+        return ifStatement
+            .WithCondition(condition)
+            .WithCloseParenToken(ifStatement.CloseParenToken.WithTrailingTrivia(closeParenTrailing))
+            .WithStatement(GuardBody(candidate, text, ifIndent, unit, sameLineBrace, eol, useBraces))
+            .WithElse(null);
+    }
+
+    // Braces of the old else block that carry comments stay, so that no comment is lost.
+    private static bool NeedsBraces(InvertIfCandidate candidate) =>
+        candidate.Kind is InvertIfKind.ElseExit or InvertIfKind.ElseIfCascade
+        && candidate.Exit is BlockSyntax elseBlock
+        && (HasComment(elseBlock.OpenBraceToken.TrailingTrivia) || HasComment(elseBlock.CloseBraceToken.LeadingTrivia));
+
+    private static StatementSyntax GuardBody(InvertIfCandidate candidate, SourceText text, string ifIndent, string unit, bool sameLineBrace, SyntaxTrivia eol, bool useBraces)
     {
         var innerIndent = ifIndent + unit;
         IEnumerable<SyntaxTrivia> closeLeading = Indent(ifIndent);
         var openTrailing = TriviaList(eol);
         IReadOnlyList<StatementSyntax> exits;
 
-        if (candidate.Kind == InvertIfKind.ElseExit)
+        if (candidate.Kind is InvertIfKind.ElseExit or InvertIfKind.ElseIfCascade)
         {
             var elseStatement = candidate.Exit;
             exits = InvertIfAnalysis.GetStatements(elseStatement);
@@ -149,6 +222,11 @@ internal static class InvertIfRewriter
 
             return exit.WithLeadingTrivia(Indent(innerIndent)).WithTrailingTrivia(EnsureEndOfLine(TrimEnd(exit.GetTrailingTrivia()), eol));
         });
+
+        if (!useBraces)
+        {
+            return normalized.Single();
+        }
 
         return Block(
             Token(sameLineBrace ? TriviaList() : TriviaList(Indent(ifIndent)), SyntaxKind.OpenBraceToken, openTrailing),

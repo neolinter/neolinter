@@ -45,7 +45,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-08 | Visual Studio 2022+ settings extension | WP-07 | done (window opened in VS 2026, writing not verified) |
 | WP-09 | Rider settings plugin | WP-07 | todo |
 | WP-10 | Zed: feasibility and integration | WP-00 | todo |
-| WP-11 | NLR0001 v2 | WP-00 | todo |
+| WP-11 | NLR0001 v2 | WP-00 | done |
 | WP-12 | New real-time rules | WP-00 | todo |
 | WP-13 | Second language | WP-02 | todo |
 | WP-14 | Localized messages | WP-00 | decision needed |
@@ -118,6 +118,19 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   colors (text is bound to `VsBrushes.WindowTextKey`, border is a fixed gray), other VS versions; minimum Visual Studio is 17.14 (SDK version), not 17.8, so lowering it means
   trying an older SDK; adding the package from the window is not offered (banner shows the command); the project
   files are not part of `Neolinter.slnx` (Windows only); the "Solution analysis" runner is not implemented.
+- **WP-11 NLR0001 v2**: the four items confirmed by the maintainer. (1) `else if` cascades whose final `else` is a
+  single exit; (2) `yield break` is an exit (found in an `else`, and inserted at the end of iterator bodies);
+  (3) `nlr0001.simplify_logical_operators` (boolean, default `false`); (4) `nlr0001.guard_braces` (`always` default,
+  `never`; no `auto`, because v1 always writes braces). **New optional `.editorconfig` keys** (additive, backward
+  compatible with the frozen key contract; documented in the README, `rules/NLR0001.yaml` and `docs/architecture.md`).
+  Decisions (maintainer-approved): items 1 and 2 are **on by default** (suggestion level), so cases that were silent
+  before are now reported (the tests `Iterator_NoDiagnostic` became `Iterator_LeavesWithYieldBreak`, the playground
+  `NotReportedIterator` became `ReportedIteratorLeavesWithYieldBreak`); cascade rewrite is
+  `if (!c1 && !c2) EXIT` then `if (c1) B1 else B2`, only when every condition is side-effect free (no call, no
+  user-defined operator, no declared variable). Own choices: a cascade with a branch that is only an exit, or comments
+  between its branches, is not reported; De Morgan only on the built-in `&&`/`||` with `bool` operands (nullable
+  and user-defined operators are never rewritten); `never` keeps braces that carry comments; the options only affect
+  the code fix, not the diagnostics.
 - **WP-02 release and publishing**: `.github/workflows/release.yml` (tags `v*` or a manual dry run), version
   resolution in `.github/scripts/release-version.sh`, `docs/RELEASING.md` (manual steps, versions, bad release).
   Decisions (maintainer): nuget.org organization `neolinter`, nuget.org trusted publishing (OIDC, environment `release`, no NuGet secret; policy to create), VS Code Marketplace trusted publishing too (`vsce publish --oidc`, no `VSCE_PAT`; PATs are announced as retired 2026-12-01), VS Marketplace
@@ -262,15 +275,9 @@ See "Done" above. Original scope:
   snippets) and possibly slash commands. Write the findings in `docs/architecture.md` and **ask** before building
   anything.
 
-## WP-11 — NLR0001 v2
+## WP-11 — NLR0001 v2 — done
 
-- **Scope**, each item to confirm with the maintainer first:
-  - `else if` cascades whose final `else` only exits;
-  - optional De Morgan simplification (`!(a && b)` → `!a || !b`) behind an option such as
-    `nl0001.simplify_logical_operators`;
-  - optional braces style for the inserted exit (`nl0001.guard_braces = always|never`);
-  - `yield break` in iterators.
-- **Constraints**: new options go to `rules/NLR0001.yaml`; every change keeps behaviour (add negative tests).
+See "Done" above. Original scope: `else if` cascades, De Morgan option, braces option, `yield break`.
 
 ## WP-12 — New real-time rules
 
