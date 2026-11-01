@@ -126,9 +126,21 @@ Maintainer setup: the publisher `neolinter` is the same one as for VS Code
 `neolinter/neolinter`, workflow `release.yml`, environment `release`) also allows the Visual Studio Marketplace; if
 it is a separate list, add the same policy there.
 
-Not verified: the publish itself (never run), that the policy covers this Marketplace, that `VsixPublisher.exe` of the
-`windows-latest` image supports `-oidc` (the job fails with the tool's usage message if it does not: then publish the
-first `.vsix` from the GitHub release by hand at <https://marketplace.visualstudio.com/vs> > Publish extensions, or
-use a `-personalAccessToken`), and the install on Professional and Enterprise (the manifest lists the
-`Microsoft.VisualStudio.Community` target, which Visual Studio is expected to apply to every edition; check on one).
-The window writing to a real solution's `.editorconfig` is also still unverified (WP-08 in `docs/ROADMAP.md`).
+**Known problem (2026-11-01)**: the first run (`v0.1.0-preview.3`) failed in `VsixPublisher.exe` 18.11 with
+`VsixPub0047 ... No api-version was supplied for the "POST" request`: the Marketplace refuses the tool's OIDC token
+exchange (the same exchange works for `vsce publish --oidc`). It is a mismatch between the tool and the service, not a
+workflow setting, and the runner already has the newest tool. The step is therefore `continue-on-error`: the run stays green,
+and the job shows a warning. **Publish by hand until Microsoft fixes the tool**: download `Neolinter.VisualStudio.vsix`
+from the GitHub release, go to <https://marketplace.visualstudio.com/vs> > Publish extensions > publisher `neolinter` >
+New extension > Visual Studio, upload the `.vsix`, paste `src/ide/visualstudio/overview.md` as the overview, pick the
+category and tags, Save & Upload, then Make Public. An alternative is `-personalAccessToken` in the workflow (a PAT is
+subject to the retirement of global Azure DevOps tokens on 2026-12-01).
+
+Not verified: the install on Professional and Enterprise (the manifest lists the `Microsoft.VisualStudio.Community`
+target, which Visual Studio is expected to apply to every edition; check on one). The window writing to a real solution's `.editorconfig` is also still unverified (WP-08 in `docs/ROADMAP.md`).
+
+**Temporary test job**: `republish-visualstudio` (remove it afterwards). Run Actions > Release > Run workflow with
+`visualstudio-release-tag` set to an existing release (for example `v0.1.0-preview.3`) and `dry-run` unchecked is not
+needed: when that input is filled, every other job is skipped and only this one runs, on `windows-2022` (Visual Studio 2022
+17.14 and its older `VsixPublisher.exe`). It prints the tool version and its options, fails if `-oidc` is missing, then
+publishes the `.vsix` of that release **for real** to the Visual Studio Marketplace.
