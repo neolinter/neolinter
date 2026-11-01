@@ -41,7 +41,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-04 | CLI: duplicated code (NLC0001) | WP-00 | todo |
 | WP-05 | CLI: output and CI options | WP-03 or WP-04 | done |
 | WP-06 | VS Code: "Solution analysis" tab | WP-03 or WP-04 | done (F5 run not verified) |
-| WP-07 | Shared `.editorconfig` fixtures | WP-00 | todo |
+| WP-07 | Shared `.editorconfig` fixtures | WP-00 | done |
 | WP-08 | Visual Studio 2022+ settings extension | WP-07 | todo |
 | WP-09 | Rider settings plugin | WP-07 | todo |
 | WP-10 | Zed: feasibility and integration | WP-00 | todo |
@@ -86,6 +86,13 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   package is not on nuget.org yet; "Show in Problems panel" off by default, stored per workspace. Exit code `1` is
   findings, not an error. Pure logic in `src/sarif.ts` and `src/cli.ts` with `node:test` tests. Not verified: the
   F5 run in a real VS Code window (the CLI output on `samples/Playground` was checked against the parser).
+- **WP-07 shared `.editorconfig` fixtures**: `tests/fixtures/editorconfig/<case>/` with `input.editorconfig`,
+  optional `read.json` (`keys`, `expected`) and optional `change.json` (`key`, `value`) + `expected.editorconfig`;
+  format documented in `docs/architecture.md`. The VS Code test discovers the directories (adding a case needs no
+  code change). Decisions: a read case and a write case are told apart by which JSON file exists; a key that is not
+  found is absent from `expected`; fixtures are `-text` in `.gitattributes` so CRLF cases stay byte exact; glob
+  recognition stays in VS Code's own test; "remove key" is not expressed because the editor cannot remove keys yet
+  (add a `change.json` form when it can).
 
 ---
 
@@ -172,7 +179,9 @@ See "Done" above. Original scope:
 - **Tests**: unit tests for SARIF parsing and result mapping (`node:test`).
 - **Done when**: works on the playground from F5.
 
-## WP-07 — Shared `.editorconfig` fixtures
+## WP-07 — Shared `.editorconfig` fixtures — done
+
+See "Done" above. Original scope:
 
 - **Goal**: one set of test cases every IDE implementation must pass.
 - **Scope**: move the cases of `src/ide/vscode/src/test/editorconfig.test.ts` to

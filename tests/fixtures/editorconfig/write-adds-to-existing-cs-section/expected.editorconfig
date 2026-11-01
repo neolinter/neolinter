@@ -1,0 +1,6 @@
+[*.cs]
+indent_size = 4
+nl0001.min_statements = 5
+
+[*.json]
+indent_size = 2

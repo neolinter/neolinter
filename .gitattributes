@@ -1,1 +1,4 @@
 * text=auto eol=lf
+
+# Fixtures are compared byte for byte (CRLF cases), never normalize them.
+tests/fixtures/** -text

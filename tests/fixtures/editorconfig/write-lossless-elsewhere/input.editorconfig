@@ -1,0 +1,9 @@
+; header
+root = true
+
+[*]
+charset = utf-8
+
+[*.cs]
+# rules
+dotnet_diagnostic.NL0001.severity = suggestion

@@ -1,0 +1,6 @@
+{
+  "keys": [
+    "dotnet_diagnostic.NL0001.severity"
+  ],
+  "expected": {}
+}

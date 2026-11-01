@@ -1,0 +1,2 @@
+[*.{cs,vb}]
+DOTNET_DIAGNOSTIC.nl0001.SEVERITY = silent # quiet
