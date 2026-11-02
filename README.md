@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Six real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008); the command line analyses are not implemented yet.
+> Status: early development (0.1). Seven real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -128,6 +128,27 @@ method or loop body. The two suggestions are alternatives: the NLR0001 fix leave
 which NLR0008 does not report; the NLR0008 fix leaves one `if`, which NLR0001 may then turn into a single guard. They never
 undo each other. With the default of 3 statements there is no overlap on the outer `if`, whose body is one statement.
 
+NLR0009 has no option. It reports the `else` of `if (c) <exit> else <statement>` and `if (c) <exit> else { ... }` when the
+`if` branch always leaves: it ends with `return`, `throw`, `break`, `continue`, `goto` or `yield break`, or is an
+`if`/`else` whose branches all do. The fix removes the `else` and its braces and writes the statements after the `if`,
+one level up, at the indentation of the `if`; comments inside the `else` and around the statements are kept, and so is
+the file's own layout (tabs or spaces, line endings; a `} else {` or a one-line `if (c) return; else Run();` ends up on
+separate lines). Not reported:
+
+- `else if` (the chain is left alone) and an `if` that is the body of another statement without braces (dangling `else`)
+  or that sits directly in a `switch` section (inside a block of a section it is reported);
+- an empty `else`, a directive inside the `if`, a comment on the `else` keyword or next to its braces, or a statement
+  of the `else` (after the first) that shares its line with another;
+- the `if` does not start its line;
+- a name declared in the `else` appears anywhere else in the enclosing block (a clash, or a later use of a field of the
+  same name that would bind to the new local), or a `using` declaration in the `else` while code follows the `if` (its
+  disposal would move later);
+- an `else` that is a single exit after a longer branch (`if (c) { A(); B(); return; } else { return; }`): NLR0001
+  reports it, and its fix removes the `else` by inverting the condition.
+
+After the NLR0009 fix, NLR0001 can still suggest a guard for what is left (an `if` followed by a `return`); the
+suggestions chain, they never undo each other.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -209,6 +230,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0006](rules/NLR0006.yaml) | Keep LINQ operators inside the Entity Framework Core query | real-time | warning |
 | [NLR0007](rules/NLR0007.yaml) | Avoid nested conditional expressions | real-time, code fix | suggestion |
 | [NLR0008](rules/NLR0008.yaml) | Merge nested 'if' statements | real-time, code fix | suggestion |
+| [NLR0009](rules/NLR0009.yaml) | Remove 'else' after a branch that exits | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

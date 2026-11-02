@@ -139,7 +139,7 @@ These are frozen from 0.1 on; changing them is a breaking change.
 
 One numbering for all rules, shared across prefixes; the letter says where the rule runs.
 
-- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison, `NLR0006` = keep LINQ operators inside the Entity Framework Core query, `NLR0007` = avoid nested conditional expressions, `NLR0008` = merge nested `if` statements.
+- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison, `NLR0006` = keep LINQ operators inside the Entity Framework Core query, `NLR0007` = avoid nested conditional expressions, `NLR0008` = merge nested `if` statements, `NLR0009` = remove `else` after a branch that exits.
 - `NLC` (**C**ommand line): `neolinter analyze`. `NLC0002` = unused member (`dead-code`), `NLC0003` = duplicated
   statements (`duplicates`).
 
@@ -220,6 +220,25 @@ longer matches (the fingerprint includes the rule id): regenerate it.
 - Scope of expression variables: an `if` condition's variables belong to the `if` statement, so merging does not widen
   them; definite assignment follows the same `&&` rules as the nested statements.
 - NLR0001: see the README. Tests run both analyzers together (`BothRules`).
+
+### NLR0009 details
+
+- Shape (`ElseAfterExitAnalysis`): an `IfStatement` whose parent is a block, with an `else` that is not an `else if`, and
+  whose statement always leaves: `return`, `throw`, `break`, `continue`, `goto`, `yield break`, a block ending in one of
+  them, or an `if`/`else` whose two branches do (syntactic check, no data flow). The diagnostic is on the `else` keyword.
+  A parent that is not a block rules out `else if`, braceless bodies (dangling `else`) and switch sections.
+- NLR0001: the shape it already reports (`ElseExit`: the `else` is a lone exit, the `if` body is longer) is skipped by
+  asking `InvertIfAnalysis` itself, so the two rules cannot disagree. The NLR0001 fix leaves no `else`; the NLR0009 fix
+  can leave an `if` followed by a `return`, which NLR0001 may suggest to invert: a chain, not a loop. NLR0008 needs an
+  `if` without `else`, so it never fires on this shape or on the result of the fix. Tests run the rules together.
+- Safe to move: no comment on the tokens that disappear (`else`, braces), no directive, each statement after the first
+  starts its line; declared names (`InvertIfAnalysis.DeclaredNames`) are compared with every identifier token of the
+  enclosing block outside the `else`, and a `using` declaration is refused when code follows.
+- Fix: the `if` loses its `else` and, when it did not end its line, gets the file's line ending; the statements of the
+  `else` are inserted after it, dedented by the indentation difference between the `if` line and the first statement
+  line (`LineIndentation`, shared with NLR0008; only whitespace that starts a line is touched), the first one starting a
+  line at the indentation of the `if`, the last one taking the trailing trivia of the closing brace. Tokens are built
+  with explicit trivia, no elastic trivia.
 
 ### neolinter.json
 
