@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Fourteen real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016); the command line analyses are not implemented yet.
+> Status: early development (0.1). Fifteen real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -229,6 +229,14 @@ own `==`/`!=` (`string` and delegates excepted), a value that is assigned or pas
 call, assignment or `await` before the last cast on a field, a cast inside a lambda or with a comment, a user-defined or
 numeric cast, and guarded code that holds another `as` or `is` (the inner one is reported first).
 
+NLR0017 has no option. It reports `if (c) continue;` (also `if (!c) continue;`, with or without braces, no `else`) at the very start of a
+`foreach` body and moves it, with the guards that follow it, into `Where` on the source: `foreach (var x in items.Where(x => !c))`
+(conditions joined with `&&`, `using System.Linq;` added when missing). The source must be an `IEnumerable<T>` (not `IQueryable`) of the
+loop variable's type. Not reported: `await foreach`, a deconstruction, a multidimensional array or non-generic collection, nullable
+elements, a source with its own `Where`, a condition that calls anything but `string` or primitive type methods or that assigns,
+declares variables or holds a lambda, a condition that reads something the loop body assigns, a loop in a struct, a guard that is the
+whole rest of the body, and a guard with a comment. NLR0001 produces `if (!c) continue;` in loops; NLR0017 then moves it.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -318,6 +326,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0014](rules/NLR0014.yaml) | Use 'string.IsNullOrEmpty' | real-time, code fix | suggestion |
 | [NLR0015](rules/NLR0015.yaml) | Use 'TryGetValue' instead of 'ContainsKey' and the indexer | real-time, code fix | suggestion |
 | [NLR0016](rules/NLR0016.yaml) | Use a type pattern instead of a cast | real-time, code fix | suggestion |
+| [NLR0017](rules/NLR0017.yaml) | Move the 'continue' guard into 'Where' | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

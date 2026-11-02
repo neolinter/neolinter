@@ -83,6 +83,8 @@ command line, one global numbering).
 - [x] NLR0014 `s == null || s == ""` to `string.IsNullOrEmpty` (F; also `is null`, `string.Empty`, `s.Length == 0` and the negated `&&` forms; no option)
 - [x] NLR0015 `ContainsKey` then indexer to `TryGetValue` (F; `if`, `if (!...) ... else` and `&&` forms; no option)
 - [x] NLR0016 `as` plus null check to a pattern (F), `is` plus cast to a pattern (F) (one rule; the guard clause form needs C# 9; no option)
+- [x] NLR0017 leading `if (c) continue;` of a `foreach` to `Where` on the source (F; several guards merged with `&&`; `IQueryable` sources and nullable elements skipped; no option)
+- [ ] Leading `if (c) break;` of a `foreach` to `TakeWhile` on the source (F; same conditions as NLR0017, next id NLR0018)
 - [ ] `switch` statement to `switch` expression (F, O), `if`/`else` assignment to ternary (F, O)
 - [ ] Concatenation and `string.Format` to interpolation (F), interpolation without expression (F)
 - [ ] Redundant cast, `ToString()` or parentheses (F), redundant `this.` (F, O), trailing `return;` (F)
