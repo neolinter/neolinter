@@ -139,7 +139,7 @@ These are frozen from 0.1 on; changing them is a breaking change.
 
 One numbering for all rules, shared across prefixes; the letter says where the rule runs.
 
-- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison, `NLR0006` = keep LINQ operators inside the Entity Framework Core query, `NLR0007` = avoid nested conditional expressions, `NLR0008` = merge nested `if` statements, `NLR0009` = remove `else` after a branch that exits, `NLR0010` = use the condition instead of `true` and `false`, `NLR0011` = use `Any()` instead of comparing `Count()` with zero.
+- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison, `NLR0006` = keep LINQ operators inside the Entity Framework Core query, `NLR0007` = avoid nested conditional expressions, `NLR0008` = merge nested `if` statements, `NLR0009` = remove `else` after a branch that exits, `NLR0010` = use the condition instead of `true` and `false`, `NLR0011` = use `Any()` instead of comparing `Count()` with zero, `NLR0012` = fold `Where` into the following LINQ operator.
 - `NLC` (**C**ommand line): `neolinter analyze`. `NLC0002` = unused member (`dead-code`), `NLC0003` = duplicated
   statements (`duplicates`).
 
@@ -265,6 +265,18 @@ longer matches (the fingerprint includes the rule id): regenerate it.
 - Skipped: a receiver type with a member called `Any`, and a comment or directive among the tokens the fix drops.
 - Fix: the `Count` name becomes `Any` (arguments and type arguments kept), wrapped with `LogicalNot` for the empty
   forms; the comparison's own leading and trailing trivia is kept. No elastic trivia.
+
+### NLR0012 details
+
+- Shape (`WhereTerminalAnalysis`): an invocation `a.Where(p).T()` where `T` is `Any`, `First`, `FirstOrDefault`, `Single`,
+  `SingleOrDefault`, `Last`, `LastOrDefault`, `Count` or `LongCount`, with no argument, both calls bound to
+  `System.Linq.Enumerable` or `Queryable`, and `Where` taking one argument whose delegate has a single parameter (the
+  index overload is skipped). The diagnostic sits on the `Where` name.
+- Skipped: a receiver type with a member of the terminal's name, and a comment or directive among the tokens the fix drops.
+- Fix: the `Where` call keeps its receiver and predicate, takes the terminal name (type arguments kept) and the trailing
+  trivia of the terminal call. No elastic trivia.
+- With NLR0011: when the terminal is a `Count()` that NLR0011 reports (compared with 0 or 1), NLR0012 stays silent. After
+  the NLR0011 fix the code is `a.Where(p).Any()`, which NLR0012 reports. The two rules never report the same code.
 
 ### neolinter.json
 
