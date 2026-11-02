@@ -1,0 +1,21 @@
+id: NLR0008
+title: Merge nested 'if' statements
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  An 'if' without 'else' whose only statement is another 'if' without 'else' says 'a and b' in two steps.
+  One 'if' with both conditions joined by '&&' does the same with one level less, and evaluates the conditions in
+  the same order and only as far as before. Reported on the outermost 'if' for 'if (a) { if (b) { ... } }',
+  'if (a) { if (b) ...; }' and 'if (a) if (b) ...;', and once for a chain of three levels or more. The code fix
+  keeps the inner body, its braces (or lack of them), the comments around it and the file's brace style, moves the
+  body up one indentation level per level removed, and adds parentheses only where the meaning needs them
+  ('a || c' becomes '(a || c) && b'; conditional expressions, assignments, lambdas and 'switch' expressions
+  too). Pattern variables ('x is T t') and 'out' variables stay in scope for the body. Nothing is reported when
+  either 'if' has an 'else' or the outer 'if' holds another statement, when a condition is not exactly 'bool'
+  (a type with its own 'true', 'false' and '&' operators could behave differently), when a variable declared in
+  the inner condition has the same name as an identifier of the outer condition (the merged condition would no
+  longer compile), or when a comment or directive sits between the two 'if' statements (the fix would drop it).
+  When 'nlr0001.min_statements' is set to 1, the guard clause rule (NLR0001) can report the same outer 'if' at the
+  end of a method or loop body: the two fixes are alternatives, and neither produces the shape the other reports.

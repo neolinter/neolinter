@@ -139,7 +139,7 @@ These are frozen from 0.1 on; changing them is a breaking change.
 
 One numbering for all rules, shared across prefixes; the letter says where the rule runs.
 
-- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison, `NLR0006` = keep LINQ operators inside the Entity Framework Core query, `NLR0007` = avoid nested conditional expressions.
+- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison, `NLR0006` = keep LINQ operators inside the Entity Framework Core query, `NLR0007` = avoid nested conditional expressions, `NLR0008` = merge nested `if` statements.
 - `NLC` (**C**ommand line): `neolinter analyze`. `NLC0002` = unused member (`dead-code`), `NLC0003` = duplicated
   statements (`duplicates`).
 
@@ -201,6 +201,25 @@ longer matches (the fingerprint includes the rule id): regenerate it.
   first one, original trailing trivia on the last one, operand text is copied verbatim. Braces follow
   `csharp_prefer_braces`, else the majority style of the file's `if` / `else` bodies; indentation unit, brace position and
   line endings are read from the enclosing block.
+
+### NLR0008 details
+
+- Shape (`MergeNestedIfAnalysis`): an `IfStatement` without `else` whose statement, or the only statement of its block, is
+  an `IfStatement` without `else`; the walk continues down while each level qualifies. The diagnostic is on the `if`
+  keyword of the outermost one; an `if` that is the inner level of a mergeable parent is not reported again.
+- Conditions: both must have exactly the type `bool` (semantic model), and a variable declared in an inner condition may
+  not share its name with any identifier of the conditions above it. No directive anywhere in the outer statement, no
+  comment in the tokens the fix drops (everything between the two conditions except the inner `)` trailing trivia and
+  the outer closing brace's trailing trivia, which move onto the new statement).
+- Fix: the conditions are joined left to right with `&&` (parenthesizing `||`, `??`, conditional, assignment, lambda,
+  `switch` expression, query, range, `throw`; `a && (b && c)` is flattened to `a && b && c`). The new `if` keeps the outer
+  `if` keyword and leading trivia and the outer `)`, which takes the trailing trivia of the innermost `)` (so the user's
+  brace placement wins); the innermost statement becomes the body, its leading whitespace at line starts reduced by the
+  indentation difference between the outer and the innermost `if` lines (token trivia only: string literals and comments
+  keep their text), and its last token takes the trailing trivia of the outer `if`. No elastic trivia.
+- Scope of expression variables: an `if` condition's variables belong to the `if` statement, so merging does not widen
+  them; definite assignment follows the same `&&` rules as the nested statements.
+- NLR0001: see the README. Tests run both analyzers together (`BothRules`).
 
 ### neolinter.json
 
