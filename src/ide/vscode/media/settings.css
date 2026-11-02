@@ -352,8 +352,8 @@ input[type="search"] {
   }
 }
 
+/* Webviews cannot read the editor's token colors; these theme variables are always defined and close to them. */
 .tok-comment { color: var(--vscode-descriptionForeground); font-style: italic; }
-.tok-string { color: var(--vscode-symbolIcon-stringForeground, var(--vscode-foreground)); }
-.tok-keyword { color: var(--vscode-symbolIcon-keywordForeground, var(--vscode-foreground)); }
-.tok-number { color: var(--vscode-symbolIcon-numberForeground, var(--vscode-foreground)); }
-.tok-type { color: var(--vscode-symbolIcon-classForeground, var(--vscode-foreground)); }
+.tok-string { color: var(--vscode-debugTokenExpression-string); }
+.tok-keyword { color: var(--vscode-debugTokenExpression-boolean, var(--vscode-textLink-foreground)); }
+.tok-number { color: var(--vscode-debugTokenExpression-number); }

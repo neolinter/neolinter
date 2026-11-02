@@ -187,8 +187,8 @@
 
   const keywords = 'as|await|bool|break|case|class|continue|default|else|false|for|foreach|if|in|int|is|new|not|null|out|private|public|return|string|this|throw|true|var|void|while|yield';
   // shortcut: regex tokens for the C# subset used by the examples, no real parser; extend the list when an example needs more.
-  const tokens = new RegExp(String.raw`(//.*)|("(?:[^"\\]|\\.)*")|\b(${keywords})\b|\b(\d+)\b|\b([A-Z]\w*)\b(?!\s*\()`, 'g');
-  const tokenClasses = ['tok-comment', 'tok-string', 'tok-keyword', 'tok-number', 'tok-type'];
+  const tokens = new RegExp(String.raw`(//.*)|("(?:[^"\\]|\\.)*")|\b(${keywords})\b|\b(\d+)\b`, 'g');
+  const tokenClasses = ['tok-comment', 'tok-string', 'tok-keyword', 'tok-number'];
 
   /** Splits code into text nodes and classed spans (textContent only, nothing is parsed as HTML). */
   function highlight(code) {
