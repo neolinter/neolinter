@@ -1,0 +1,35 @@
+id: NLR0017
+title: Move the 'continue' guard into 'Where'
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  A guard that skips items at the start of a 'foreach' body can filter the loop source with 'Where' instead.
+details: >-
+  Reported on the first 'if (c) continue;' (braces optional, no 'else') at the very start of a 'foreach' body when the
+  source is an 'IEnumerable<T>' of the loop variable's type and 'System.Linq' is referenced. The fix moves that guard
+  and the guards right after it into 'items.Where(x => ...)', negating each condition and joining them with '&&', and
+  names the lambda parameter after the loop variable, so the body is unchanged; it adds 'using System.Linq;' when the
+  file does not import it. Conditions may read the loop variable, other locals and parameters, fields, constants and
+  properties, and use operators, patterns, 'nameof' and methods of 'string' and the primitive types. Nothing is
+  reported for an 'await foreach', a deconstruction, an 'IQueryable' source (the filter would become part of the
+  query), a multidimensional array or non-generic collection, an explicit loop variable type that differs from the
+  element type, nullable elements (the null check would no longer narrow the variable), a source with its own 'Where',
+  a condition with other calls, assignments, lambdas, out variables or ref locals, a condition that reads something
+  the loop body assigns, a loop in a struct, a guard that is the whole rest of the body, a guard with a comment, or
+  a file without usings that starts with a comment. A 'break' guard is not concerned. NLR0001 turns 'if (c) { ... }'
+  in a loop into 'if (!c) continue;' followed by the rest, which this rule then moves into 'Where'; with NLR0010 and
+  NLR0012 the conditions and 'Where' calls they produce are simply carried over.
+examples:
+  - before: |-
+      foreach (var user in users)
+      {
+          if (!user.IsActive) continue;
+          Send(user);
+      }
+    after: |-
+      foreach (var user in users.Where(user => user.IsActive))
+      {
+          Send(user);
+      }
