@@ -11,6 +11,11 @@ export interface RuleOption {
   description: string;
 }
 
+export interface RuleExample {
+  before: string;
+  after?: string;
+}
+
 /** A rule as described in /rules/*.yaml. */
 export interface Rule {
   id: string;
@@ -20,6 +25,9 @@ export interface Rule {
   category: string;
   defaultSeverity: Severity;
   description: string;
+  details?: string;
+  fix?: string;
+  examples: RuleExample[];
   options: RuleOption[];
 }
 

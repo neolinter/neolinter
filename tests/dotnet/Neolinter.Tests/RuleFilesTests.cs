@@ -59,6 +59,9 @@ public class RuleFilesTests
             Assert.Contains(rule.DefaultSeverity, severities);
             Assert.False(string.IsNullOrWhiteSpace(rule.Title));
             Assert.False(string.IsNullOrWhiteSpace(rule.Description));
+            Assert.False(string.IsNullOrWhiteSpace(rule.Category));
+            Assert.NotEmpty(rule.Examples);
+            Assert.All(rule.Examples, example => Assert.False(string.IsNullOrWhiteSpace(example.Before)));
             Assert.All(rule.Options, option =>
             {
                 Assert.StartsWith(rule.Id.ToLowerInvariant() + ".", option.Key);
@@ -103,7 +106,16 @@ public class RuleFilesTests
         public string Category { get; set; } = "";
         public string DefaultSeverity { get; set; } = "";
         public string Description { get; set; } = "";
+        public string? Details { get; set; }
+        public string? Fix { get; set; }
+        public List<RuleExample> Examples { get; set; } = [];
         public List<RuleOption> Options { get; set; } = [];
+    }
+
+    public sealed class RuleExample
+    {
+        public string Before { get; set; } = "";
+        public string? After { get; set; }
     }
 
     public sealed class RuleOption

@@ -6,14 +6,27 @@ category: Performance
 defaultSeverity: suggestion
 description: >-
   'ContainsKey(k)' followed by the indexer with the same key looks the key up twice; 'TryGetValue(k, out var value)'
-  looks it up once and hands over the value. Reported on the 'ContainsKey' call of 'if (d.ContainsKey(k)) { ... d[k] ... }'
-  (no 'else'), of 'if (!d.ContainsKey(k)) { ... } else { ... d[k] ... }', and of 'd.ContainsKey(k) && ... d[k] ...' when
-  that chain is a whole 'if' condition, a 'return' value or an expression body. The code fix calls 'TryGetValue' with an
-  'out var' named 'value' ('value1', ... when the name is taken) and reads that variable instead of 'd[k]'. The dictionary
-  and the key must be written the same way in both places, as a name or a chain of member accesses (the key may also
-  be a constant), and the dictionary type must have an instance 'TryGetValue(TKey, out TValue)' (extension methods do not
-  count). Nothing is reported before C# 7, inside an expression tree or a query clause, when an indexer read is assigned,
-  incremented or passed by reference, is inside a lambda or local function, or has a comment in it, when the dictionary
-  or key is assigned, passed to a call or called ('Add', 'Remove', ...), or the code awaits or yields, between the check
-  and the last read, or when the guarded code holds another 'ContainsKey' call (the inner one is reported first). Calls
-  that change the dictionary without naming it are not detected.
+  looks it up once and hands over the value.
+details: >-
+  Reported on the 'ContainsKey' call of 'if (d.ContainsKey(k)) { ... d[k] ... }' (no 'else'), of 'if
+  (!d.ContainsKey(k)) { ... } else { ... d[k] ... }', and of 'd.ContainsKey(k) && ... d[k] ...' when that chain is a
+  whole 'if' condition, a 'return' value or an expression body. The code fix calls 'TryGetValue' with an 'out var'
+  named 'value' ('value1', ... when the name is taken) and reads that variable instead of 'd[k]'. The dictionary and
+  the key must be written the same way in both places, as a name or a chain of member accesses (the key may also be a
+  constant), and the dictionary type must have an instance 'TryGetValue(TKey, out TValue)' (extension methods do not
+  count). Nothing is reported before C# 7, inside an expression tree or a query clause, when an indexer read is
+  assigned, incremented or passed by reference, is inside a lambda or local function, or has a comment in it, when the
+  dictionary or key is assigned, passed to a call or called ('Add', 'Remove', ...), or the code awaits or yields,
+  between the check and the last read, or when the guarded code holds another 'ContainsKey' call (the inner one is
+  reported first). Calls that change the dictionary without naming it are not detected.
+examples:
+  - before: |-
+      if (prices.ContainsKey(code))
+      {
+          total += prices[code];
+      }
+    after: |-
+      if (prices.TryGetValue(code, out var value))
+      {
+          total += value;
+      }

@@ -20,7 +20,8 @@ type WebviewMessage =
   | { type: 'recheck' }
   | { type: 'openCliSettings' }
   | { type: 'openFinding'; index: number }
-  | { type: 'setProblems'; enabled: boolean };
+  | { type: 'setProblems'; enabled: boolean }
+  | { type: 'reset'; entries: { key: string; value: string }[] };
 
 const msbuildFiles = '**/{*.csproj,Directory.Build.props,Directory.Build.targets}';
 const excludedFolders = '**/{bin,obj,node_modules}/**';
@@ -113,6 +114,16 @@ async function openSettings(context: vscode.ExtensionContext) {
           return;
         }
         await writeProperty(editorConfig, message.key, message.value);
+        break;
+      case 'reset':
+        for (const entry of Array.isArray(message.entries) ? message.entries : []) {
+          const known = rules.some((r) => severityKey(r.id) === entry.key
+            ? (severities as readonly string[]).includes(entry.value)
+            : r.options.some((o) => o.key === entry.key));
+          if (known && typeof entry.value === 'string' && !/[\r\n]/.test(entry.value)) {
+            await writeProperty(editorConfig, entry.key, entry.value);
+          }
+        }
         break;
       case 'addPackage':
         await addPackage();
@@ -364,8 +375,24 @@ function renderHtml(webview: vscode.Webview, media: vscode.Uri): string {
     <button role="tab" id="tab-analysis" aria-controls="panel-analysis" aria-selected="false" tabindex="-1">Solution analysis</button>
   </div>
   <section role="tabpanel" id="panel-rules" aria-labelledby="tab-rules">
-    <p class="hint">Settings are written to the workspace <code>.editorconfig</code>, section <code>[*.cs]</code>.</p>
-    <div id="rules"></div>
+    <div class="toolbar">
+      <input type="search" id="rule-search" placeholder="Search by id or title" aria-label="Search rules">
+      <div class="chips" role="group" aria-label="Filter rules">
+        <button type="button" class="chip" data-filter="all" aria-pressed="true">All <span class="count"></span></button>
+        <button type="button" class="chip" data-filter="realtime" aria-pressed="false">Real time (NLR) <span class="count"></span></button>
+        <button type="button" class="chip" data-filter="cli" aria-pressed="false">Command line (NLC) <span class="count"></span></button>
+        <button type="button" class="chip" data-filter="modified" aria-pressed="false">Modified <span class="count"></span></button>
+      </div>
+    </div>
+    <div role="grid" aria-label="Rules">
+      <div class="head" role="row"><span role="columnheader"><span class="sr-only">Enabled</span></span><span role="columnheader">Id</span><span role="columnheader">Rule</span><span role="columnheader">Severity</span><span role="columnheader"><span class="sr-only">Details</span></span></div>
+      <div id="rules"></div>
+    </div>
+    <div class="footer">
+      <span id="modified-count"></span>
+      <span class="hint">Written to the workspace <code>.editorconfig</code>, section <code>[*.cs]</code>.</span>
+      <button type="button" id="reset-all" disabled>Reset all</button>
+    </div>
   </section>
   <section role="tabpanel" id="panel-analysis" aria-labelledby="tab-analysis" hidden>
     <p class="hint">Runs the <code>neolinter</code> command line on the solution of the workspace folder (restore it first with <code>dotnet restore</code>).</p>

@@ -14,7 +14,17 @@ type: realtime                         # realtime | cli
 category: Style
 defaultSeverity: suggestion            # none | silent | suggestion | warning | error
 description: >-
-  What the rule reports and why, written by you (see CLEAN_ROOM.md).
+  What the rule reports and why, in one or two sentences, written by you (see CLEAN_ROOM.md).
+details: >-                            # optional: the exact conditions, shown below the description
+  Reported for ... Nothing is reported when ...
+fix: >-                                # optional: suggested fix as prose, for rules without a code fix
+  Move the operator before the loading call.
+examples:                              # required: at least one, 2 to 8 lines each
+  - before: |-
+      if (x == null)
+          x = Make();
+    after: |-                          # optional: omit it when there is no code fix
+      x ??= Make();
 options:
   - key: nlr0005.some_option            # <id lowercase>.<name>
     type: integer                      # integer | boolean | string | enum (with values: [...])
@@ -24,7 +34,12 @@ options:
     description: One sentence.
 ```
 
-`RuleFilesTests` fails if the file and the analyzer disagree.
+`category` and at least one example with a `before` are required: `RuleFilesTests` and the VS Code build
+(`scripts/embed-rules.mjs`) fail without them. Take the examples from the tests or `samples/Playground`. The settings
+screens show `before` / `after` side by side; a rule without `after` shows `before` as "Reported code" and `fix` as
+the suggested fix. Readers that do not know a field must ignore it.
+
+`RuleFilesTests` also fails if the file and the analyzer disagree.
 
 ## 2. Write the analyzer
 
