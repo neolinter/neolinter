@@ -73,7 +73,7 @@ internal static class TryGetValueAnalysis
             .Count(i => i.SpanStart < check.SpanStart && IsContainsKey(i) && Analyze(i, model, cancellationToken) is not null) ?? 0;
         for (var i = before; ; i++)
         {
-            var name = i == 0 ? "value" : "value" + i;
+            var name = i == 0 ? "value" : $"value{i}";
             if (!taken.Contains(name))
             {
                 return name;

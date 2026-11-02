@@ -265,7 +265,7 @@ public static class DeadCodeAnalyzer
     /// <summary>Accepts the attribute full name with or without the <c>Attribute</c> suffix.</summary>
     private static bool HasAttribute(ISymbol symbol, IReadOnlyList<string> names) =>
         names.Count > 0 && symbol.GetAttributes().Any(a => a.AttributeClass is { } attribute
-            && names.Any(n => FullName(attribute) == n || FullName(attribute) == n + "Attribute"));
+            && names.Any(n => FullName(attribute) == n || FullName(attribute) == $"{n}Attribute"));
 
     private static bool IsVisibleOutsideAssembly(ISymbol symbol)
     {

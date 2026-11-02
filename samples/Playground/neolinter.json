@@ -2,6 +2,6 @@
   "version": 1,
   "deadCode": {
     // The NLR examples are never called on purpose.
-    "excludePaths": ["NLR0001Examples.cs", "NLR0004Examples.cs", "NLR0005Examples.cs", "NLR0006Examples.cs", "NLR0007Examples.cs", "NLR0008Examples.cs", "NLR0009Examples.cs", "NLR0010Examples.cs", "NLR0011Examples.cs", "NLR0012Examples.cs", "NLR0013Examples.cs", "NLR0014Examples.cs", "NLR0015Examples.cs", "NLR0016Examples.cs", "NLR0017Examples.cs", "NLR0018Examples.cs", "NLR0019Examples.cs", "NLR0020Examples.cs"]
+    "excludePaths": ["NLR0001Examples.cs", "NLR0004Examples.cs", "NLR0005Examples.cs", "NLR0006Examples.cs", "NLR0007Examples.cs", "NLR0008Examples.cs", "NLR0009Examples.cs", "NLR0010Examples.cs", "NLR0011Examples.cs", "NLR0012Examples.cs", "NLR0013Examples.cs", "NLR0014Examples.cs", "NLR0015Examples.cs", "NLR0016Examples.cs", "NLR0017Examples.cs", "NLR0018Examples.cs", "NLR0019Examples.cs", "NLR0020Examples.cs", "NLR0021Examples.cs"]
   }
 }

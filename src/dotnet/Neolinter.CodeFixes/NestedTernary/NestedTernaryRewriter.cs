@@ -65,7 +65,7 @@ internal static class NestedTernaryRewriter
 
         var eol = text.ToString().Contains("\r\n") ? "\r\n" : "\n";
         var unit = IndentUnit(statement.Parent, indent, text);
-        var statements = bodies.Select(b => prefix + b + ";").ToList();
+        var statements = bodies.Select(b => $"{prefix}{b};").ToList();
         var braces = preferBraces ?? (whenMultiline ? statements.Any(s => s.Contains('\n')) : ExistingStyleUsesBraces(root));
         var chain = BuildChain(conditions.Select(c => c.ToString()).ToList(), statements, indent, unit, eol, braces, IsAllman(statement));
 
@@ -109,7 +109,7 @@ internal static class NestedTernaryRewriter
                 when assignment.Right == conditional && IsStableTarget(assignment.Left, model, cancellationToken):
                 statement = expressionStatement;
                 context = Context.Assignment;
-                prefix = assignment.Left + " = ";
+                prefix = $"{assignment.Left} = ";
                 allowedSpans.Add(assignment.Left.Span);
                 return true;
 
@@ -120,8 +120,8 @@ internal static class NestedTernaryRewriter
                     && !variableDeclaration.Type.IsVar && variableDeclaration.Type is not (RefTypeSyntax or ScopedTypeSyntax):
                 statement = local;
                 context = Context.Declaration;
-                prefix = declarator.Identifier.Text + " = ";
-                declaration = variableDeclaration.Type + " " + declarator.Identifier.Text + ";";
+                prefix = $"{declarator.Identifier.Text} = ";
+                declaration = $"{variableDeclaration.Type} {declarator.Identifier.Text};";
                 allowedSpans.Add(variableDeclaration.Type.Span);
                 return true;
 
@@ -172,7 +172,7 @@ internal static class NestedTernaryRewriter
         var chain = new StringBuilder();
         for (var i = 0; i < statements.Count; i++)
         {
-            var head = i == statements.Count - 1 ? "else" : (i == 0 ? "if (" : "else if (") + conditions[i] + ")";
+            var head = i == statements.Count - 1 ? "else" : $"{(i == 0 ? "if (" : "else if (")}{conditions[i]})";
             var body = indent + unit + statements[i];
 
             if (i > 0)

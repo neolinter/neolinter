@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Eighteen real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020); the command line analyses are not implemented yet.
+> Status: early development (0.1). Nineteen real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -243,6 +243,8 @@ NLR0019 has no option. A `switch` statement whose sections each `return` a value
 
 NLR0020 has no option. `if (c) x = a; else x = b;` becomes `x = c ? a : b;`, and `if (c) return a; else return b;` (or `return b;` right after the `if`) becomes `return c ? a : b;`. The target must be a name, a `this.` member or a chain of members, the same on both sides; a branch longer than 60 characters or on several lines, comments, an `else if`, an `out var` or pattern variable in the condition of an assignment and a changed typing (the branches must convert to the target type, or, from C# 9, have no common type and be target-typed) are not reported. The shapes of two other rules are left to them: `true` and `false` in both branches (NLR0010), and a branch that is already a conditional expression (NLR0007, since the result would be nested). NLR0009 also reports the `else` of `if (c) return a; else return b;`; both fixes lead to the same place (NLR0020 gives `return c ? a : b;`, NLR0009 gives the `if (c) return a; return b;` form that NLR0020 then reports), so apply either first.
 
+NLR0021 has no option. `"a" + x + "b"` becomes `$"a{x}b"`: a concatenation of at least two operands with at least one plain string literal and one value, from C# 6. Braces of a literal are doubled, and an operand with a top-level `:` or `,` (a conditional expression, a generic call) gets parentheses. Not reported: constants, verbatim, raw and UTF-8 literals, an interpolated string as operand, an operand with braces or on several lines, comments, a chain over several lines, expression trees and queries, user-defined operators. A chain that holds another chain in an operand is reported once the inner one is fixed.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -336,6 +338,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0018](rules/NLR0018.yaml) | Move the 'break' guard into 'TakeWhile' | real-time, code fix | suggestion |
 | [NLR0019](rules/NLR0019.yaml) | Use a switch expression | real-time, code fix | suggestion |
 | [NLR0020](rules/NLR0020.yaml) | Use a conditional expression | real-time, code fix | suggestion |
+| [NLR0021](rules/NLR0021.yaml) | Use string interpolation | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

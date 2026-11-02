@@ -72,7 +72,7 @@ internal static class SwitchExpressionAnalysis
             string value;
             if (statements.Count == 1 && statements[0] is ThrowStatementSyntax { Expression: { } thrown })
             {
-                value = "throw " + thrown;
+                value = $"throw {thrown}";
             }
             else if (statements.Count == 1 && statements[0] is ReturnStatementSyntax { Expression: { } returned and not RefExpressionSyntax } && returns != false)
             {
@@ -164,7 +164,7 @@ internal static class SwitchExpressionAnalysis
         node.ToString().Contains('\n');
 
     private static string Governing(SwitchStatementSyntax sw) =>
-        NeedsParentheses(sw.Expression) ? "(" + sw.Expression + ")" : sw.Expression.ToString();
+        NeedsParentheses(sw.Expression) ? $"({sw.Expression})" : sw.Expression.ToString();
 
     // 'a + b switch { ... }' reads as 'a + (b switch { ... })'.
     private static bool NeedsParentheses(ExpressionSyntax expression) =>
@@ -223,7 +223,7 @@ internal static class SwitchExpressionAnalysis
         }
 
         var text = Governing(sw) + " switch { "
-            + string.Join(", ", arms.Select(a => a.Pattern + (a.When is null ? "" : " when " + a.When) + " => " + a.Value)) + " }";
+            + string.Join(", ", arms.Select(a => a.Pattern + (a.When is null ? "" : $" when {a.When}") + " => " + a.Value)) + " }";
         var natural = model.GetSpeculativeTypeInfo(sw.SpanStart, SyntaxFactory.ParseExpression(text), SpeculativeBindingOption.BindAsExpression).Type;
         if (natural is { TypeKind: not TypeKind.Error })
         {

@@ -95,7 +95,7 @@ public static class SarifWriter
     {
         var path = Path.GetFullPath(location.FilePath);
         var relative = Path.GetRelativePath(root, path);
-        var insideRoot = !Path.IsPathRooted(relative) && relative != ".." && !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal);
+        var insideRoot = !Path.IsPathRooted(relative) && relative != ".." && !relative.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal);
 
         return new
         {

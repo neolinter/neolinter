@@ -103,7 +103,7 @@ internal static class PatternCastAnalysis
         }
 
         var camel = char.ToLowerInvariant(name[0]) + name.Substring(1);
-        return SyntaxFacts.GetKeywordKind(camel) != SyntaxKind.None || SyntaxFacts.GetContextualKeywordKind(camel) != SyntaxKind.None ? camel + "Value" : camel;
+        return SyntaxFacts.GetKeywordKind(camel) != SyntaxKind.None || SyntaxFacts.GetContextualKeywordKind(camel) != SyntaxKind.None ? $"{camel}Value" : camel;
     }
 
     // --- var x = e as T; if (x != null) ... ------------------------------------
