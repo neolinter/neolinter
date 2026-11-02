@@ -1,0 +1,32 @@
+id: NLR0020
+title: Use a conditional expression
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  An 'if' and 'else' that only assign the same variable, or only return a value, read better as a conditional
+  expression.
+details: >-
+  Reported for 'if (c) x = a; else x = b;' (the same name, 'this.' member or chain of members on both sides, simple
+  assignment) and for 'if (c) return a; else return b;' or 'if (c) return a;' followed by 'return b;' in the same block.
+  Braces are optional. The fix writes 'x = c ? a : b;' or 'return c ? a : b;'. Nothing is reported for an 'else if', a
+  compound assignment, an indexer or call as the target, a 'ref' return, a comment or preprocessor directive, a branch
+  longer than 60 characters or spread over several lines, an 'out var' or pattern variable in the condition of an
+  assignment, or when the typing would change: the type both branches convert to must be the target type, or, from
+  C# 9, absent (the branches are then converted to the target type). The shapes of other rules are left to them: both
+  branches 'true' and 'false' (NLR0010), and a branch that already holds a conditional expression (NLR0007).
+examples:
+  - before: |-
+      if (count == 1)
+          label = "item";
+      else
+          label = "items";
+    after: |-
+      label = count == 1 ? "item" : "items";
+  - before: |-
+      if (user.IsAdmin)
+          return "admin";
+      return "guest";
+    after: |-
+      return user.IsAdmin ? "admin" : "guest";

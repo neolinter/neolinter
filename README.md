@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Seventeen real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019); the command line analyses are not implemented yet.
+> Status: early development (0.1). Eighteen real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -241,6 +241,8 @@ NLR0018 has no option. It is the `break` twin of NLR0017: a leading `if (c) brea
 
 NLR0019 has no option. A `switch` statement whose sections each `return` a value (or `throw`), or each assign the same variable and `break`, becomes `return e switch { ... };` or `x = e switch { ... };`, one arm per line. It needs a `default` section as the last one (a `bool` switch with `case true` and `case false` also qualifies): without it the switch expression would throw where the statement does nothing. Labels, patterns and `when` guards are kept, `default` becomes `_`, and stacked labels become `a or b` (C# 9; before C# 9 such sections are not reported, and arms need a natural type since there is no target typing; before C# 8 nothing is reported). Nothing is reported either for sections with several statements, fallthrough or `goto case`, comments, multi-line parts, assignments to anything but a name or `this.` member, or when the arms would get another type.
 
+NLR0020 has no option. `if (c) x = a; else x = b;` becomes `x = c ? a : b;`, and `if (c) return a; else return b;` (or `return b;` right after the `if`) becomes `return c ? a : b;`. The target must be a name, a `this.` member or a chain of members, the same on both sides; a branch longer than 60 characters or on several lines, comments, an `else if`, an `out var` or pattern variable in the condition of an assignment and a changed typing (the branches must convert to the target type, or, from C# 9, have no common type and be target-typed) are not reported. The shapes of two other rules are left to them: `true` and `false` in both branches (NLR0010), and a branch that is already a conditional expression (NLR0007, since the result would be nested). NLR0009 also reports the `else` of `if (c) return a; else return b;`; both fixes lead to the same place (NLR0020 gives `return c ? a : b;`, NLR0009 gives the `if (c) return a; return b;` form that NLR0020 then reports), so apply either first.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -333,6 +335,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0017](rules/NLR0017.yaml) | Move the 'continue' guard into 'Where' | real-time, code fix | suggestion |
 | [NLR0018](rules/NLR0018.yaml) | Move the 'break' guard into 'TakeWhile' | real-time, code fix | suggestion |
 | [NLR0019](rules/NLR0019.yaml) | Use a switch expression | real-time, code fix | suggestion |
+| [NLR0020](rules/NLR0020.yaml) | Use a conditional expression | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

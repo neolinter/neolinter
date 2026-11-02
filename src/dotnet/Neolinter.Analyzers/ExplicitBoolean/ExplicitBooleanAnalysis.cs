@@ -91,7 +91,7 @@ internal static class ExplicitBooleanAnalysis
         return new ExplicitBooleanCandidate(ifStatement, ifStatement.Condition, negate: !returned, following);
     }
 
-    private static StatementSyntax? NextStatement(IfStatementSyntax ifStatement)
+    internal static StatementSyntax? NextStatement(IfStatementSyntax ifStatement)
     {
         var siblings = ifStatement.Parent switch
         {
@@ -128,7 +128,7 @@ internal static class ExplicitBooleanAnalysis
 
     // The rewrite drops the keywords and literals, so a comment or directive between the first and last token would be
     // lost. Trivia before the first token and after the last one stays with the new code.
-    private static bool HasLostComment(IEnumerable<SyntaxToken> tokens)
+    internal static bool HasLostComment(IEnumerable<SyntaxToken> tokens)
     {
         var list = tokens.ToList();
         for (var i = 0; i < list.Count; i++)
