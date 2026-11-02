@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Eleven real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013); the command line analyses are not implemented yet.
+> Status: early development (0.1). Twelve real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -198,6 +198,14 @@ written is reported: nothing before C# 7, only `== null` for C# 7 and 8 (`is not
   included), where `is null` is not allowed;
 - a comment or directive inside the comparison, since the fix would drop it.
 
+NLR0014 has no option. It reports `s == null || s == ""` (also `s is null`, `string.Empty`, `s.Length == 0`, either
+operand order of `==`) as `string.IsNullOrEmpty(s)`, and `s != null && s != ""` (also `s is not null`, `s.Length != 0`,
+`s.Length > 0`) as `!string.IsNullOrEmpty(s)`. The null test comes first, both tests are on the same string, written as a
+name or a chain of member accesses, and inside a longer `||` or `&&` chain only the pair is replaced. Not reported:
+`string.IsNullOrWhiteSpace`, a value that is not a `string`, a call or an indexer as the string, an expression tree
+(Entity Framework Core included), and a comment or directive inside the pair. NLR0013 may also report the `s == null`
+inside the pair; the two fixes can be applied in either order and give the same code.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -284,6 +292,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0011](rules/NLR0011.yaml) | Use 'Any()' instead of comparing 'Count()' with zero | real-time, code fix | suggestion |
 | [NLR0012](rules/NLR0012.yaml) | Fold 'Where' into the following LINQ operator | real-time, code fix | suggestion |
 | [NLR0013](rules/NLR0013.yaml) | Use 'is null' instead of comparing with 'null' | real-time, code fix | suggestion |
+| [NLR0014](rules/NLR0014.yaml) | Use 'string.IsNullOrEmpty' | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 
