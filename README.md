@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Five real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007); the command line analyses are not implemented yet.
+> Status: early development (0.1). Six real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -109,6 +109,25 @@ conditions in the same order. No fix when:
 Braces follow `csharp_prefer_braces` (`true`, `false`, `when_multiline`); without it the file's existing `if` / `else`
 style decides. Brace placement, indentation and line endings follow the enclosing code.
 
+NLR0008 has no option. It reports an `if` without `else` whose only statement is another `if` without `else`
+(`if (a) { if (b) { ... } }`, `if (a) { if (b) ...; }`, `if (a) if (b) ...;`), on the outermost `if`, once for a chain of
+three levels or more. The fix writes `if (a && b) ...` (`&&` keeps the evaluation order and the short-circuit), keeps the
+inner body with its braces or lack of them, moves it up one indentation level per level removed, and adds parentheses
+only where needed (`a || c` gives `(a || c) && b`). A pattern or `out` variable of the outer condition stays in scope for
+the body. Not reported:
+
+- either `if` has an `else`, or the outer `if` holds another statement;
+- a condition is not exactly `bool` (a type with its own `true`, `false` and `&` could behave differently, and `dynamic`);
+- the inner condition declares a variable named like an identifier of the outer condition (the merged condition would
+  not compile: the variable is in scope in the whole condition);
+- a comment or `#if` sits between the two `if` statements (the fix would drop it; comments above the outer `if`, inside
+  the body, after the inner `)` and after the outer closing brace are kept).
+
+With `nlr0001.min_statements = 1` the guard clause rule NLR0001 can also report the same outer `if` at the end of a
+method or loop body. The two suggestions are alternatives: the NLR0001 fix leaves `if (!a) return;` then `if (b) ...`,
+which NLR0008 does not report; the NLR0008 fix leaves one `if`, which NLR0001 may then turn into a single guard. They never
+undo each other. With the default of 3 statements there is no overlap on the outer `if`, whose body is one statement.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -189,6 +208,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0005](rules/NLR0005.yaml) | Simplify comparison with a boolean literal | real-time, code fix | suggestion |
 | [NLR0006](rules/NLR0006.yaml) | Keep LINQ operators inside the Entity Framework Core query | real-time | warning |
 | [NLR0007](rules/NLR0007.yaml) | Avoid nested conditional expressions | real-time, code fix | suggestion |
+| [NLR0008](rules/NLR0008.yaml) | Merge nested 'if' statements | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

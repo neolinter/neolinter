@@ -46,7 +46,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-09 | Rider settings plugin | WP-07 | todo |
 | WP-10 | Zed: feasibility and integration | WP-00 | todo |
 | WP-11 | NLR0001 v2 | WP-00 | done |
-| WP-12 | New real-time rules | WP-00 | in progress (NLR0004, NLR0005, NLR0006, NLR0007 done, one rule per PR) |
+| WP-12 | New real-time rules | WP-00 | in progress (NLR0004 to NLR0008 done, one rule per PR) |
 | WP-13 | Second language | WP-02 | todo |
 | WP-14 | Localized messages | WP-00 | decision needed |
 
@@ -174,6 +174,16 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   declared in a condition (except with `return`), and no comment or `#if` sits next to `?` or `:`; braces follow
   `csharp_prefer_braces`, else the file's existing `if` style; brace placement, indentation and line endings follow
   the enclosing code. Details in `rules/NLR0007.yaml`, the README and `docs/architecture.md`.
+- **WP-12, fifth rule: NLR0008 merge nested `if`** (wave 1 of the rules backlog). Reports an `if` without `else` whose only
+  statement is an `if` without `else` (braces or not), on the outermost one, once per chain of three levels or more; the fix
+  (and fix all) writes `if (a && b)`, keeping the inner body, its braces, the user's brace placement and the comments around
+  it, and parenthesizing only where needed (`a || c` gives `(a || c) && b`). Suggestion level, no option. Own choices:
+  no report when a condition is not exactly `bool` (user-defined `true`/`false`/`&`, `dynamic`), when a comment or `#if`
+  sits between the two `if` statements (the fix would drop it; comments elsewhere are kept), or when a variable declared
+  in the inner condition has the name of an identifier of the outer condition (the merged condition would not compile).
+  Pattern and `out` variables otherwise stay in scope for the body. NLR0001 overlaps only with `nlr0001.min_statements = 1`:
+  both fire on the same outer `if`, as alternatives that never undo each other (documented, tested with both analyzers
+  running); no coupling was added between the two rules. The repository's own sources produce no NLR0008 diagnostic.
 
 ---
 
@@ -311,11 +321,11 @@ See "Done" above. Original scope: `else if` cascades, De Morgan option, braces o
 
 ## WP-12 — New real-time rules
 
-- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0008`.
+- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0009`.
 - **Done**: use the null-coalescing assignment `??=` (NLR0004); simplify boolean comparisons (NLR0005); keep LINQ
-  operators inside the Entity Framework Core query (NLR0006); avoid nested conditional expressions (NLR0007).
+  operators inside the Entity Framework Core query (NLR0006); avoid nested conditional expressions (NLR0007); merge nested `if` statements (NLR0008).
 - **Remaining candidate ideas** (general practices, descriptions to be written from scratch, **maintainer picks**):
-  merge nested `if` statements without `else`; remove `else` after a branch that always exits; avoid empty `catch` blocks.
+  remove `else` after a branch that always exits; avoid empty `catch` blocks.
 - **Wider backlog**: `docs/RULES_CATALOG.md` lists many more candidate rules (naming, async, bugs, simplification,
   metrics, API, tests, project analyses) with a suggested order.
 - **Each rule**: analyzer, code fix with fix all when safe, YAML, tests, playground examples, README table.
