@@ -60,7 +60,7 @@ internal static class IsNullAnalysis
             || method.ContainingType.IsValueType);
 
     // 'is null' is not allowed in an expression tree (an Entity Framework Core query, for example).
-    private static bool InExpressionTree(SyntaxNode node, SemanticModel model, CancellationToken cancellationToken)
+    internal static bool InExpressionTree(SyntaxNode node, SemanticModel model, CancellationToken cancellationToken)
     {
         foreach (var ancestor in node.Ancestors())
         {
@@ -100,7 +100,7 @@ internal static class IsNullAnalysis
                 : IsLost(literal.GetLeadingTrivia()) || IsLost(operand.GetTrailingTrivia()));
     }
 
-    private static bool IsLost(SyntaxTriviaList trivia) =>
+    internal static bool IsLost(SyntaxTriviaList trivia) =>
         trivia.Any(t => t.IsDirective || t.IsKind(SyntaxKind.SingleLineCommentTrivia) || t.IsKind(SyntaxKind.MultiLineCommentTrivia)
             || t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) || t.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
 }

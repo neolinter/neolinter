@@ -80,7 +80,7 @@ command line, one global numbering).
 - [x] NLR0013 `is null` / `is not null` instead of `== null` / `!= null` (F; no option; skipped for overloaded equality, expression trees and older language versions)
 - [x] NLR0011 `Count() > 0` to `Any()` (F; also `Count() == 0`, `Count(p)` and the mirrored forms)
 - [x] NLR0012 `Where(p).Any()` to `Any(p)` (F; also `First`, `FirstOrDefault`, `Single`, `SingleOrDefault`, `Last`, `LastOrDefault`, `Count`, `LongCount`)
-- [ ] `s == null || s == ""` to `string.IsNullOrEmpty` (F)
+- [x] NLR0014 `s == null || s == ""` to `string.IsNullOrEmpty` (F; also `is null`, `string.Empty`, `s.Length == 0` and the negated `&&` forms; no option)
 - [ ] `ContainsKey` then indexer to `TryGetValue` (F)
 - [ ] `as` plus null check to a pattern (F), `is` plus cast to a pattern (F)
 - [ ] `switch` statement to `switch` expression (F, O), `if`/`else` assignment to ternary (F, O)

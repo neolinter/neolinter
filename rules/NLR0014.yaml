@@ -1,0 +1,15 @@
+id: NLR0014
+title: Use 'string.IsNullOrEmpty'
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  'string.IsNullOrEmpty(s)' says in one call what a null test and an empty test on 's' say together. Reported for
+  's == null || s == ""' (also 's is null', 'string.Empty', 's.Length == 0', and the operands of '==' in either order),
+  written 'string.IsNullOrEmpty(s)', and for 's != null && s != ""' (also 's is not null', 's.Length != 0' and
+  's.Length > 0'), written '!string.IsNullOrEmpty(s)'. The null test comes first and both tests are on the same
+  string, written as a name or a chain of member accesses; inside a longer '||' or '&&' chain only the pair is
+  replaced. Nothing is reported for 'string.IsNullOrWhiteSpace', for a value that is not a string, for a string
+  that is a call or an indexer, inside an expression tree (Entity Framework Core queries included), or when a
+  comment or directive sits inside the pair.
