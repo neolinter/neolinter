@@ -14,3 +14,4 @@ NLR0008  | Style    | Info     | MergeNestedIfAnalyzer
 NLR0009  | Style    | Info     | ElseAfterExitAnalyzer
 NLR0010  | Style    | Info     | ExplicitBooleanAnalyzer
 NLR0011  | Performance | Info  | CountToAnyAnalyzer
+NLR0012  | Style    | Info     | WhereTerminalAnalyzer

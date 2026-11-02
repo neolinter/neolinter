@@ -79,7 +79,7 @@ command line, one global numbering).
 - [x] NLR0009 `else` after a branch that always exits (F; NLR0001 keeps the `else` that is a lone exit after a longer branch)
 - [ ] `is null` / `is not null` instead of `== null` / `!= null` (F, O)
 - [x] NLR0011 `Count() > 0` to `Any()` (F; also `Count() == 0`, `Count(p)` and the mirrored forms)
-- [ ] `Where(p).Any()` to `Any(p)` (F), `Where(p).First()` to `First(p)` (F)
+- [x] NLR0012 `Where(p).Any()` to `Any(p)` (F; also `First`, `FirstOrDefault`, `Single`, `SingleOrDefault`, `Last`, `LastOrDefault`, `Count`, `LongCount`)
 - [ ] `s == null || s == ""` to `string.IsNullOrEmpty` (F)
 - [ ] `ContainsKey` then indexer to `TryGetValue` (F)
 - [ ] `as` plus null check to a pattern (F), `is` plus cast to a pattern (F)

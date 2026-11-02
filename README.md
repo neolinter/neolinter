@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Nine real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011); the command line analyses are not implemented yet.
+> Status: early development (0.1). Ten real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -173,7 +173,19 @@ too. Not reported:
 - another number (`> 1`, `== 1`), `LongCount()`, a receiver with its own member called `Any`;
 - a comment or directive next to the number or the operator, since the fix would drop it.
 
-`Where(p).Any()` is left for a separate rule.
+`Where(p).Any()` is taken by NLR0012.
+
+NLR0012 has no option. It reports `x.Where(p)` followed by `Any()`, `First()`, `FirstOrDefault()`, `Single()`,
+`SingleOrDefault()`, `Last()`, `LastOrDefault()`, `Count()` or `LongCount()` without argument, and writes the predicate
+into that operator (`x.Any(p)`). `Queryable` (Entity Framework Core included) is covered too: the query stays
+translatable. Not reported:
+
+- the index overload `Where((x, i) => ...)`, and a terminal call that already has an argument;
+- a receiver with its own member of the operator's name, or its own `Where`;
+- a comment or directive on the part the fix drops (between `Where(...)` and the terminal call).
+
+With NLR0011: `x.Where(p).Count() > 0` is reported by NLR0011 only. Its fix gives `x.Where(p).Any()`, which NLR0012
+then offers to write `x.Any(p)`, so the two never offer competing fixes on the same code.
 
 The rules then show up wherever Roslyn analyzers are loaded:
 
@@ -259,6 +271,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0009](rules/NLR0009.yaml) | Remove 'else' after a branch that exits | real-time, code fix | suggestion |
 | [NLR0010](rules/NLR0010.yaml) | Use the condition instead of 'true' and 'false' | real-time, code fix | suggestion |
 | [NLR0011](rules/NLR0011.yaml) | Use 'Any()' instead of comparing 'Count()' with zero | real-time, code fix | suggestion |
+| [NLR0012](rules/NLR0012.yaml) | Fold 'Where' into the following LINQ operator | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

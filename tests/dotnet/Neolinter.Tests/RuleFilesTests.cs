@@ -9,6 +9,7 @@ using Neolinter.Analyzers.InvertIf;
 using Neolinter.Analyzers.MergeNestedIf;
 using Neolinter.Analyzers.NestedTernary;
 using Neolinter.Analyzers.NullCoalescingAssignment;
+using Neolinter.Analyzers.WhereTerminal;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -17,7 +18,7 @@ namespace Neolinter.Tests;
 /// <summary>Keeps /rules/*.yaml (read by the IDE settings screens) in sync with the analyzers.</summary>
 public class RuleFilesTests
 {
-    private static readonly DiagnosticAnalyzer[] Analyzers = [new InvertIfAnalyzer(), new NullCoalescingAssignmentAnalyzer(), new BooleanComparisonAnalyzer(), new EfCoreClientLinqAnalyzer(), new NestedTernaryAnalyzer(), new MergeNestedIfAnalyzer(), new ElseAfterExitAnalyzer(), new ExplicitBooleanAnalyzer(), new CountToAnyAnalyzer()];
+    private static readonly DiagnosticAnalyzer[] Analyzers = [new InvertIfAnalyzer(), new NullCoalescingAssignmentAnalyzer(), new BooleanComparisonAnalyzer(), new EfCoreClientLinqAnalyzer(), new NestedTernaryAnalyzer(), new MergeNestedIfAnalyzer(), new ElseAfterExitAnalyzer(), new ExplicitBooleanAnalyzer(), new CountToAnyAnalyzer(), new WhereTerminalAnalyzer()];
 
     public static TheoryData<string> RealtimeRuleIds() => new(LoadRules().Where(r => r.Type == "realtime").Select(r => r.Id));
 
