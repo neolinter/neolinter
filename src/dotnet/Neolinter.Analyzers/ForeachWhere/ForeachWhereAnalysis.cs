@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Neolinter.Analyzers.ForeachWhere;
 
-internal sealed class ForeachWhereCandidate(ForEachStatementSyntax loop, ImmutableArray<IfStatementSyntax> guards, string variableName, bool needsUsing)
+internal sealed class ForeachWhereCandidate(ForEachStatementSyntax loop, ImmutableArray<IfStatementSyntax> guards, string variableName, bool needsUsing, string methodName)
 {
     public ForEachStatementSyntax Loop { get; } = loop;
 
@@ -16,12 +16,19 @@ internal sealed class ForeachWhereCandidate(ForEachStatementSyntax loop, Immutab
 
     /// <summary><c>System.Linq</c> is referenced but not imported at the loop.</summary>
     public bool NeedsUsing { get; } = needsUsing;
+
+    /// <summary><c>Where</c> for <c>continue</c> guards, <c>TakeWhile</c> for <c>break</c> guards.</summary>
+    public string MethodName { get; } = methodName;
 }
 
-/// <summary>Shared by the NLR0017 analyzer and its code fix: leading <c>continue</c> guards of a <c>foreach</c> become <c>Where</c>.</summary>
+/// <summary>
+/// Shared by the NLR0017 and NLR0018 analyzers and code fixes: leading <c>continue</c> guards of a <c>foreach</c> become <c>Where</c>,
+/// leading <c>break</c> guards become <c>TakeWhile</c>. Only a run of guards of the same kind is moved: <c>if (a) continue; if (b) break;</c>
+/// cannot be one call, since the order of the two filters matters, so a <c>break</c> guard after a <c>continue</c> guard is never reported.
+/// </summary>
 internal static class ForeachWhereAnalysis
 {
-    public static ForeachWhereCandidate? Analyze(IfStatementSyntax first, SemanticModel model, CancellationToken cancellationToken)
+    public static ForeachWhereCandidate? Analyze(IfStatementSyntax first, bool breakGuards, SemanticModel model, CancellationToken cancellationToken)
     {
         if (first.Parent is not BlockSyntax { Parent: ForEachStatementSyntax { AwaitKeyword.RawKind: 0 } loop } block
             || block.Statements[0] != first
@@ -38,8 +45,9 @@ internal static class ForeachWhereAnalysis
             return null;
         }
 
+        var methodName = breakGuards ? "TakeWhile" : "Where";
         var enumerable = model.Compilation.GetTypeByMetadataName("System.Linq.Enumerable");
-        if (enumerable is null || HasOwnWhere(model, loop, cancellationToken))
+        if (enumerable is null || HasOwnMethod(model, loop, methodName, cancellationToken))
         {
             return null;
         }
@@ -48,7 +56,7 @@ internal static class ForeachWhereAnalysis
         var guards = ImmutableArray.CreateBuilder<IfStatementSyntax>();
         foreach (var statement in block.Statements)
         {
-            if (statement is not IfStatementSyntax candidate || !IsGuard(candidate) || !IsPure(candidate.Condition, variable, loop, model, cancellationToken))
+            if (statement is not IfStatementSyntax candidate || !IsGuard(candidate, breakGuards) || !IsPure(candidate.Condition, variable, loop, model, cancellationToken))
             {
                 break;
             }
@@ -79,16 +87,19 @@ internal static class ForeachWhereAnalysis
             return null;
         }
 
-        return new ForeachWhereCandidate(loop, guards.ToImmutable(), variable.Name, !imported);
+        return new ForeachWhereCandidate(loop, guards.ToImmutable(), variable.Name, !imported, methodName);
     }
 
-    // 'if (c) continue;' or 'if (c) { continue; }', no else, and no comment or directive that would be lost with the statement.
-    private static bool IsGuard(IfStatementSyntax statement) =>
+    // 'if (c) continue;' or 'if (c) { continue; }' (or 'break'), no else, and no comment or directive that would be lost with the statement.
+    private static bool IsGuard(IfStatementSyntax statement, bool breakGuard) =>
         statement.Else is null
-        && (statement.Statement is ContinueStatementSyntax
-            || (statement.Statement is BlockSyntax { Statements.Count: 1 } single && single.Statements[0] is ContinueStatementSyntax))
+        && (IsJump(statement.Statement, breakGuard)
+            || (statement.Statement is BlockSyntax { Statements.Count: 1 } single && IsJump(single.Statements[0], breakGuard)))
         && !statement.DescendantTrivia(descendIntoTrivia: true).Concat(statement.GetLeadingTrivia()).Concat(statement.GetTrailingTrivia())
             .Any(t => !t.IsKind(SyntaxKind.WhitespaceTrivia) && !t.IsKind(SyntaxKind.EndOfLineTrivia));
+
+    private static bool IsJump(StatementSyntax statement, bool breakGuard) =>
+        breakGuard ? statement is BreakStatementSyntax : statement is ContinueStatementSyntax;
 
     private static bool IsGenericEnumerable(ITypeSymbol? source, ITypeSymbol element)
     {
@@ -111,10 +122,10 @@ internal static class ForeachWhereAnalysis
     private static bool EnclosingTypeIsStruct(SyntaxNode node, SemanticModel model, CancellationToken cancellationToken) =>
         model.GetEnclosingSymbol(node.SpanStart, cancellationToken)?.ContainingType is { TypeKind: TypeKind.Struct };
 
-    // An instance member called Where on the source type would win over the extension method.
-    private static bool HasOwnWhere(SemanticModel model, ForEachStatementSyntax loop, CancellationToken cancellationToken) =>
+    // An instance member called Where (or TakeWhile) on the source type would win over the extension method.
+    private static bool HasOwnMethod(SemanticModel model, ForEachStatementSyntax loop, string name, CancellationToken cancellationToken) =>
         model.GetTypeInfo(loop.Expression, cancellationToken).Type is { } type
-        && !model.LookupSymbols(loop.Expression.SpanStart, type, "Where", includeReducedExtensionMethods: false).IsEmpty;
+        && !model.LookupSymbols(loop.Expression.SpanStart, type, name, includeReducedExtensionMethods: false).IsEmpty;
 
     private static bool IsPure(ExpressionSyntax condition, ILocalSymbol variable, ForEachStatementSyntax loop, SemanticModel model, CancellationToken cancellationToken)
     {

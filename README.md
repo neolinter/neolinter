@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Fifteen real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017); the command line analyses are not implemented yet.
+> Status: early development (0.1). Sixteen real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -237,6 +237,8 @@ elements, a source with its own `Where`, a condition that calls anything but `st
 declares variables or holds a lambda, a condition that reads something the loop body assigns, a loop in a struct, a guard that is the
 whole rest of the body, and a guard with a comment. NLR0001 produces `if (!c) continue;` in loops; NLR0017 then moves it.
 
+NLR0018 has no option. It is the `break` twin of NLR0017: a leading `if (c) break;` (and the `break` guards right after it) becomes `foreach (var x in items.TakeWhile(x => !c))`, under the same conditions. Only a run of `break` guards at the start is moved; a `continue` guard before a `break` guard is not reported (the order of the two filters matters), while a `continue` guard after the moved `break` guards stays for NLR0017.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -327,6 +329,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0015](rules/NLR0015.yaml) | Use 'TryGetValue' instead of 'ContainsKey' and the indexer | real-time, code fix | suggestion |
 | [NLR0016](rules/NLR0016.yaml) | Use a type pattern instead of a cast | real-time, code fix | suggestion |
 | [NLR0017](rules/NLR0017.yaml) | Move the 'continue' guard into 'Where' | real-time, code fix | suggestion |
+| [NLR0018](rules/NLR0018.yaml) | Move the 'break' guard into 'TakeWhile' | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

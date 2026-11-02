@@ -46,7 +46,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-09 | Rider settings plugin | WP-07 | todo |
 | WP-10 | Zed: feasibility and integration | WP-00 | todo |
 | WP-11 | NLR0001 v2 | WP-00 | done |
-| WP-12 | New real-time rules | WP-00 | in progress (NLR0004 to NLR0017 done, one rule per PR) |
+| WP-12 | New real-time rules | WP-00 | in progress (NLR0004 to NLR0018 done, one rule per PR) |
 | WP-13 | Second language | WP-02 | todo |
 | WP-14 | Localized messages | WP-00 | decision needed |
 
@@ -355,9 +355,9 @@ See "Done" above. Original scope: `else if` cascades, De Morgan option, braces o
 
 ## WP-12 — New real-time rules
 
-- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0018`.
+- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0019`.
 - **Done**: use the null-coalescing assignment `??=` (NLR0004); simplify boolean comparisons (NLR0005); keep LINQ
-  operators inside the Entity Framework Core query (NLR0006); avoid nested conditional expressions (NLR0007); merge nested `if` statements (NLR0008); remove `else` after a branch that exits (NLR0009); use the condition instead of `true` and `false` (NLR0010); use `Any()` instead of comparing `Count()` with zero (NLR0011); fold `Where` into the following LINQ operator (NLR0012); use `is null` instead of comparing with `null` (NLR0013); use `string.IsNullOrEmpty` (NLR0014); use `TryGetValue` instead of `ContainsKey` and the indexer (NLR0015); use a type pattern instead of `as` plus null check or `is` plus cast (NLR0016); move a leading `continue` guard of a `foreach` into `Where` (NLR0017).
+  operators inside the Entity Framework Core query (NLR0006); avoid nested conditional expressions (NLR0007); merge nested `if` statements (NLR0008); remove `else` after a branch that exits (NLR0009); use the condition instead of `true` and `false` (NLR0010); use `Any()` instead of comparing `Count()` with zero (NLR0011); fold `Where` into the following LINQ operator (NLR0012); use `is null` instead of comparing with `null` (NLR0013); use `string.IsNullOrEmpty` (NLR0014); use `TryGetValue` instead of `ContainsKey` and the indexer (NLR0015); use a type pattern instead of `as` plus null check or `is` plus cast (NLR0016); move a leading `continue` guard of a `foreach` into `Where` (NLR0017); move a leading `break` guard into `TakeWhile` (NLR0018).
 - **Remaining candidate ideas** (general practices, descriptions to be written from scratch, **maintainer picks**):
   avoid empty `catch` blocks.
 - **Wider backlog**: `docs/RULES_CATALOG.md` lists many more candidate rules (naming, async, bugs, simplification,

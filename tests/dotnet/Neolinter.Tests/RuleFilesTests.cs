@@ -23,7 +23,7 @@ namespace Neolinter.Tests;
 /// <summary>Keeps /rules/*.yaml (read by the IDE settings screens) in sync with the analyzers.</summary>
 public class RuleFilesTests
 {
-    private static readonly DiagnosticAnalyzer[] Analyzers = [new InvertIfAnalyzer(), new NullCoalescingAssignmentAnalyzer(), new BooleanComparisonAnalyzer(), new EfCoreClientLinqAnalyzer(), new NestedTernaryAnalyzer(), new MergeNestedIfAnalyzer(), new ElseAfterExitAnalyzer(), new ExplicitBooleanAnalyzer(), new CountToAnyAnalyzer(), new WhereTerminalAnalyzer(), new IsNullAnalyzer(), new IsNullOrEmptyAnalyzer(), new TryGetValueAnalyzer(), new PatternCastAnalyzer(), new ForeachWhereAnalyzer()];
+    private static readonly DiagnosticAnalyzer[] Analyzers = [new InvertIfAnalyzer(), new NullCoalescingAssignmentAnalyzer(), new BooleanComparisonAnalyzer(), new EfCoreClientLinqAnalyzer(), new NestedTernaryAnalyzer(), new MergeNestedIfAnalyzer(), new ElseAfterExitAnalyzer(), new ExplicitBooleanAnalyzer(), new CountToAnyAnalyzer(), new WhereTerminalAnalyzer(), new IsNullAnalyzer(), new IsNullOrEmptyAnalyzer(), new TryGetValueAnalyzer(), new PatternCastAnalyzer(), new ForeachWhereAnalyzer(), new ForeachTakeWhileAnalyzer()];
 
     public static TheoryData<string> RealtimeRuleIds() => new(LoadRules().Where(r => r.Type == "realtime").Select(r => r.Id));
 
