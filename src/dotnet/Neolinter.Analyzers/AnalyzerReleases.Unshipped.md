@@ -21,3 +21,4 @@ NLR0015  | Performance | Info  | TryGetValueAnalyzer
 NLR0016  | Style    | Info     | PatternCastAnalyzer
 NLR0017  | Style    | Info     | ForeachWhereAnalyzer
 NLR0018  | Style    | Info     | ForeachTakeWhileAnalyzer
+NLR0019  | Style    | Info     | SwitchExpressionAnalyzer
