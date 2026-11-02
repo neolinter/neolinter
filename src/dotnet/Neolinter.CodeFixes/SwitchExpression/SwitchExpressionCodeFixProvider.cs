@@ -49,7 +49,7 @@ public sealed class SwitchExpressionCodeFixProvider : CodeFixProvider
         var unit = IndentationUnit(node, indent);
 
         var text = new StringBuilder();
-        text.Append(candidate.Target is null ? "return " : candidate.Target + " = ")
+        text.Append(candidate.Target is null ? "return " : $"{candidate.Target} = ")
             .Append(candidate.Governing).Append(" switch").Append(newLine)
             .Append(indent).Append('{').Append(newLine);
         foreach (var arm in candidate.Arms)

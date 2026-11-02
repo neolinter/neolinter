@@ -85,7 +85,7 @@ public static class EditorConfigFile
         var pattern = glob.StartsWith("**/", StringComparison.Ordinal) ? glob.Substring(3) : glob;
         if (pattern.StartsWith("**", StringComparison.Ordinal))
         {
-            pattern = "*" + pattern.Substring(2);
+            pattern = $"*{pattern.Substring(2)}";
         }
 
         if (pattern is "*" or "*.cs")

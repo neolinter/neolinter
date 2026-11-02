@@ -1,0 +1,25 @@
+id: NLR0021
+title: Use string interpolation
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  A chain of '+' that mixes string literals and other values is easier to read as an interpolated string.
+details: >-
+  Reported for a concatenation of at least two operands with at least one plain string literal and one other operand
+  ('"a" + x + "b"'), from C# 6. The fix writes '$"a{x}b"'; the braces of a literal are doubled and an operand with a
+  top-level ':' or ',' (a conditional expression, a generic call) gets parentheses. A numeric '+' on the left stays one
+  operand ('1 + 2 + "a"' gives '$"{1 + 2}a"'). Nothing is reported for a constant (a 'const', an attribute argument),
+  a verbatim, raw or UTF-8 literal, an interpolated string or lambda as operand, an operand with braces or on several
+  lines, a comment, a chain over several lines, an expression tree or a query, or a user-defined operator. A chain that
+  holds another chain in an operand is reported after the inner one is fixed.
+examples:
+  - before: |-
+      var text = "Hello, " + user.Name + "!";
+    after: |-
+      var text = $"Hello, {user.Name}!";
+  - before: |-
+      var label = "Items: " + (count > 1 ? "many" : "one");
+    after: |-
+      var label = $"Items: {(count > 1 ? "many" : "one")}";

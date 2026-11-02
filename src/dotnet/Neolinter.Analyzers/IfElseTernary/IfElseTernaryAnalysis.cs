@@ -99,7 +99,7 @@ internal static class IfElseTernaryAnalysis
             return null;
         }
 
-        var text = (target is null ? "return " : target.WithoutTrivia() + " = ")
+        var text = (target is null ? "return " : $"{target.WithoutTrivia()} = ")
             + ifStatement.Condition.WithoutTrivia() + " ? " + a.WithoutTrivia() + " : " + b.WithoutTrivia() + ";";
         if (!ParsesAsExpected(text, ifStatement.Condition, out var parsed)
             || !TypingIsUnchanged(ifStatement, a, b, parsed, model, cancellationToken))
