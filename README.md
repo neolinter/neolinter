@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Ten real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012); the command line analyses are not implemented yet.
+> Status: early development (0.1). Eleven real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -187,6 +187,17 @@ translatable. Not reported:
 With NLR0011: `x.Where(p).Count() > 0` is reported by NLR0011 only. Its fix gives `x.Where(p).Any()`, which NLR0012
 then offers to write `x.Any(p)`, so the two never offer competing fixes on the same code.
 
+NLR0013 has no option. It reports `x == null` and `null == x` (fix: `x is null`) and `x != null` and `null != x`
+(`x is not null`), which test for null whatever `==` does for the type. With an older language version only what can be
+written is reported: nothing before C# 7, only `== null` for C# 7 and 8 (`is not null` needs C# 9). Not reported:
+
+- a type that defines its own `==` or `!=` (`is null` would bypass it); `string`, nullable value types and plain
+  reference types are fine;
+- a value that cannot be null (`int`, `dynamic`, pointers);
+- an expression tree: a lambda converted to `Expression<...>`, or a query over `IQueryable` (Entity Framework Core
+  included), where `is null` is not allowed;
+- a comment or directive inside the comparison, since the fix would drop it.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -272,6 +283,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0010](rules/NLR0010.yaml) | Use the condition instead of 'true' and 'false' | real-time, code fix | suggestion |
 | [NLR0011](rules/NLR0011.yaml) | Use 'Any()' instead of comparing 'Count()' with zero | real-time, code fix | suggestion |
 | [NLR0012](rules/NLR0012.yaml) | Fold 'Where' into the following LINQ operator | real-time, code fix | suggestion |
+| [NLR0013](rules/NLR0013.yaml) | Use 'is null' instead of comparing with 'null' | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 
