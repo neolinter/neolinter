@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Thirteen real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015); the command line analyses are not implemented yet.
+> Status: early development (0.1). Fourteen real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -218,6 +218,17 @@ brackets, a dictionary or key that is assigned, passed to a call or called (`Rem
 between the check and the last read, and a check that holds another `ContainsKey` (the inner one is reported first).
 Calls that change the dictionary without naming it are not detected.
 
+NLR0016 has no option. It reports `var x = e as T;` followed by `if (x != null)` (also `null != x`, `x is not null`, and
+a longer `&&` chain that starts with the test) when `x` is not used after the `if` or in its `else`, and rewrites it as
+`if (e is T x)`. From C# 9 it also reports the guard clause `var x = e as T; if (x == null) return;` with `x` used
+afterwards and writes `if (e is not T x) return;`. It also reports `if (e is T) { ... (T)e ... }` when `e` is a local, a
+parameter or a field and the guarded code casts it to the same type, and writes `if (e is T t)` with `t` in place of
+every cast (named after the type in camel case, `dog1`, ... when the name is taken). Not reported: C# 6 and older, an
+expression tree, a value type or type parameter target, a declaration with a comment or several variables, a type with its
+own `==`/`!=` (`string` and delegates excepted), a value that is assigned or passed by reference in the guarded code, a
+call, assignment or `await` before the last cast on a field, a cast inside a lambda or with a comment, a user-defined or
+numeric cast, and guarded code that holds another `as` or `is` (the inner one is reported first).
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -306,6 +317,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0013](rules/NLR0013.yaml) | Use 'is null' instead of comparing with 'null' | real-time, code fix | suggestion |
 | [NLR0014](rules/NLR0014.yaml) | Use 'string.IsNullOrEmpty' | real-time, code fix | suggestion |
 | [NLR0015](rules/NLR0015.yaml) | Use 'TryGetValue' instead of 'ContainsKey' and the indexer | real-time, code fix | suggestion |
+| [NLR0016](rules/NLR0016.yaml) | Use a type pattern instead of a cast | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

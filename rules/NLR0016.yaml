@@ -1,0 +1,21 @@
+id: NLR0016
+title: Use a type pattern instead of a cast
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  'is T name' tests the type and declares the variable in one step. Reported on the 'as' of 'var x = e as T;' when the
+  next statement is an 'if' whose condition starts with a null test of 'x' ('x != null', 'null != x', 'x is not null',
+  possibly followed by '&&' operands) and 'x' is not used after that 'if' or in its 'else'; also, from C# 9, when the
+  next statement is 'if (x == null) <exit>' (no 'else', the branch returns, throws, breaks or continues, does not use
+  'x') and 'x' is used after it. Reported on the 'is' of 'if (e is T) ... (T)e ...' when 'e' is a local, a parameter or
+  a field (or a chain of fields), and the guarded code casts it to the same type. The code fix writes 'if (e is T name)'
+  ('if (e is not T x) <exit>' for the guard form), keeps the name of 'x' for the 'as' forms, and for the 'is' form names
+  the variable after the type in camel case ('dog', 'dog1', ... when the name is taken) and replaces every '(T)e'.
+  Nothing is reported before C# 7, inside an expression tree, for a value type or type parameter target, for a declaration
+  with comments or several variables, when something sits between the declaration and the 'if', or when the type has
+  its own '==' or '!=' ('string' and delegates excepted). For the 'is' form nothing is reported when 'e' is assigned or
+  passed by reference in the guarded code, when a call, object creation, assignment or await comes before the last cast
+  on a field (or a loop surrounds fields), when a cast is in a lambda or has a comment, when the cast is a user-defined
+  or numeric conversion, or when the guarded code holds another 'as' or 'is' (the inner one is reported first).
