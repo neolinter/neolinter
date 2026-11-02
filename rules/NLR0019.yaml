@@ -1,0 +1,36 @@
+id: NLR0019
+title: Use a switch expression
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  A 'switch' statement whose sections only return a value, or only assign the same variable, reads better as a switch
+  expression.
+details: >-
+  Reported when every section holds a single 'return value;' (or 'throw'), or a single assignment to the same variable
+  followed by 'break;', and the last section is 'default' (a switch on a 'bool' with 'case true' and 'case false' needs no
+  'default'). The fix writes 'return e switch { ... };' or 'x = e switch { ... };' with one arm per line: constants,
+  patterns and 'when' guards are kept, 'default' becomes '_', and sections with several labels become 'a or b' arms
+  (C# 9). Without a 'default' nothing is reported, since the switch expression would throw where the statement does
+  nothing. Nothing is reported either for a section with several statements, a fallthrough or 'goto case', a 'default'
+  that is not last, comments or preprocessor directives inside the switch, parts spread over several lines, an
+  assignment target that is not a plain name or 'this.' member, a compound assignment, or when the arms' types would
+  change: the best common type of the arms must be the target type, or, from C# 9, absent (the arms are then converted
+  to the target type). Before C# 9, a section with several labels is not reported; before C# 8 nothing is.
+examples:
+  - before: |-
+      switch (day)
+      {
+          case 6:
+          case 7:
+              return "weekend";
+          default:
+              return "weekday";
+      }
+    after: |-
+      return day switch
+      {
+          6 or 7 => "weekend",
+          _ => "weekday",
+      };
