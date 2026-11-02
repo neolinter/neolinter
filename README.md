@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Eight real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010); the command line analyses are not implemented yet.
+> Status: early development (0.1). Nine real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -164,6 +164,17 @@ reported:
 NLR0009 stays silent on `if (c) return true; else return false;` because this rule takes it and its fix leaves no
 `else`.
 
+NLR0011 has no option. It reports the LINQ `Count()` compared with 0 or 1 when only emptiness matters:
+`x.Count() > 0`, `!= 0` and `>= 1` (fixed to `x.Any()`), `x.Count() == 0` and `< 1` (`!x.Any()`), the same with the number
+on the left (`0 < x.Count()`), and `x.Count(p)` (`x.Any(p)`). `Queryable` (Entity Framework Core included) is covered
+too. Not reported:
+
+- the `Count` property, `Length`, and a `Count()` method of the type itself (only `System.Linq` is concerned);
+- another number (`> 1`, `== 1`), `LongCount()`, a receiver with its own member called `Any`;
+- a comment or directive next to the number or the operator, since the fix would drop it.
+
+`Where(p).Any()` is left for a separate rule.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -247,6 +258,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0008](rules/NLR0008.yaml) | Merge nested 'if' statements | real-time, code fix | suggestion |
 | [NLR0009](rules/NLR0009.yaml) | Remove 'else' after a branch that exits | real-time, code fix | suggestion |
 | [NLR0010](rules/NLR0010.yaml) | Use the condition instead of 'true' and 'false' | real-time, code fix | suggestion |
+| [NLR0011](rules/NLR0011.yaml) | Use 'Any()' instead of comparing 'Count()' with zero | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

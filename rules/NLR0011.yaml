@@ -1,0 +1,14 @@
+id: NLR0011
+title: Use 'Any()' instead of comparing 'Count()' with zero
+language: csharp
+type: realtime
+category: Performance
+defaultSeverity: suggestion
+description: >-
+  Asking whether a sequence has items does not need to count them. Reported for the LINQ 'Count()' (with or without a
+  predicate) compared with 0 or 1: 'x.Count() > 0', 'x.Count() != 0' and 'x.Count() >= 1' (written 'x.Any()'), and
+  'x.Count() == 0' and 'x.Count() < 1' (written '!x.Any()'), also with the number on the left ('0 < x.Count()').
+  'x.Count(p)' becomes 'x.Any(p)'. Only 'System.Linq.Enumerable' and 'System.Linq.Queryable' are concerned: the
+  'Count' property, 'Length', and a 'Count()' method of the type itself are left alone, and so is a receiver that has
+  its own member called 'Any'. Nothing is reported when a comment or directive sits next to the number or the
+  operator, since the fix would drop it.

@@ -46,7 +46,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-09 | Rider settings plugin | WP-07 | todo |
 | WP-10 | Zed: feasibility and integration | WP-00 | todo |
 | WP-11 | NLR0001 v2 | WP-00 | done |
-| WP-12 | New real-time rules | WP-00 | in progress (NLR0004 to NLR0010 done, one rule per PR) |
+| WP-12 | New real-time rules | WP-00 | in progress (NLR0004 to NLR0011 done, one rule per PR) |
 | WP-13 | Second language | WP-02 | todo |
 | WP-14 | Localized messages | WP-00 | decision needed |
 
@@ -207,6 +207,11 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   condition must be exactly `bool` (no `dynamic`, no user-defined `true`/`false`), nothing is reported when a comment or
   directive sits inside the construct, and the final `return` must directly follow the `if`. NLR0009 no longer reports
   the shape NLR0010 takes (asked through the shared analysis). `LogicalNot` was extracted from the NLR0005 fix.
+- **WP-12, eighth rule: NLR0011 use `Any()` instead of comparing `Count()` with zero** (wave 1 of the rules backlog;
+  `Where(p).Any()` left for a separate rule on the maintainer's choice). Reports `Count()` / `Count(p)` of
+  `System.Linq` (`Enumerable` and `Queryable`) compared with 0 or 1, number on either side; the fix (and fix all) writes
+  `x.Any()` / `!x.Any()`. Suggestion level, no option. Own choices: nothing is reported for a receiver with its own
+  `Any` member or a comment or directive next to the number or the operator.
 
 ---
 
@@ -344,9 +349,9 @@ See "Done" above. Original scope: `else if` cascades, De Morgan option, braces o
 
 ## WP-12 — New real-time rules
 
-- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0011`.
+- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0012`.
 - **Done**: use the null-coalescing assignment `??=` (NLR0004); simplify boolean comparisons (NLR0005); keep LINQ
-  operators inside the Entity Framework Core query (NLR0006); avoid nested conditional expressions (NLR0007); merge nested `if` statements (NLR0008); remove `else` after a branch that exits (NLR0009); use the condition instead of `true` and `false` (NLR0010).
+  operators inside the Entity Framework Core query (NLR0006); avoid nested conditional expressions (NLR0007); merge nested `if` statements (NLR0008); remove `else` after a branch that exits (NLR0009); use the condition instead of `true` and `false` (NLR0010); use `Any()` instead of comparing `Count()` with zero (NLR0011).
 - **Remaining candidate ideas** (general practices, descriptions to be written from scratch, **maintainer picks**):
   avoid empty `catch` blocks.
 - **Wider backlog**: `docs/RULES_CATALOG.md` lists many more candidate rules (naming, async, bugs, simplification,
