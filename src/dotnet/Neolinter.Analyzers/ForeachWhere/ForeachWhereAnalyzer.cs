@@ -34,7 +34,7 @@ public sealed class ForeachWhereAnalyzer : DiagnosticAnalyzer
     private static void Analyze(SyntaxNodeAnalysisContext context)
     {
         var node = (IfStatementSyntax)context.Node;
-        if (ForeachWhereAnalysis.Analyze(node, context.SemanticModel, context.CancellationToken) is not null)
+        if (ForeachWhereAnalysis.Analyze(node, breakGuards: false, context.SemanticModel, context.CancellationToken) is not null)
         {
             context.ReportDiagnostic(Diagnostic.Create(Rule, node.GetLocation()));
         }

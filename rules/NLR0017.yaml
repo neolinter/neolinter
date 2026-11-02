@@ -18,7 +18,7 @@ details: >-
   element type, nullable elements (the null check would no longer narrow the variable), a source with its own 'Where',
   a condition with other calls, assignments, lambdas, out variables or ref locals, a condition that reads something
   the loop body assigns, a loop in a struct, a guard that is the whole rest of the body, a guard with a comment, or
-  a file without usings that starts with a comment. A 'break' guard is not concerned. NLR0001 turns 'if (c) { ... }'
+  a file without usings that starts with a comment. A 'break' guard is NLR0018. NLR0001 turns 'if (c) { ... }'
   in a loop into 'if (!c) continue;' followed by the rest, which this rule then moves into 'Where'; with NLR0010 and
   NLR0012 the conditions and 'Where' calls they produce are simply carried over.
 examples:

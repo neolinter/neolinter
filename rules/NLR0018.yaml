@@ -1,0 +1,35 @@
+id: NLR0018
+title: Move the 'break' guard into 'TakeWhile'
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  A guard that ends a 'foreach' at the start of its body can limit the loop source with 'TakeWhile' instead.
+details: >-
+  Reported on the first 'if (c) break;' (braces optional, no 'else') at the very start of a 'foreach' body, under the
+  same conditions as NLR0017. The fix moves that guard and the 'break' guards right after it into
+  'items.TakeWhile(x => ...)', negating each condition and joining them with '&&', and names the lambda parameter
+  after the loop variable, so the body is unchanged; it adds 'using System.Linq;' when the file does not import it.
+  Only a leading run of 'break' guards is moved. A 'continue' guard before a 'break' guard is not reported: the two
+  filters would have to run in that order, which no single 'Where' or 'TakeWhile' call can express, so the loop is left
+  alone. A 'continue' guard right after the moved 'break' guards stays in the body, where NLR0017 can take it. The
+  condition is evaluated once per item, as before, so the iteration count and the number of predicate calls do not
+  change. Nothing is reported for an 'await foreach', a deconstruction, an 'IQueryable' source, a multidimensional
+  array or non-generic collection, an explicit loop variable type that differs from the element type, nullable
+  elements, a source with its own 'TakeWhile', a condition with other calls (only methods of 'string' and the
+  primitive types are allowed), assignments, lambdas, out variables or ref locals, a condition that reads something
+  the loop body assigns, a loop in a struct, a guard that is the whole rest of the body, a guard with a comment, or a
+  file without usings that starts with a comment.
+examples:
+  - before: |-
+      foreach (var line in lines)
+      {
+          if (line.Length == 0) break;
+          Print(line);
+      }
+    after: |-
+      foreach (var line in lines.TakeWhile(line => line.Length != 0))
+      {
+          Print(line);
+      }

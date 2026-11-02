@@ -31,14 +31,14 @@ public sealed class ForeachWhereCodeFixProvider : CodeFixProvider
         }
 
         context.RegisterCodeFix(
-            CodeAction.Create(Title, ct => ReplaceAsync(context.Document, root, node, ct), equivalenceKey: ForeachWhereAnalyzer.DiagnosticId),
+            CodeAction.Create(Title, ct => ReplaceAsync(context.Document, root, node, breakGuards: false, ct), equivalenceKey: ForeachWhereAnalyzer.DiagnosticId),
             context.Diagnostics);
     }
 
-    private static async Task<Document> ReplaceAsync(Document document, SyntaxNode root, IfStatementSyntax first, CancellationToken cancellationToken)
+    internal static async Task<Document> ReplaceAsync(Document document, SyntaxNode root, IfStatementSyntax first, bool breakGuards, CancellationToken cancellationToken)
     {
         var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        if (model is null || ForeachWhereAnalysis.Analyze(first, model, cancellationToken) is not { } candidate)
+        if (model is null || ForeachWhereAnalysis.Analyze(first, breakGuards, model, cancellationToken) is not { } candidate)
         {
             return document;
         }
@@ -59,7 +59,7 @@ public sealed class ForeachWhereCodeFixProvider : CodeFixProvider
                 SyntaxKind.SimpleMemberAccessExpression,
                 loop.Expression.WithoutTrivia(),
                 Token(default, SyntaxKind.DotToken, default),
-                IdentifierName(Identifier(TriviaList(), "Where", TriviaList()))),
+                IdentifierName(Identifier(TriviaList(), candidate.MethodName, TriviaList()))),
             ArgumentList(
                 Token(default, SyntaxKind.OpenParenToken, default),
                 SingletonSeparatedList(Argument(lambda)),
