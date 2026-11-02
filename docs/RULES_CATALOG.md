@@ -81,7 +81,7 @@ command line, one global numbering).
 - [x] NLR0011 `Count() > 0` to `Any()` (F; also `Count() == 0`, `Count(p)` and the mirrored forms)
 - [x] NLR0012 `Where(p).Any()` to `Any(p)` (F; also `First`, `FirstOrDefault`, `Single`, `SingleOrDefault`, `Last`, `LastOrDefault`, `Count`, `LongCount`)
 - [x] NLR0014 `s == null || s == ""` to `string.IsNullOrEmpty` (F; also `is null`, `string.Empty`, `s.Length == 0` and the negated `&&` forms; no option)
-- [ ] `ContainsKey` then indexer to `TryGetValue` (F)
+- [x] NLR0015 `ContainsKey` then indexer to `TryGetValue` (F; `if`, `if (!...) ... else` and `&&` forms; no option)
 - [ ] `as` plus null check to a pattern (F), `is` plus cast to a pattern (F)
 - [ ] `switch` statement to `switch` expression (F, O), `if`/`else` assignment to ternary (F, O)
 - [ ] Concatenation and `string.Format` to interpolation (F), interpolation without expression (F)

@@ -17,3 +17,4 @@ NLR0011  | Performance | Info  | CountToAnyAnalyzer
 NLR0012  | Style    | Info     | WhereTerminalAnalyzer
 NLR0013  | Style    | Info     | IsNullAnalyzer
 NLR0014  | Style    | Info     | IsNullOrEmptyAnalyzer
+NLR0015  | Performance | Info  | TryGetValueAnalyzer

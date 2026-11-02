@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Twelve real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014); the command line analyses are not implemented yet.
+> Status: early development (0.1). Thirteen real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -206,6 +206,18 @@ name or a chain of member accesses, and inside a longer `||` or `&&` chain only 
 (Entity Framework Core included), and a comment or directive inside the pair. NLR0013 may also report the `s == null`
 inside the pair; the two fixes can be applied in either order and give the same code.
 
+NLR0015 has no option. It reports `ContainsKey(k)` followed by the indexer with the same key, in `if (d.ContainsKey(k))`
+(without `else`), in `if (!d.ContainsKey(k)) ... else` (the reads are in the `else`) and in `d.ContainsKey(k) && ...` when
+that chain is a whole `if` condition, a `return` value or an expression body, and rewrites it with
+`d.TryGetValue(k, out var value)` and `value` in place of `d[k]` (`value1`, ... when the name is taken). The dictionary
+and the key must be a name or a chain of member accesses (the key may be a constant) written the same way each time,
+and the type needs an instance `TryGetValue(TKey, out TValue)` (`Dictionary`, `IDictionary`, `IReadOnlyDictionary`,
+`ConcurrentDictionary`, ...). Not reported: C# 6 and older, an expression tree or a query clause, an indexer that is
+assigned, incremented or passed by reference, a read inside a lambda or local function, a comment inside the indexer
+brackets, a dictionary or key that is assigned, passed to a call or called (`Remove`, `Clear`, ...) or an `await`/`yield`
+between the check and the last read, and a check that holds another `ContainsKey` (the inner one is reported first).
+Calls that change the dictionary without naming it are not detected.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -293,6 +305,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0012](rules/NLR0012.yaml) | Fold 'Where' into the following LINQ operator | real-time, code fix | suggestion |
 | [NLR0013](rules/NLR0013.yaml) | Use 'is null' instead of comparing with 'null' | real-time, code fix | suggestion |
 | [NLR0014](rules/NLR0014.yaml) | Use 'string.IsNullOrEmpty' | real-time, code fix | suggestion |
+| [NLR0015](rules/NLR0015.yaml) | Use 'TryGetValue' instead of 'ContainsKey' and the indexer | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 
