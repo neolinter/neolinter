@@ -11,3 +11,4 @@ NLR0005  | Style    | Info     | BooleanComparisonAnalyzer
 NLR0006  | Performance | Warning | EfCoreClientLinqAnalyzer
 NLR0007  | Style    | Info     | NestedTernaryAnalyzer
 NLR0008  | Style    | Info     | MergeNestedIfAnalyzer
+NLR0009  | Style    | Info     | ElseAfterExitAnalyzer

@@ -46,7 +46,7 @@ Update this file in the same pull request when a WP is finished (move it to "Don
 | WP-09 | Rider settings plugin | WP-07 | todo |
 | WP-10 | Zed: feasibility and integration | WP-00 | todo |
 | WP-11 | NLR0001 v2 | WP-00 | done |
-| WP-12 | New real-time rules | WP-00 | in progress (NLR0004 to NLR0008 done, one rule per PR) |
+| WP-12 | New real-time rules | WP-00 | in progress (NLR0004 to NLR0009 done, one rule per PR) |
 | WP-13 | Second language | WP-02 | todo |
 | WP-14 | Localized messages | WP-00 | decision needed |
 
@@ -184,6 +184,19 @@ touch `Neolinter.Cli` and `Neolinter.Cli.Core`: run them one after the other or 
   Pattern and `out` variables otherwise stay in scope for the body. NLR0001 overlaps only with `nlr0001.min_statements = 1`:
   both fire on the same outer `if`, as alternatives that never undo each other (documented, tested with both analyzers
   running); no coupling was added between the two rules. The repository's own sources produce no NLR0008 diagnostic.
+- **WP-12, sixth rule: NLR0009 remove `else` after a branch that exits** (wave 1 of the rules backlog). Stage 1 compared it
+  with NLR0001 on real code: NLR0001 only reports the opposite direction (the `else` is a lone exit after a longer
+  branch), so `if (c) return; else { ... }` was not covered; the maintainer confirmed the new rule with that one shape
+  excluded. Reports the `else` keyword of an `if` whose branch always leaves (`return`, `throw`, `break`, `continue`,
+  `goto`, `yield break`, a block ending in one, or an `if`/`else` whose branches all do); the fix (and fix all) writes the
+  statements after the `if` at its indentation, keeping comments inside the `else` and the user's layout (a block or a
+  single statement, `} else {` or one line). Suggestion level, no option. Own choices: nothing is reported for `else if`,
+  an `if` without braces as the body of another statement or directly in a `switch` section, an empty `else`, a comment
+  on the `else` or next to its braces (the fix would drop it), an `if` that does not start its line, a name declared in
+  the `else` that appears elsewhere in the enclosing block (clash or silent rebinding of a field), or a `using`
+  declaration followed by more code. NLR0001 and NLR0008: see the README; tested with the three analyzers running, no
+  ping-pong. `InvertIfAnalysis.DeclaredNames` became internal and the indentation helpers of the NLR0008 fix moved to the
+  shared `LineIndentation`.
 
 ---
 
@@ -321,11 +334,11 @@ See "Done" above. Original scope: `else if` cascades, De Morgan option, braces o
 
 ## WP-12 — New real-time rules
 
-- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0009`.
+- **Process**: follow `docs/ADDING_A_RULE.md`; one rule per pull request; next id `NLR0010`.
 - **Done**: use the null-coalescing assignment `??=` (NLR0004); simplify boolean comparisons (NLR0005); keep LINQ
-  operators inside the Entity Framework Core query (NLR0006); avoid nested conditional expressions (NLR0007); merge nested `if` statements (NLR0008).
+  operators inside the Entity Framework Core query (NLR0006); avoid nested conditional expressions (NLR0007); merge nested `if` statements (NLR0008); remove `else` after a branch that exits (NLR0009).
 - **Remaining candidate ideas** (general practices, descriptions to be written from scratch, **maintainer picks**):
-  remove `else` after a branch that always exits; avoid empty `catch` blocks.
+  avoid empty `catch` blocks.
 - **Wider backlog**: `docs/RULES_CATALOG.md` lists many more candidate rules (naming, async, bugs, simplification,
   metrics, API, tests, project analyses) with a suggested order.
 - **Each rule**: analyzer, code fix with fix all when safe, YAML, tests, playground examples, README table.

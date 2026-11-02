@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Neolinter.Analyzers.MergeNestedIf;
 
 namespace Neolinter.CodeFixes.MergeNestedIf;
@@ -52,7 +51,7 @@ public sealed class MergeNestedIfCodeFixProvider : CodeFixProvider
 
         // The inner body moves up by the indentation of the dropped levels; what the outer 'if' had after its last
         // token (the end of its closing brace's line) ends the new statement.
-        var statement = Dedent(innermost.Statement, GetIndentation(chain.Outer, innermost, text));
+        var statement = LineIndentation.Dedent(innermost.Statement, LineIndentation.Between(text, chain.Outer.IfKeyword, innermost.IfKeyword));
         statement = statement.ReplaceToken(
             statement.GetLastToken(),
             statement.GetLastToken().WithTrailingTrivia(chain.Outer.GetLastToken().TrailingTrivia));
@@ -91,72 +90,4 @@ public sealed class MergeNestedIfCodeFixProvider : CodeFixProvider
                 expression.WithoutTrivia(),
                 SyntaxFactory.Token(default, SyntaxKind.CloseParenToken, default))
             .WithTriviaFrom(expression);
-
-    /// <summary>
-    /// The whitespace by which the innermost <c>if</c> is indented more than the outer one, when both start their line
-    /// (an 'else if' counts through the indentation of its line). Empty when they share a line or the layout is odd.
-    /// </summary>
-    private static string GetIndentation(IfStatementSyntax outer, IfStatementSyntax innermost, SourceText text)
-    {
-        var outerLine = text.Lines.GetLineFromPosition(outer.IfKeyword.SpanStart);
-        var innerLine = text.Lines.GetLineFromPosition(innermost.IfKeyword.SpanStart);
-        if (outerLine.LineNumber == innerLine.LineNumber)
-        {
-            return "";
-        }
-
-        var outerIndent = LeadingWhitespace(text, outerLine);
-        var innerIndent = LeadingWhitespace(text, innerLine);
-        return innerLine.Start + innerIndent.Length == innermost.IfKeyword.SpanStart && innerIndent.StartsWith(outerIndent, StringComparison.Ordinal)
-            ? innerIndent.Substring(outerIndent.Length)
-            : "";
-    }
-
-    private static string LeadingWhitespace(SourceText text, TextLine line)
-    {
-        var length = 0;
-        while (line.Start + length < line.End && text[line.Start + length] is ' ' or '\t')
-        {
-            length++;
-        }
-
-        return text.ToString(new TextSpan(line.Start, length));
-    }
-
-    // Only the whitespace that starts a line is touched, so strings and comments keep their text.
-    private static StatementSyntax Dedent(StatementSyntax statement, string indentation)
-    {
-        if (indentation.Length == 0)
-        {
-            return statement;
-        }
-
-        return statement.ReplaceTokens(statement.DescendantTokens(), (original, _) =>
-        {
-            var leading = original.LeadingTrivia;
-            var startsLine = original.GetPreviousToken().TrailingTrivia.LastOrDefault().IsKind(SyntaxKind.EndOfLineTrivia);
-            var changed = false;
-            var result = new List<SyntaxTrivia>(leading.Count);
-            for (var i = 0; i < leading.Count; i++)
-            {
-                var trivia = leading[i];
-                var atLineStart = i == 0 ? startsLine : leading[i - 1].IsKind(SyntaxKind.EndOfLineTrivia);
-                if (atLineStart && trivia.IsKind(SyntaxKind.WhitespaceTrivia) && trivia.ToString().StartsWith(indentation, StringComparison.Ordinal))
-                {
-                    changed = true;
-                    var rest = trivia.ToString().Substring(indentation.Length);
-                    if (rest.Length > 0)
-                    {
-                        result.Add(SyntaxFactory.Whitespace(rest));
-                    }
-                }
-                else
-                {
-                    result.Add(trivia);
-                }
-            }
-
-            return changed ? original.WithLeadingTrivia(SyntaxFactory.TriviaList(result)) : original;
-        });
-    }
 }

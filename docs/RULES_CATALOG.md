@@ -77,7 +77,7 @@ command line, one global numbering).
 - [ ] `x ? true : false` (F)
 - [x] NLR0007 nested conditional expressions `a ? x : b ? y : z` (F, only for `return`, assignment and typed declaration)
 - [x] NLR0008 nested `if` without `else` merged with `&&` (F)
-- [ ] `else` after a branch that always exits (F; check overlap with NLR0001 first)
+- [x] NLR0009 `else` after a branch that always exits (F; NLR0001 keeps the `else` that is a lone exit after a longer branch)
 - [ ] `is null` / `is not null` instead of `== null` / `!= null` (F, O)
 - [ ] `Count() > 0` to `Any()` (F), `Where(p).Any()` to `Any(p)` (F), `Where(p).First()` to `First(p)` (F)
 - [ ] `s == null || s == ""` to `string.IsNullOrEmpty` (F)

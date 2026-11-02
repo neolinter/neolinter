@@ -1,0 +1,20 @@
+id: NLR0009
+title: Remove 'else' after a branch that exits
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  When the branch of an 'if' always leaves the block (it ends with 'return', 'throw', 'break', 'continue', 'goto' or
+  'yield break', or is an 'if'/'else' whose two branches do), the 'else' only repeats what the 'if' already decides: the
+  code after it can run only when the condition was false. Writing it after the 'if' instead removes one level of
+  indentation. Reported on the 'else' keyword of 'if (c) <exit> else <statement>' and 'if (c) <exit> else { ... }'. The
+  code fix removes the 'else' and its braces and puts the statements after the 'if', at the indentation of the 'if',
+  keeping their comments and layout. Nothing is reported for an 'else if' (the chain is left alone), for an 'if' that
+  is the body of another statement without braces or that sits directly in a 'switch' section, for an empty 'else', when
+  a comment or a directive sits on the 'else' or its braces (the fix would drop it), when the 'if' does not start its
+  line, when a statement of the 'else' does not start its line (except the first), when a name declared in the 'else'
+  also appears elsewhere in the enclosing block (a clash, or a later use that would bind to the new local), or when a
+  'using' declaration in the 'else' would be disposed later because code follows the 'if'. An 'else' that is a single
+  exit after a longer branch is left to the guard clause rule (NLR0001), which reports it and removes it by inverting the
+  condition.

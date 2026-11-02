@@ -310,7 +310,7 @@ internal static class InvertIfAnalysis
     }
 
     /// <summary>Names a top-level statement of the body introduces into the body's own scope.</summary>
-    private static IEnumerable<string> DeclaredNames(StatementSyntax statement)
+    internal static IEnumerable<string> DeclaredNames(StatementSyntax statement)
     {
         switch (statement)
         {
