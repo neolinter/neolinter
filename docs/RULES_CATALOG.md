@@ -86,7 +86,7 @@ command line, one global numbering).
 - [x] NLR0017 leading `if (c) continue;` of a `foreach` to `Where` on the source (F; several guards merged with `&&`; `IQueryable` sources and nullable elements skipped; no option)
 - [x] NLR0018 leading `if (c) break;` of a `foreach` to `TakeWhile` on the source (F; same conditions as NLR0017; only a leading run of `break` guards, never after a `continue` guard; no option)
 - [x] NLR0019 `switch` statement to `switch` expression (F; `return` and same-variable assignment forms, `default` required, `or` patterns from C# 9; no option)
-- [ ] `if`/`else` assignment to ternary (F, O)
+- [x] NLR0020 `if`/`else` that only assigns the same variable or returns, to a conditional expression (F; `if (c) return a; return b;` too; NLR0010 and NLR0007 shapes skipped; no option)
 - [ ] Concatenation and `string.Format` to interpolation (F), interpolation without expression (F)
 - [ ] Redundant cast, `ToString()` or parentheses (F), redundant `this.` (F, O), trailing `return;` (F)
 - [ ] `ToList()` before a `foreach` (F), target-typed `new()` (F, O)
