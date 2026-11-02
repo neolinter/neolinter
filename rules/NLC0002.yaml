@@ -5,7 +5,18 @@ type: cli
 category: DeadCode
 defaultSeverity: warning
 description: >-
-  A type or member, of any accessibility, that nothing in the solution references. Reported by
-  "neolinter analyze dead-code". Members used through reflection, dependency injection,
-  serialization or naming conventions can be excluded in neolinter.json.
+  A type or member, of any accessibility, that nothing in the solution references.
+details: >-
+  Reported by "neolinter analyze dead-code". Members used through reflection, dependency injection, serialization or
+  naming conventions can be excluded in neolinter.json.
+fix: >-
+  Delete the member, or exclude it in neolinter.json when it is reached through reflection, dependency injection or
+  serialization.
+examples:
+  - before: |-
+      class Report
+      {
+          // nothing in the solution calls it
+          private void FormatLegacy() { }
+      }
 options: []

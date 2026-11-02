@@ -5,10 +5,22 @@ type: realtime
 category: Style
 defaultSeverity: suggestion
 description: >-
-  'x is null' and 'x is not null' always test for null, whatever '==' and '!=' do for the type of 'x'. Reported for
-  'x == null' and 'null == x' (written 'x is null'), and for 'x != null' and 'null != x' (written 'x is not null').
-  'is null' needs C# 7 and 'is not null' needs C# 9: with an older language version only what can be written is
-  reported (nothing before C# 7, only '== null' for C# 7 and 8). Nothing is reported when the type of 'x' defines its
-  own '==' or '!=' (which 'is null' would bypass), when 'x' cannot be null, inside an expression tree (a lambda
-  converted to 'Expression<...>' or a query over 'IQueryable', Entity Framework Core included), or when a comment or
-  directive sits inside the comparison.
+  'x is null' and 'x is not null' always test for null, whatever '==' and '!=' do for the type of 'x'.
+details: >-
+  Reported for 'x == null' and 'null == x' (written 'x is null'), and for 'x != null' and 'null != x' (written 'x is
+  not null'). 'is null' needs C# 7 and 'is not null' needs C# 9: with an older language version only what can be
+  written is reported (nothing before C# 7, only '== null' for C# 7 and 8). Nothing is reported when the type of 'x'
+  defines its own '==' or '!=' (which 'is null' would bypass), when 'x' cannot be null, inside an expression tree (a
+  lambda converted to 'Expression<...>' or a query over 'IQueryable', Entity Framework Core included), or when a
+  comment or directive sits inside the comparison.
+examples:
+  - before: |-
+      if (customer == null)
+      {
+          return;
+      }
+    after: |-
+      if (customer is null)
+      {
+          return;
+      }

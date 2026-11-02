@@ -5,13 +5,37 @@ type: realtime
 category: Style
 defaultSeverity: suggestion
 description: >-
-  When the rest of a block sits inside an 'if' and the other path only leaves the block,
-  inverting the condition and leaving first keeps the main code one level less indented.
-  Reported for an 'if' without 'else' that ends a method body (exit with 'return') or a loop
-  body (exit with 'continue'), for an 'if' followed only by a simple 'return' (the return is
-  repeated), for an 'if'/'else' whose 'else' only contains return, continue, break, throw or yield break,
-  and for an 'if'/'else if' chain whose final 'else' only exits, when every condition of the chain is
-  free of side effects. 'yield break' is the exit used inside iterators.
+  When the rest of a block sits inside an 'if' and the other path only leaves the block, inverting the condition and
+  leaving first keeps the main code one level less indented.
+details: >-
+  Reported for an 'if' without 'else' that ends a method body (exit with 'return') or a loop body (exit with
+  'continue'), for an 'if' followed only by a simple 'return' (the return is repeated), for an 'if'/'else' whose
+  'else' only contains return, continue, break, throw or yield break, and for an 'if'/'else if' chain whose final
+  'else' only exits, when every condition of the chain is free of side effects. 'yield break' is the exit used inside
+  iterators.
+examples:
+  - before: |-
+      foreach (var order in orders)
+      {
+          if (order.IsPaid)
+          {
+              Ship(order);
+              Notify(order);
+              Archive(order);
+          }
+      }
+    after: |-
+      foreach (var order in orders)
+      {
+          if (!order.IsPaid)
+          {
+              continue;
+          }
+
+          Ship(order);
+          Notify(order);
+          Archive(order);
+      }
 options:
   - key: nlr0001.min_statements
     type: integer

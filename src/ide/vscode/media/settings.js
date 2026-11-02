@@ -18,41 +18,70 @@
     return node;
   }
 
+  const categoryLabels = { Style: 'Simplification', Performance: 'Performance', DeadCode: 'Dead code', Duplicates: 'Duplicates' };
+  const categoryOrder = Object.values(categoryLabels);
+  const search = /** @type {HTMLInputElement} */ (document.getElementById('rule-search'));
+  const chips = /** @type {HTMLElement[]} */ (Array.from(document.querySelectorAll('[data-filter]')));
+  const modifiedCount = /** @type {HTMLElement} */ (document.getElementById('modified-count'));
+  const resetAll = /** @type {HTMLButtonElement} */ (document.getElementById('reset-all'));
+  const expanded = new Set();
+  let filter = 'all';
+  let lastState;
+
+  const label = (rule) => categoryLabels[rule.category] ?? rule.category;
+  const severityOf = (rule, state) => state.values[`dotnet_diagnostic.${rule.id}.severity`] ?? rule.defaultSeverity;
+
+  /** Settings that differ from the defaults, as {key, value} pairs that restore them. */
+  function modifications(rule, state) {
+    if (rule.type !== 'realtime') return [];
+    const changed = [];
+    if (severityOf(rule, state) !== rule.defaultSeverity) {
+      changed.push({ key: `dotnet_diagnostic.${rule.id}.severity`, value: rule.defaultSeverity });
+    }
+    for (const option of rule.options) {
+      const value = state.values[option.key];
+      if (value !== undefined && value !== String(option.default)) changed.push({ key: option.key, value: String(option.default) });
+    }
+    return changed;
+  }
+
   function render(state) {
+    lastState = state;
     const focusedId = document.activeElement?.id;
     rulesContainer.replaceChildren();
 
-    for (const rule of state.rules.filter((r) => r.type === 'realtime')) {
-      const severity = state.values[`dotnet_diagnostic.${rule.id}.severity`] ?? rule.defaultSeverity;
-      const card = element('article', { class: 'rule', 'aria-labelledby': `title-${rule.id}` });
-      card.append(element('h2', { id: `title-${rule.id}` }, `${rule.id} — ${rule.title}`));
-      card.append(element('p', { class: 'description' }, rule.description));
+    const query = search.value.trim().toLowerCase();
+    const counts = {
+      all: state.rules.length,
+      realtime: state.rules.filter((r) => r.type === 'realtime').length,
+      cli: state.rules.filter((r) => r.type === 'cli').length,
+      modified: state.rules.filter((r) => modifications(r, state).length > 0).length,
+    };
+    for (const chip of chips) {
+      const name = /** @type {string} */ (chip.dataset.filter);
+      chip.setAttribute('aria-pressed', String(name === filter));
+      /** @type {HTMLElement} */ (chip.querySelector('.count')).textContent = String(counts[name]);
+    }
+    modifiedCount.textContent = `${counts.modified} modified rule${counts.modified === 1 ? '' : 's'}`;
+    resetAll.disabled = counts.modified === 0;
 
-      const enabled = /** @type {HTMLInputElement} */ (element('input', { type: 'checkbox', id: `enabled-${rule.id}` }));
-      enabled.checked = severity !== 'none';
-      enabled.addEventListener('change', () => {
-        const fallback = rule.defaultSeverity === 'none' ? 'suggestion' : rule.defaultSeverity;
-        vscode.postMessage({ type: 'setSeverity', ruleId: rule.id, severity: enabled.checked ? fallback : 'none' });
-      });
-      const enabledRow = element('div', { class: 'row' });
-      enabledRow.append(enabled, element('label', { for: enabled.id }, 'Enabled'));
-      card.append(enabledRow);
+    const visible = state.rules.filter((rule) =>
+      (filter === 'all' || (filter === 'modified' ? modifications(rule, state).length > 0 : rule.type === filter)) &&
+      (query === '' || rule.id.toLowerCase().includes(query) || rule.title.toLowerCase().includes(query)));
 
-      const select = /** @type {HTMLSelectElement} */ (element('select', { id: `severity-${rule.id}` }));
-      for (const value of severities) {
-        const option = /** @type {HTMLOptionElement} */ (element('option', { value }, value === rule.defaultSeverity ? `${value} (default)` : value));
-        option.selected = value === severity;
-        select.append(option);
-      }
-      select.addEventListener('change', () => vscode.postMessage({ type: 'setSeverity', ruleId: rule.id, severity: select.value }));
-      const severityRow = element('div', { class: 'row' });
-      severityRow.append(element('label', { for: select.id }, 'Severity'), select);
-      card.append(severityRow);
-
-      for (const option of rule.options) {
-        card.append(renderOption(option, state.values[option.key] ?? String(option.default)));
-      }
-      rulesContainer.append(card);
+    const groups = new Map();
+    for (const rule of visible) {
+      groups.set(label(rule), [...(groups.get(label(rule)) ?? []), rule]);
+    }
+    const names = [...groups.keys()].sort((x, y) => (categoryOrder.indexOf(x) + 1 || 99) - (categoryOrder.indexOf(y) + 1 || 99));
+    if (names.length === 0) {
+      rulesContainer.append(element('p', { class: 'hint empty' }, 'No rule matches.'));
+    }
+    for (const name of names) {
+      const group = element('div', { role: 'rowgroup', class: 'group' });
+      group.append(element('h2', { class: 'group-title' }, name));
+      for (const rule of groups.get(name)) group.append(renderRule(rule, state));
+      rulesContainer.append(group);
     }
 
     const banner = /** @type {HTMLElement} */ (document.getElementById('package-banner'));
@@ -62,6 +91,130 @@
       document.getElementById(focusedId)?.focus();
     }
   }
+
+  function renderRule(rule, state) {
+    const realtime = rule.type === 'realtime';
+    const severity = severityOf(rule, state);
+    const open = expanded.has(rule.id);
+    const item = element('div', { class: 'rule' + (realtime && severity === 'none' ? ' disabled' : '') });
+    const row = element('div', { role: 'row', class: 'rule-row', id: `row-${rule.id}`, tabindex: '0', 'aria-expanded': String(open), 'aria-controls': `details-${rule.id}` });
+    const toggle = () => {
+      if (expanded.has(rule.id)) expanded.delete(rule.id);
+      else expanded.add(rule.id);
+      render(lastState);
+    };
+    row.addEventListener('click', (event) => {
+      if (!(/** @type {HTMLElement} */ (event.target).closest('input, select, label'))) toggle();
+    });
+    row.addEventListener('keydown', (event) => {
+      if (event.target === row && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+        toggle();
+      }
+    });
+
+    const cell = (...children) => {
+      const c = element('div', { role: 'gridcell' });
+      c.append(...children);
+      return c;
+    };
+    if (realtime) {
+      const enabled = /** @type {HTMLInputElement} */ (element('input', { type: 'checkbox', id: `enabled-${rule.id}`, 'aria-label': `Enable ${rule.id}` }));
+      enabled.checked = severity !== 'none';
+      enabled.addEventListener('change', () => {
+        const fallback = rule.defaultSeverity === 'none' ? 'suggestion' : rule.defaultSeverity;
+        vscode.postMessage({ type: 'setSeverity', ruleId: rule.id, severity: enabled.checked ? fallback : 'none' });
+      });
+      row.append(cell(enabled));
+    } else {
+      row.append(cell());
+    }
+    row.append(cell(element('span', { class: 'rule-id' }, rule.id)), cell(element('span', { class: 'rule-title', title: rule.title }, rule.title)));
+
+    if (realtime) {
+      const select = /** @type {HTMLSelectElement} */ (element('select', { id: `severity-${rule.id}`, 'aria-label': `Severity of ${rule.id}` }));
+      for (const value of severities) {
+        const option = /** @type {HTMLOptionElement} */ (element('option', { value }, value === rule.defaultSeverity ? `${value} (default)` : value));
+        option.selected = value === severity;
+        select.append(option);
+      }
+      select.addEventListener('change', () => vscode.postMessage({ type: 'setSeverity', ruleId: rule.id, severity: select.value }));
+      row.append(cell(select));
+    } else {
+      row.append(cell(element('span', { class: 'hint' }, 'command line')));
+    }
+    row.append(cell(element('span', { class: 'chevron', 'aria-hidden': 'true' })));
+    item.append(row);
+
+    if (open) item.append(renderDetails(rule, state));
+    return item;
+  }
+
+  function renderDetails(rule, state) {
+    const details = element('div', { role: 'row', class: 'details', id: `details-${rule.id}` });
+    const body = element('div', { role: 'gridcell' });
+    body.append(element('p', { class: 'meta' }, `${rule.id} · ${label(rule)} · ${rule.type === 'realtime' ? 'real time' : 'command line'}`));
+    body.append(element('p', { class: 'description' }, rule.description));
+    if (rule.details) {
+      body.append(element('h3', {}, 'Details'), element('p', { class: 'description' }, rule.details));
+    }
+    if (rule.options.length > 0) {
+      body.append(element('h3', {}, 'Options'));
+      for (const option of rule.options) {
+        body.append(renderOption(option, state.values[option.key] ?? String(option.default)));
+      }
+    }
+    for (const example of rule.examples ?? []) {
+      const pair = element('div', { class: 'examples' });
+      pair.append(codeBlock(example.after === undefined ? 'Reported code' : 'Before', example.before));
+      if (example.after !== undefined) pair.append(codeBlock('After', example.after));
+      body.append(pair);
+    }
+    if (rule.fix) {
+      body.append(element('p', { class: 'description' }, `Suggested fix: ${rule.fix}`));
+    }
+    details.append(body);
+    return details;
+  }
+
+  function codeBlock(title, code) {
+    const block = element('figure', { class: 'code' });
+    const pre = element('pre', { tabindex: '0' });
+    pre.append(...highlight(code));
+    block.append(element('figcaption', {}, title), pre);
+    return block;
+  }
+
+  const keywords = 'as|await|bool|break|case|class|continue|default|else|false|for|foreach|if|in|int|is|new|not|null|out|private|public|return|string|this|throw|true|var|void|while|yield';
+  // shortcut: regex tokens for the C# subset used by the examples, no real parser; extend the list when an example needs more.
+  const tokens = new RegExp(String.raw`(//.*)|("(?:[^"\\]|\\.)*")|\b(${keywords})\b|\b(\d+)\b`, 'g');
+  const tokenClasses = ['tok-comment', 'tok-string', 'tok-keyword', 'tok-number'];
+
+  /** Splits code into text nodes and classed spans (textContent only, nothing is parsed as HTML). */
+  function highlight(code) {
+    const nodes = [];
+    let last = 0;
+    for (const match of code.matchAll(tokens)) {
+      nodes.push(code.slice(last, match.index));
+      const group = match.slice(1).findIndex((g) => g !== undefined);
+      nodes.push(element('span', { class: tokenClasses[group] }, match[0]));
+      last = /** @type {number} */ (match.index) + match[0].length;
+    }
+    nodes.push(code.slice(last));
+    return nodes;
+  }
+
+  search.addEventListener('input', () => lastState && render(lastState));
+  for (const chip of chips) {
+    chip.addEventListener('click', () => {
+      filter = /** @type {string} */ (chip.dataset.filter);
+      if (lastState) render(lastState);
+    });
+  }
+  resetAll.addEventListener('click', () => {
+    const entries = lastState.rules.flatMap((rule) => modifications(rule, lastState));
+    vscode.postMessage({ type: 'reset', entries });
+  });
 
   function renderOption(option, value) {
     const id = `option-${option.key}`;
@@ -98,7 +251,8 @@
       row.append(element('label', { for: id }, option.title), input);
     }
 
-    row.append(element('p', { id: describedBy, class: 'hint' }, `${option.description} (${option.key}, default ${option.default})`));
+    row.append(element('code', { class: 'key' }, option.key));
+    row.append(element('p', { id: describedBy, class: 'hint' }, `${option.description} (default ${option.default})`));
     return row;
 
     /** @param {string} newValue */

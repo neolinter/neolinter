@@ -5,10 +5,16 @@ type: realtime
 category: Style
 defaultSeverity: suggestion
 description: >-
-  A predicate given to 'Where' can go straight to the operator that follows it. Reported for 'x.Where(p)' followed by
-  'Any()', 'First()', 'FirstOrDefault()', 'Single()', 'SingleOrDefault()', 'Last()', 'LastOrDefault()', 'Count()' or
-  'LongCount()' with no argument; the fix writes 'x.Any(p)' and so on. Only 'System.Linq.Enumerable' and
-  'System.Linq.Queryable' are concerned, so Entity Framework Core queries stay translatable. The index overload
-  'Where((x, i) => ...)' is left alone, and so is a receiver with its own member of the operator's name. 'Where(p).Count()'
-  compared with 0 or 1 is left to NLR0011, whose fix leaves 'Where(p).Any()' for this rule. Nothing is reported when a
-  comment or directive sits inside the part the fix drops.
+  A predicate given to 'Where' can go straight to the operator that follows it.
+details: >-
+  Reported for 'x.Where(p)' followed by 'Any()', 'First()', 'FirstOrDefault()', 'Single()', 'SingleOrDefault()',
+  'Last()', 'LastOrDefault()', 'Count()' or 'LongCount()' with no argument; the fix writes 'x.Any(p)' and so on. Only
+  'System.Linq.Enumerable' and 'System.Linq.Queryable' are concerned, so Entity Framework Core queries stay
+  translatable. The index overload 'Where((x, i) => ...)' is left alone, and so is a receiver with its own member of
+  the operator's name. 'Where(p).Count()' compared with 0 or 1 is left to NLR0011, whose fix leaves 'Where(p).Any()'
+  for this rule. Nothing is reported when a comment or directive sits inside the part the fix drops.
+examples:
+  - before: |-
+      var hasActive = users.Where(u => u.IsActive).Any();
+    after: |-
+      var hasActive = users.Any(u => u.IsActive);

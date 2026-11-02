@@ -16,6 +16,9 @@ const rules = readdirSync(rulesDir)
     if (!rule?.id || !rule.title || !rule.type || !rule.defaultSeverity) {
       throw new Error(`${file}: id, title, type and defaultSeverity are required`);
     }
+    if (!rule.category || !Array.isArray(rule.examples) || !rule.examples.every((e) => e?.before?.trim()) || rule.examples.length === 0) {
+      throw new Error(`${file}: category and at least one example with a 'before' are required`);
+    }
     return { ...rule, options: rule.options ?? [] };
   });
 

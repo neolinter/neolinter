@@ -5,10 +5,19 @@ type: realtime
 category: Style
 defaultSeverity: suggestion
 description: >-
-  A bool condition that is spelled out as 'true' and 'false' already is the result. Reported for 'c ? true : false'
-  (written 'c'), 'c ? false : true' (written '!c'), 'if (c) return true; else return false;' and
-  'if (c) return true; return false;' (written 'return c;'), and the same with the literals swapped (written
-  'return !c;'). The branches may have braces. Parentheses are added only where the meaning needs them. Nothing is
-  reported when 'c' is not exactly 'bool' (a 'bool?' or 'dynamic' condition, or a type with its own 'true' and
-  'false' operators, gives another result), when a branch does more than return the literal, or when a comment or
+  A bool condition that is spelled out as 'true' and 'false' already is the result.
+details: >-
+  Reported for 'c ? true : false' (written 'c'), 'c ? false : true' (written '!c'), 'if (c) return true; else return
+  false;' and 'if (c) return true; return false;' (written 'return c;'), and the same with the literals swapped
+  (written 'return !c;'). The branches may have braces. Parentheses are added only where the meaning needs them.
+  Nothing is reported when 'c' is not exactly 'bool' (a 'bool?' or 'dynamic' condition, or a type with its own 'true'
+  and 'false' operators, gives another result), when a branch does more than return the literal, or when a comment or
   directive sits inside the construct.
+examples:
+  - before: |-
+      if (IsValid(order))
+          return true;
+      else
+          return false;
+    after: |-
+      return IsValid(order);

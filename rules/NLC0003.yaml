@@ -5,8 +5,21 @@ type: cli
 category: Duplicates
 defaultSeverity: warning
 description: >-
-  A sequence of statements repeated elsewhere in the solution, ignoring identifier names and
-  literal values. Reported by "neolinter analyze duplicates" once it reaches the minimum
-  length set in neolinter.json (8 statements and 50 tokens by default, keys duplicates.minStatements and
-  duplicates.minTokens). Generated files are ignored.
+  A sequence of statements repeated elsewhere in the solution, ignoring identifier names and literal values.
+details: >-
+  Reported by "neolinter analyze duplicates" once it reaches the minimum length set in neolinter.json (8 statements
+  and 50 tokens by default, keys duplicates.minStatements and duplicates.minTokens). Generated files are ignored.
+fix: >-
+  Extract the repeated statements into a method both places call.
+examples:
+  - before: |-
+      // in OrderService
+      total = price * quantity;
+      if (discount > 0) total -= discount;
+      total += total * taxRate;
+
+      // in QuoteService: same statements again
+      total = price * quantity;
+      if (discount > 0) total -= discount;
+      total += total * taxRate;
 options: []
