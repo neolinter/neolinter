@@ -40,37 +40,8 @@ public sealed class BooleanComparisonCodeFixProvider : CodeFixProvider
         }
 
         var operand = candidate.Operand.WithoutTrivia();
-        var replacement = candidate.Negate ? Negate(operand) : operand;
+        var replacement = candidate.Negate ? LogicalNot.Of(operand) : operand;
 
         return document.WithSyntaxRoot(root.ReplaceNode(comparison, replacement.WithTriviaFrom(comparison)));
     }
-
-    // Tokens carry explicit (empty) trivia, so the host keeps the user's layout.
-    private static ExpressionSyntax Negate(ExpressionSyntax operand)
-    {
-        // '!y == false' is 'y': no double negation.
-        if (operand is PrefixUnaryExpressionSyntax prefix && prefix.IsKind(SyntaxKind.LogicalNotExpression))
-        {
-            return prefix.Operand;
-        }
-
-        var wrapped = BindsTighterThanNot(operand)
-            ? operand
-            : SyntaxFactory.ParenthesizedExpression(
-                SyntaxFactory.Token(default, SyntaxKind.OpenParenToken, default),
-                operand,
-                SyntaxFactory.Token(default, SyntaxKind.CloseParenToken, default));
-
-        return SyntaxFactory.PrefixUnaryExpression(
-            SyntaxKind.LogicalNotExpression,
-            SyntaxFactory.Token(default, SyntaxKind.ExclamationToken, default),
-            wrapped);
-    }
-
-    // Anything else (binary, 'is', conditional, assignment, lambda, switch expression...) gets parentheses.
-    private static bool BindsTighterThanNot(ExpressionSyntax expression) =>
-        expression is IdentifierNameSyntax or GenericNameSyntax or MemberAccessExpressionSyntax or InvocationExpressionSyntax
-            or ElementAccessExpressionSyntax or ParenthesizedExpressionSyntax or LiteralExpressionSyntax or ThisExpressionSyntax
-            or BaseExpressionSyntax or ConditionalAccessExpressionSyntax or PrefixUnaryExpressionSyntax or PostfixUnaryExpressionSyntax
-            or AwaitExpressionSyntax or CastExpressionSyntax or DefaultExpressionSyntax or TypeOfExpressionSyntax;
 }
