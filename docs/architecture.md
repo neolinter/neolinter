@@ -139,7 +139,7 @@ These are frozen from 0.1 on; changing them is a breaking change.
 
 One numbering for all rules, shared across prefixes; the letter says where the rule runs.
 
-- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison, `NLR0006` = keep LINQ operators inside the Entity Framework Core query, `NLR0007` = avoid nested conditional expressions, `NLR0008` = merge nested `if` statements, `NLR0009` = remove `else` after a branch that exits.
+- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison, `NLR0006` = keep LINQ operators inside the Entity Framework Core query, `NLR0007` = avoid nested conditional expressions, `NLR0008` = merge nested `if` statements, `NLR0009` = remove `else` after a branch that exits, `NLR0010` = use the condition instead of `true` and `false`.
 - `NLC` (**C**ommand line): `neolinter analyze`. `NLC0002` = unused member (`dead-code`), `NLC0003` = duplicated
   statements (`duplicates`).
 
@@ -239,6 +239,23 @@ longer matches (the fingerprint includes the rule id): regenerate it.
   line (`LineIndentation`, shared with NLR0008; only whitespace that starts a line is touched), the first one starting a
   line at the indentation of the `if`, the last one taking the trailing trivia of the closing brace. Tokens are built
   with explicit trivia, no elastic trivia.
+
+### NLR0010 details
+
+- Shape (`ExplicitBooleanAnalysis`): a `ConditionalExpression` whose branches are `true` and `false` (either order), an
+  `if`/`else` whose two statements (or single-statement blocks) are `return true;` and `return false;`, or an `if`
+  without `else` that returns one literal and is directly followed, in the same block or switch section, by a `return`
+  of the other. The condition must have type `bool` exactly. One analyzer registers both node kinds; the diagnostic is
+  on `?` or on the `if` keyword.
+- Safe to rewrite: no comment or directive between the first and the last token of the construct (what comes before the
+  first token and after the last one stays), so nothing is lost.
+- Fix: `c` or `!c` (`LogicalNot`, shared with NLR0005: no double negation, parentheses only where `!` would bind to a
+  part). A ternary is replaced in place; an `if` becomes `return value;` with the leading trivia of the `if` and the
+  trailing trivia of its last statement; the final `return` is removed from the block. Fix all handles nested ternaries
+  (tested).
+- NLR0009: `ElseAfterExitAnalysis` asks this analysis first and does not report the `else` of the shape NLR0010 takes, so
+  the two rules never offer competing fixes. NLR0001 and NLR0008 do not report these shapes (checked with real
+  analyzers).
 
 ### neolinter.json
 

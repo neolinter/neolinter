@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Neolinter.Analyzers.ExplicitBoolean;
 using Neolinter.Analyzers.InvertIf;
 
 namespace Neolinter.Analyzers.ElseAfterExit;
@@ -34,6 +35,12 @@ internal static class ElseAfterExitAnalysis
 
         // NLR0001 already reports an 'else' that is a lone exit after a longer branch, and its fix removes it.
         if (InvertIfAnalysis.Analyze(ifStatement, model, InvertIfAnalysis.DefaultMinStatements, cancellationToken) is { Kind: InvertIfKind.ElseExit })
+        {
+            return null;
+        }
+
+        // NLR0010 reports 'if (c) return true; else return false;' and its fix writes 'return c;', which leaves no 'else'.
+        if (ExplicitBooleanAnalysis.Analyze(ifStatement, model, cancellationToken) is not null)
         {
             return null;
         }

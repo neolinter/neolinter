@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Neolinter.Analyzers.BooleanComparison;
 using Neolinter.Analyzers.EfCoreClientLinq;
 using Neolinter.Analyzers.ElseAfterExit;
+using Neolinter.Analyzers.ExplicitBoolean;
 using Neolinter.Analyzers.InvertIf;
 using Neolinter.Analyzers.MergeNestedIf;
 using Neolinter.Analyzers.NestedTernary;
@@ -15,7 +16,7 @@ namespace Neolinter.Tests;
 /// <summary>Keeps /rules/*.yaml (read by the IDE settings screens) in sync with the analyzers.</summary>
 public class RuleFilesTests
 {
-    private static readonly DiagnosticAnalyzer[] Analyzers = [new InvertIfAnalyzer(), new NullCoalescingAssignmentAnalyzer(), new BooleanComparisonAnalyzer(), new EfCoreClientLinqAnalyzer(), new NestedTernaryAnalyzer(), new MergeNestedIfAnalyzer(), new ElseAfterExitAnalyzer()];
+    private static readonly DiagnosticAnalyzer[] Analyzers = [new InvertIfAnalyzer(), new NullCoalescingAssignmentAnalyzer(), new BooleanComparisonAnalyzer(), new EfCoreClientLinqAnalyzer(), new NestedTernaryAnalyzer(), new MergeNestedIfAnalyzer(), new ElseAfterExitAnalyzer(), new ExplicitBooleanAnalyzer()];
 
     public static TheoryData<string> RealtimeRuleIds() => new(LoadRules().Where(r => r.Type == "realtime").Select(r => r.Id));
 
