@@ -139,7 +139,7 @@ These are frozen from 0.1 on; changing them is a breaking change.
 
 One numbering for all rules, shared across prefixes; the letter says where the rule runs.
 
-- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison, `NLR0006` = keep LINQ operators inside the Entity Framework Core query, `NLR0007` = avoid nested conditional expressions, `NLR0008` = merge nested `if` statements, `NLR0009` = remove `else` after a branch that exits, `NLR0010` = use the condition instead of `true` and `false`.
+- `NLR` (**R**eal time): Roslyn analyzers. `NLR0001` = invert `if`, `NLR0004` = use `??=`, `NLR0005` = simplify boolean comparison, `NLR0006` = keep LINQ operators inside the Entity Framework Core query, `NLR0007` = avoid nested conditional expressions, `NLR0008` = merge nested `if` statements, `NLR0009` = remove `else` after a branch that exits, `NLR0010` = use the condition instead of `true` and `false`, `NLR0011` = use `Any()` instead of comparing `Count()` with zero.
 - `NLC` (**C**ommand line): `neolinter analyze`. `NLC0002` = unused member (`dead-code`), `NLC0003` = duplicated
   statements (`duplicates`).
 
@@ -256,6 +256,15 @@ longer matches (the fingerprint includes the rule id): regenerate it.
 - NLR0009: `ElseAfterExitAnalysis` asks this analysis first and does not report the `else` of the shape NLR0010 takes, so
   the two rules never offer competing fixes. NLR0001 and NLR0008 do not report these shapes (checked with real
   analyzers).
+
+### NLR0011 details
+
+- Shape (`CountToAnyAnalysis`): a comparison (`>`, `>=`, `<`, `<=`, `==`, `!=`) between an `int` literal and an invocation
+  `x.Count()` or `x.Count(p)` that binds to `System.Linq.Enumerable` or `Queryable`; the number is mirrored when on the
+  left. `> 0`, `!= 0`, `>= 1` mean "has items"; `== 0`, `< 1` mean "empty". The diagnostic covers the comparison.
+- Skipped: a receiver type with a member called `Any`, and a comment or directive among the tokens the fix drops.
+- Fix: the `Count` name becomes `Any` (arguments and type arguments kept), wrapped with `LogicalNot` for the empty
+  forms; the comparison's own leading and trailing trivia is kept. No elastic trivia.
 
 ### neolinter.json
 
