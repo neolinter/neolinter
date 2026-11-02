@@ -179,8 +179,29 @@
 
   function codeBlock(title, code) {
     const block = element('figure', { class: 'code' });
-    block.append(element('figcaption', {}, title), element('pre', { tabindex: '0' }, code));
+    const pre = element('pre', { tabindex: '0' });
+    pre.append(...highlight(code));
+    block.append(element('figcaption', {}, title), pre);
     return block;
+  }
+
+  const keywords = 'as|await|bool|break|case|class|continue|default|else|false|for|foreach|if|in|int|is|new|not|null|out|private|public|return|string|this|throw|true|var|void|while|yield';
+  // shortcut: regex tokens for the C# subset used by the examples, no real parser; extend the list when an example needs more.
+  const tokens = new RegExp(String.raw`(//.*)|("(?:[^"\\]|\\.)*")|\b(${keywords})\b|\b(\d+)\b|\b([A-Z]\w*)\b(?!\s*\()`, 'g');
+  const tokenClasses = ['tok-comment', 'tok-string', 'tok-keyword', 'tok-number', 'tok-type'];
+
+  /** Splits code into text nodes and classed spans (textContent only, nothing is parsed as HTML). */
+  function highlight(code) {
+    const nodes = [];
+    let last = 0;
+    for (const match of code.matchAll(tokens)) {
+      nodes.push(code.slice(last, match.index));
+      const group = match.slice(1).findIndex((g) => g !== undefined);
+      nodes.push(element('span', { class: tokenClasses[group] }, match[0]));
+      last = /** @type {number} */ (match.index) + match[0].length;
+    }
+    nodes.push(code.slice(last));
+    return nodes;
   }
 
   search.addEventListener('input', () => lastState && render(lastState));

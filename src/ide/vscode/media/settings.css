@@ -351,3 +351,9 @@ input[type="search"] {
     padding-left: 8px;
   }
 }
+
+.tok-comment { color: var(--vscode-descriptionForeground); font-style: italic; }
+.tok-string { color: var(--vscode-symbolIcon-stringForeground, var(--vscode-foreground)); }
+.tok-keyword { color: var(--vscode-symbolIcon-keywordForeground, var(--vscode-foreground)); }
+.tok-number { color: var(--vscode-symbolIcon-numberForeground, var(--vscode-foreground)); }
+.tok-type { color: var(--vscode-symbolIcon-classForeground, var(--vscode-foreground)); }
