@@ -1,0 +1,34 @@
+id: NLR0035
+title: Collection modified during foreach
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  Adding to or removing from a collection inside the foreach that enumerates it invalidates the enumerator, so the
+  next iteration throws an InvalidOperationException.
+details: >-
+  Reported on a call to a mutating method (Add, Insert, Remove, RemoveAt, RemoveAll, Clear, Sort, Reverse, Push, Pop,
+  Enqueue, Dequeue and their relatives) on the very local, parameter or field (bare or through 'this') that the
+  foreach enumerates, when its type is a List, LinkedList, Queue, Stack, SortedSet, SortedDictionary, SortedList,
+  Collection, Dictionary or HashSet (or a class derived from one, or IList, ICollection, IDictionary or ISet). On a
+  Dictionary or HashSet only additions are reported, since removals no longer invalidate the enumerator. Nothing is
+  reported when the loop iterates a copy or any other expression ('list.ToList()', an array), for another collection,
+  an indexer assignment, a 'for' loop, concurrent or immutable collections, a call inside a lambda or local function,
+  or a call directly followed by 'break' (of that foreach), 'return', 'throw' or 'goto', or inside a 'return'. Report
+  only, there is no code fix: the right change (iterate a copy, RemoveAll, a reverse 'for' loop) depends on intent.
+fix: >-
+  Iterate over a copy ('foreach (var x in list.ToList())'), use 'RemoveAll', loop backwards with 'for', or collect the
+  changes and apply them after the loop.
+examples:
+  - before: |-
+      foreach (var item in items)
+      {
+          if (item.IsExpired)
+              items.Remove(item);
+      }
+  - before: |-
+      foreach (var id in ids)
+      {
+          ids.Add(id + 1);
+      }
