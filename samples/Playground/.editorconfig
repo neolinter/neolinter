@@ -24,3 +24,4 @@ dotnet_diagnostic.NLR0022.severity = warning
 dotnet_diagnostic.NLR0023.severity = warning
 dotnet_diagnostic.NLR0024.severity = warning
 dotnet_diagnostic.NLR0025.severity = warning
+dotnet_diagnostic.NLR0026.severity = warning

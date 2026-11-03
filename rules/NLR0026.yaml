@@ -1,0 +1,38 @@
+id: NLR0026
+title: Use await Task.Delay instead of Thread.Sleep in async code
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  Thread.Sleep blocks the thread for the whole delay, which wastes a thread and can freeze a caller that has a
+  synchronization context; await Task.Delay releases the thread while waiting.
+details: >-
+  Reported inside an async method, local function, lambda or anonymous method for 'Thread.Sleep(int)' and
+  'Thread.Sleep(TimeSpan)'. The fix writes 'await Task.Delay(...)' with the same argument, spelling out
+  System.Threading.Tasks when 'Task' does not already name that type. No cancellation token is added, so the behavior
+  stays the same. A call inside a lock, unsafe code or a method with a ref struct local, where await is not possible,
+  is reported without a fix. Nothing is reported in code that is not itself async (a non-async lambda or local
+  function inside an async method, a constructor, an accessor), nor for a zero delay ('Thread.Sleep(0)',
+  'Thread.Sleep(TimeSpan.Zero)'), which only yields the time slice.
+examples:
+  - before: |-
+      async Task PauseAsync()
+      {
+          Thread.Sleep(500);
+      }
+    after: |-
+      async Task PauseAsync()
+      {
+          await Task.Delay(500);
+      }
+  - before: |-
+      async Task RetryAsync(TimeSpan wait)
+      {
+          Thread.Sleep(wait);
+      }
+    after: |-
+      async Task RetryAsync(TimeSpan wait)
+      {
+          await Task.Delay(wait);
+      }

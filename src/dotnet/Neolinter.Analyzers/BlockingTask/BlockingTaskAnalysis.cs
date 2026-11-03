@@ -113,7 +113,7 @@ internal static class BlockingTaskAnalysis
     private static SyntaxNode? GetFunction(SyntaxNode node) => node.Ancestors().FirstOrDefault(IsFunction);
 
     /// <summary>The innermost function is async: <c>await</c> is available there.</summary>
-    private static bool IsInAsyncFunction(SyntaxNode node) => GetFunction(node) switch
+    internal static bool IsInAsyncFunction(SyntaxNode node) => GetFunction(node) switch
     {
         MethodDeclarationSyntax m => m.Modifiers.Any(SyntaxKind.AsyncKeyword),
         LocalFunctionStatementSyntax l => l.Modifiers.Any(SyntaxKind.AsyncKeyword),
