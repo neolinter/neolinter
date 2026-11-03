@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Twenty-one real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021, NLR0022, NLR0023); the command line analyses are not implemented yet.
+> Status: early development (0.1). Twenty-two real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021, NLR0022, NLR0023, NLR0024); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -249,6 +249,8 @@ NLR0022 has no option. `string.Format("a{0}b{1}", x, y)` becomes `$"a{x}b{y}"`, 
 
 NLR0023 has no option and a warning severity. `throw e;` becomes `throw;` when `e` is the variable of the catch clause that directly encloses the statement: `throw e;` restarts the stack trace, `throw;` keeps the original one. Exception filters are fine. Not reported: a throw inside a lambda, anonymous method or local function, inside a `finally` within the catch, inside a nested catch clause, a variable assigned in the catch block, `throw new X(..., e)` and any other thrown expression.
 
+NLR0024 has no option, no code fix and a warning severity. An `async` method, local function, lambda or anonymous method that returns `void` is reported: the caller can neither await it nor catch its exceptions. Return `Task` (`Func<Task>` for a lambda) instead. Not reported: a method with an `(object, EventArgs)` signature (the second parameter derives from `EventArgs`), an override, an implementation of an interface member, a method named as a delegate or event handler somewhere in the compilation (`button.Click += OnClick;`), and a lambda added to an event or converted to a delegate with an `(object, EventArgs)` signature.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -345,6 +347,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0021](rules/NLR0021.yaml) | Use string interpolation | real-time, code fix | suggestion |
 | [NLR0022](rules/NLR0022.yaml) | Use string interpolation instead of string.Format | real-time, code fix | suggestion |
 | [NLR0023](rules/NLR0023.yaml) | Rethrow with throw; instead of throw ex; | real-time, code fix | warning |
+| [NLR0024](rules/NLR0024.yaml) | Avoid async void outside event handlers | real-time | warning |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 
