@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Twenty-two real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021, NLR0022, NLR0023, NLR0024); the command line analyses are not implemented yet.
+> Status: early development (0.1). Twenty-three real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021, NLR0022, NLR0023, NLR0024, NLR0025); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -251,6 +251,8 @@ NLR0023 has no option and a warning severity. `throw e;` becomes `throw;` when `
 
 NLR0024 has no option, no code fix and a warning severity. An `async` method, local function, lambda or anonymous method that returns `void` is reported: the caller can neither await it nor catch its exceptions. Return `Task` (`Func<Task>` for a lambda) instead. Not reported: a method with an `(object, EventArgs)` signature (the second parameter derives from `EventArgs`), an override, an implementation of an interface member, a method named as a delegate or event handler somewhere in the compilation (`button.Click += OnClick;`), and a lambda added to an event or converted to a delegate with an `(object, EventArgs)` signature.
 
+NLR0025 has no option and a warning severity. Inside an `async` method, local function, lambda or anonymous method, `t.Result`, `t.Wait()` and `t.GetAwaiter().GetResult()` (also after `ConfigureAwait`) become `await t`, or `await t;` for a statement, with parentheses when the result is accessed (`(await t).Length`). `Task.WaitAll`, `Task.WaitAny` and `t.Wait(timeout)` are reported without a fix, as is any call inside a `lock`, an exception filter, a query expression, unsafe code or a method holding a ref struct local, where `await` is not possible. Not reported: code that is not itself async (a non-async lambda or local function inside an async method, a constructor, an accessor), a task awaited earlier in the same function (also through `Task.WhenAll` or `Task.WhenAny`), `Task.FromResult(...)`, `Task.CompletedTask`, and a `Result` member of another type.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -348,6 +350,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0022](rules/NLR0022.yaml) | Use string interpolation instead of string.Format | real-time, code fix | suggestion |
 | [NLR0023](rules/NLR0023.yaml) | Rethrow with throw; instead of throw ex; | real-time, code fix | warning |
 | [NLR0024](rules/NLR0024.yaml) | Avoid async void outside event handlers | real-time | warning |
+| [NLR0025](rules/NLR0025.yaml) | Do not block on a task inside an async method | real-time, code fix | warning |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

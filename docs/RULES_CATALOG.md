@@ -42,7 +42,7 @@ command line, one global numbering).
 
 - [ ] `ConfigureAwait(false)` in libraries, or its absence in applications (O)
 - [x] NLR0024 `async void` outside event handlers (report only; methods, local functions, lambdas; not event-handler signatures, overrides, interface implementations, method groups or lambdas added to an event; no option)
-- [ ] Blocking `.Result`, `.Wait()`, `.GetAwaiter().GetResult()`
+- [x] NLR0025 Blocking `.Result`, `.Wait()`, `.GetAwaiter().GetResult()` (inside async functions only; code fix to `await` where possible, report only for `Task.WaitAll`/`WaitAny`, `Wait(timeout)`, `lock` and other places where `await` is illegal; not reported for tasks awaited earlier, `Task.FromResult`, `Task.CompletedTask`; no option)
 - [ ] Fire-and-forget task, ignored task
 - [ ] `async` method without `await`
 - [ ] `CancellationToken`: last parameter, propagated to inner calls
