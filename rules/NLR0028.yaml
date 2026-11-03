@@ -1,0 +1,39 @@
+id: NLR0028
+title: Empty catch block
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  A catch block with no statement swallows the exception silently, hiding failures that are then hard to diagnose.
+details: >-
+  Reported for a 'catch' clause whose block contains no statement, whatever the exception type and with or without a
+  'when' filter. Nothing is reported for a block that only holds a comment (the comment documents the intent; set
+  nlr0028.allow_comment_only = false to report it too), for a catch of OperationCanceledException or a subtype such as
+  TaskCanceledException (ignoring a cancellation is normal), or for an empty 'finally' (a separate rule). Report only,
+  there is no code fix.
+fix: >-
+  Handle or log the exception, rethrow it with 'throw;', or add a comment saying why ignoring it is safe.
+examples:
+  - before: |-
+      try
+      {
+          File.Delete(path);
+      }
+      catch (IOException)
+      {
+      }
+  - before: |-
+      try
+      {
+          Parse(text);
+      }
+      catch
+      {
+      }
+options:
+  - key: nlr0028.allow_comment_only
+    type: boolean
+    default: true
+    title: Accept comment-only blocks
+    description: Do not report an empty catch block that holds a comment explaining why the exception is ignored.
