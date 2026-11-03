@@ -55,7 +55,7 @@ command line, one global numbering).
 
 ## 3. Probable bugs
 
-- [ ] `throw ex;` instead of `throw;` (F)
+- [x] NLR0023 `throw ex;` to `throw;` (F; only the catch variable thrown directly in its own catch block, not in lambdas, local functions, nested catch or finally, not when reassigned; no option)
 - [ ] Self-assignment, floating-point `==`, comparison with `NaN`
 - [ ] Always-true or always-false conditions, unreachable code, `<=` against `Length` (off by one)
 - [ ] `string.Format` argument mismatch

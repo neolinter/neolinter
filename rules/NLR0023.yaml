@@ -1,0 +1,31 @@
+id: NLR0023
+title: Rethrow with throw; instead of throw ex;
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  Throwing the caught exception variable restarts its stack trace at the throw statement; a bare 'throw;' keeps the
+  original one.
+details: >-
+  Reported for 'throw e;' where 'e' is the variable of the catch clause that directly encloses the statement, with or
+  without an exception filter. The fix writes 'throw;', which preserves the original stack trace; comments around the
+  statement are kept. Nothing is reported when the throw is inside a lambda, an anonymous method or a local function
+  (a bare 'throw;' is not allowed there), inside a 'finally' within the catch, or inside a nested catch clause (where
+  'throw;' would rethrow another exception), nor when the variable is assigned anywhere in the catch block. 'throw new
+  X(..., e)' and any throw of another expression are not reported.
+examples:
+  - before: |-
+      try { Save(); }
+      catch (IOException e)
+      {
+          Log(e);
+          throw e;
+      }
+    after: |-
+      try { Save(); }
+      catch (IOException e)
+      {
+          Log(e);
+          throw;
+      }
