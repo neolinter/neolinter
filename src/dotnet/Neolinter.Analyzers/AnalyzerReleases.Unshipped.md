@@ -36,3 +36,4 @@ NLR0030  | Reliability | Warning  | IgnoredReturnValueAnalyzer
 NLR0031  | Reliability | Warning  | LockOnPublicObjectAnalyzer
 NLR0032  | Reliability | Warning  | MultipleEnumerationAnalyzer
 NLR0033  | Reliability | Warning  | EqualsWithoutGetHashCodeAnalyzer
+NLR0034  | Reliability | Info     | MutableStructAnalyzer

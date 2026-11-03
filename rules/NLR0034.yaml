@@ -1,0 +1,30 @@
+id: NLR0034
+title: Mutable struct
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: suggestion
+description: >-
+  A struct is copied each time it is assigned or passed, so a change made through a copy (a local, a foreach variable,
+  a property getter result) is silently lost; structs are safest when they cannot change after construction.
+details: >-
+  Reported on the name of a struct that has a non-readonly instance field or a property with a 'set' accessor (not
+  'init'); only the first offending member is named in the message. Nothing is reported for 'readonly struct' and
+  'record struct', for static or const members, or for properties with only a getter or 'init'. 'ref struct' and
+  interop structs are reported like any other. Report only, there is no code fix: making a struct immutable changes
+  every caller that writes to it.
+fix: >-
+  Declare the struct 'readonly', make its fields 'readonly' and its properties get-only or 'init', and build new values
+  with a constructor or a method that returns a modified copy.
+examples:
+  - before: |-
+      public struct Point
+      {
+          public int X;
+          public int Y;
+      }
+  - before: |-
+      public struct Counter
+      {
+          public int Count { get; set; }
+      }
