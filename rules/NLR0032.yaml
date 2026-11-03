@@ -1,0 +1,41 @@
+id: NLR0032
+title: Multiple enumeration of an IEnumerable
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  Enumerating an IEnumerable or IQueryable twice runs a deferred query twice, with repeated work, repeated side effects
+  or a different result each time.
+details: >-
+  Reported once per variable, on the first enumeration that repeats an earlier one, for a method, constructor or
+  accessor parameter, or a local initialized from a sequence, whose type is 'IEnumerable', 'IEnumerable<T>', 'IQueryable'
+  or 'IQueryable<T>'. An enumeration is a 'foreach', or a consuming 'System.Linq' call ('Count', 'Any', 'First', 'ToList',
+  'Sum'...) on the variable, possibly after deferred operators such as 'Where' or 'Select'; 'GetEnumerator()' counts too.
+  Enumerations in different branches of an 'if', a 'switch' or a conditional expression, or in a branch that returns
+  before the other one, are not multiple; an enumeration in a loop, or in a loop condition, of a variable declared outside
+  the loop is. Nothing is reported for lists, arrays and other collection types, for locals initialized from a
+  materialized collection, for fields and properties, for variables that are reassigned, passed as 'ref' or 'out' or tested
+  with 'is' or 'as', for enumerations inside lambdas, or when the variable is only passed on to another method. The fix
+  appends '.ToList()' to the initializer of a local of type 'IEnumerable<T>'; it is not offered for parameters or for
+  'IQueryable'. It runs the query once, at the declaration, instead of at each use.
+fix: >-
+  Materialize the sequence once ('var items = source.ToList();') and enumerate that.
+examples:
+  - before: |-
+      void Print(IEnumerable<string> names)
+      {
+          if (names.Any())
+          {
+              foreach (var name in names)
+                  Console.WriteLine(name);
+          }
+      }
+  - before: |-
+      var active = users.Where(u => u.IsActive);
+      var count = active.Count();
+      var first = active.First();
+    after: |-
+      var active = users.Where(u => u.IsActive).ToList();
+      var count = active.Count();
+      var first = active.First();

@@ -63,7 +63,7 @@ command line, one global numbering).
 - [ ] `Equals` without `GetHashCode`, mutable struct △
 - [ ] Collection modified during `foreach`
 - [x] NLR0030 Ignored return value (F; expression statement calling a known pure method: string, DateTime and similar value types, System.Collections.Immutable instance methods, Math, Convert, Path, System.Linq, `[Pure]` or `[MustUseReturnValue]`; the fix assigns back for a local, parameter or field receiver of the returned type; not for `_ = ...`, methods with out or ref parameters, or unannotated user methods; no option)
-- [ ] Multiple enumeration of an `IEnumerable`
+- [x] NLR0032 Multiple enumeration of an `IEnumerable` (F; parameter or local of type `IEnumerable`, `IEnumerable<T>` or `IQueryable`; `foreach` or consuming LINQ call twice on one path, or once in a loop of a variable declared outside; the fix appends `.ToList()` to an `IEnumerable<T>` local initializer; not for lists, fields, reassigned variables, lambdas, parameters passed on; no option)
 - [x] NLR0031 Lock on a publicly visible object (report only; `lock` on `this` unless the class is sealed or a private nested type, on a string, `typeof(T)` or any `System.Type`, or on a value cast to object; not for private object fields or public fields; no option)
 - [ ] Double-checked locking
 - [ ] `new Random()` in a loop, `DateTime.Now` instead of `UtcNow` (O)
