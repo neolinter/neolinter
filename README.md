@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Twenty-four real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021, NLR0022, NLR0023, NLR0024, NLR0025, NLR0026); the command line analyses are not implemented yet.
+> Status: early development (0.1). Twenty-five real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021, NLR0022, NLR0023, NLR0024, NLR0025, NLR0026, NLR0027); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -255,6 +255,8 @@ NLR0025 has no option and a warning severity. Inside an `async` method, local fu
 
 NLR0026 has no option and a warning severity. Inside an `async` method, local function, lambda or anonymous method, `Thread.Sleep(int)` and `Thread.Sleep(TimeSpan)` become `await Task.Delay(...)` with the same argument; no cancellation token is added, so the behavior is unchanged. A call inside a `lock`, unsafe code or a method holding a ref struct local, where `await` is not possible, is reported without a fix. Not reported: code that is not itself async (a non-async lambda or local function inside an async method, a constructor, an accessor) and a zero delay (`Thread.Sleep(0)`, `Thread.Sleep(TimeSpan.Zero)`).
 
+NLR0027 has no option and a warning severity. An `async` method, local function, lambda or anonymous method with no `await`, `await foreach` or `await using` of its own is reported (an await inside a nested lambda or local function does not count). For a method or local function returning `Task` or `Task<T>` the fix removes `async` and returns the task by hand (`Task.CompletedTask`, or `Task.FromResult<T>(...)` for each `return`); it is only offered when nothing in the body throws and there is no `using` or `try`, since without `async` an exception reaches the caller instead of the task. Lambdas, anonymous methods, `ValueTask` and those other bodies are reported without a fix. Not reported: `async void` (NLR0024), iterators, an empty body and a body that only throws.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -354,6 +356,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0024](rules/NLR0024.yaml) | Avoid async void outside event handlers | real-time | warning |
 | [NLR0025](rules/NLR0025.yaml) | Do not block on a task inside an async method | real-time, code fix | warning |
 | [NLR0026](rules/NLR0026.yaml) | Use await Task.Delay instead of Thread.Sleep in async code | real-time, code fix | warning |
+| [NLR0027](rules/NLR0027.yaml) | Async method without await | real-time, code fix | warning |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

@@ -29,3 +29,4 @@ NLR0023  | Reliability | Warning  | RethrowAnalyzer
 NLR0024  | Reliability | Warning  | AsyncVoidAnalyzer
 NLR0025  | Reliability | Warning  | BlockingTaskAnalyzer
 NLR0026  | Reliability | Warning  | ThreadSleepAnalyzer
+NLR0027  | Reliability | Warning  | AsyncWithoutAwaitAnalyzer

@@ -44,7 +44,7 @@ command line, one global numbering).
 - [x] NLR0024 `async void` outside event handlers (report only; methods, local functions, lambdas; not event-handler signatures, overrides, interface implementations, method groups or lambdas added to an event; no option)
 - [x] NLR0025 Blocking `.Result`, `.Wait()`, `.GetAwaiter().GetResult()` (inside async functions only; code fix to `await` where possible, report only for `Task.WaitAll`/`WaitAny`, `Wait(timeout)`, `lock` and other places where `await` is illegal; not reported for tasks awaited earlier, `Task.FromResult`, `Task.CompletedTask`; no option)
 - [ ] Fire-and-forget task, ignored task
-- [ ] `async` method without `await`
+- [x] NLR0027 `async` method without `await` (methods, local functions, lambdas, anonymous methods; `await foreach` and `await using` count as awaits; not reported for `async void`, iterators, empty bodies, throw-only bodies; code fix for `Task` and `Task<T>` methods and local functions that cannot throw (no `throw`, `using`, `try`), report only otherwise; no option)
 - [ ] `CancellationToken`: last parameter, propagated to inner calls
 - [x] NLR0026 `Thread.Sleep` in asynchronous code, use `Task.Delay` (inside async functions only; `Sleep(int)` and `Sleep(TimeSpan)`; code fix to `await Task.Delay(...)` without cancellation token, report only inside `lock` and other places where `await` is illegal; not reported for zero delay or non-async lambdas; no option)
 - [ ] `await` inside a `lock`
