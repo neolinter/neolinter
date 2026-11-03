@@ -1,0 +1,33 @@
+id: NLR0030
+title: Ignored return value
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  Strings, dates, immutable collections and LINQ operators never change in place; a call that drops its result has no
+  effect, and is usually a forgotten assignment.
+details: >-
+  Reported for an expression statement that calls a method known to only compute a value and discards what it returns:
+  an instance method of 'string', 'DateTime', 'DateTimeOffset', 'TimeSpan', 'DateOnly', 'TimeOnly' or of an immutable
+  collection ('System.Collections.Immutable'), a method of 'Math', 'Convert', 'Path' or 'System.Linq', and any method
+  marked '[Pure]' or '[MustUseReturnValue]'. The fix assigns the result back ('s = s.Replace(...)'), and is only offered
+  when the receiver is a local, a parameter or a field that can be assigned and the call returns its type. Nothing is
+  reported when the result is used or explicitly discarded ('_ = s.Trim()'), for other methods, or for methods with an
+  'out' or 'ref' parameter.
+examples:
+  - before: |-
+      void Clean(string name)
+      {
+          name.Trim();
+      }
+    after: |-
+      void Clean(string name)
+      {
+          name = name.Trim();
+      }
+  - before: |-
+      void Load(List<int> items)
+      {
+          items.Select(i => i * 2);
+      }
