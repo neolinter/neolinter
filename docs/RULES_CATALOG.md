@@ -66,7 +66,7 @@ command line, one global numbering).
 - [ ] `lock(this)`, lock on a string or `typeof`, double-checked locking
 - [ ] `new Random()` in a loop, `DateTime.Now` instead of `UtcNow` (O)
 - [ ] Too broad `catch (Exception)` (O), swallowed exception, useless `catch { throw; }` (F), empty `finally`
-- [ ] Empty `catch` block (decide whether a comment-only block is accepted)
+- [x] NLR0028 Empty `catch` block (report only; no statement in the block; comment-only block accepted, option `nlr0028.allow_comment_only = false` reports it; not reported for `OperationCanceledException` and subtypes; reported with a `when` filter; empty `finally` is separate)
 - [ ] Undisposed `IDisposable`, disposable field without `Dispose` △
 - [ ] `switch` on an enum missing cases, integer division used in a floating-point calculation
 
