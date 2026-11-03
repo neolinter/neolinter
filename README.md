@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Nineteen real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021); the command line analyses are not implemented yet.
+> Status: early development (0.1). Twenty real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021, NLR0022); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -245,6 +245,8 @@ NLR0020 has no option. `if (c) x = a; else x = b;` becomes `x = c ? a : b;`, and
 
 NLR0021 has no option. `"a" + x + "b"` becomes `$"a{x}b"`: a concatenation of at least two operands with at least one plain string literal and one value, from C# 6. Braces of a literal are doubled, and an operand with a top-level `:` or `,` (a conditional expression, a generic call) gets parentheses. Not reported: constants, verbatim, raw and UTF-8 literals, an interpolated string as operand, an operand with braces or on several lines, comments, a chain over several lines, expression trees and queries, user-defined operators. A chain that holds another chain in an operand is reported once the inner one is fixed.
 
+NLR0022 has no option. `string.Format("a{0}b{1}", x, y)` becomes `$"a{x}b{y}"`, from C# 6, for a plain string literal as format. Placeholders may come in any order; an alignment and a format specifier are copied into the hole (`{0,10:F2}` gives `{x,10:F2}`), `{{` and `}}` stay, and an argument with a top-level `:` or `,` gets parentheses. Every argument must be used and every placeholder must have one; an argument used several times must be an identifier, a member access chain or a literal, and calls must be used once each, in order. Not reported: culture overloads, a format that is a constant, verbatim, raw or UTF-8 string or holds a unicode escape, an array passed as the arguments, named arguments, comments, calls over several lines, expression trees and queries. A call that holds another reportable call in an argument is reported once the inner one is fixed.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -339,6 +341,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0019](rules/NLR0019.yaml) | Use a switch expression | real-time, code fix | suggestion |
 | [NLR0020](rules/NLR0020.yaml) | Use a conditional expression | real-time, code fix | suggestion |
 | [NLR0021](rules/NLR0021.yaml) | Use string interpolation | real-time, code fix | suggestion |
+| [NLR0022](rules/NLR0022.yaml) | Use string interpolation instead of string.Format | real-time, code fix | suggestion |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

@@ -1,0 +1,27 @@
+id: NLR0022
+title: Use string interpolation instead of string.Format
+language: csharp
+type: realtime
+category: Style
+defaultSeverity: suggestion
+description: >-
+  A string.Format call with a literal format and numbered placeholders is easier to read as an interpolated string.
+details: >-
+  Reported for 'string.Format' (or 'String.Format') with a plain string literal as format, from C# 6. The fix writes
+  '$"a{x}b{y}"': placeholders may come in any order, an alignment and a format specifier are copied into the hole
+  ('{0,10:F2}' gives '{x,10:F2}'), '{{' and '}}' stay as they are, and an argument with a top-level ':' or ',' gets
+  parentheses. Every argument must be used and every placeholder must have an argument. An argument used several times
+  must be an identifier, a member access chain or a literal; arguments with possible side effects (calls) must be used
+  once each, in their order. Nothing is reported for a culture overload, a format that is not a plain literal (a
+  constant, a verbatim, raw or UTF-8 string, a unicode escape), an array passed as the arguments, a named argument, a
+  placeholder with spaces, a comment, a call over several lines, an expression tree or a query. A call that holds
+  another reportable call in an argument is reported after the inner one is fixed.
+examples:
+  - before: |-
+      var text = string.Format("Hello, {0}!", user.Name);
+    after: |-
+      var text = $"Hello, {user.Name}!";
+  - before: |-
+      var line = string.Format("{0,-10}{1:F2}", name, price);
+    after: |-
+      var line = $"{name,-10}{price:F2}";
