@@ -20,6 +20,7 @@ using Neolinter.Analyzers.EmptyCatch;
 using Neolinter.Analyzers.SelfAssignment;
 using Neolinter.Analyzers.IgnoredReturnValue;
 using Neolinter.Analyzers.LockOnPublicObject;
+using Neolinter.Analyzers.EqualsWithoutGetHashCode;
 using Neolinter.Analyzers.MultipleEnumeration;
 using Neolinter.Analyzers.ThreadSleep;
 using Neolinter.Analyzers.MergeNestedIf;
@@ -37,7 +38,7 @@ namespace Neolinter.Tests;
 /// <summary>Keeps /rules/*.yaml (read by the IDE settings screens) in sync with the analyzers.</summary>
 public class RuleFilesTests
 {
-    private static readonly DiagnosticAnalyzer[] Analyzers = [new InvertIfAnalyzer(), new NullCoalescingAssignmentAnalyzer(), new BooleanComparisonAnalyzer(), new EfCoreClientLinqAnalyzer(), new NestedTernaryAnalyzer(), new MergeNestedIfAnalyzer(), new ElseAfterExitAnalyzer(), new ExplicitBooleanAnalyzer(), new CountToAnyAnalyzer(), new WhereTerminalAnalyzer(), new IsNullAnalyzer(), new IsNullOrEmptyAnalyzer(), new TryGetValueAnalyzer(), new PatternCastAnalyzer(), new ForeachWhereAnalyzer(), new ForeachTakeWhileAnalyzer(), new SwitchExpressionAnalyzer(), new IfElseTernaryAnalyzer(), new StringInterpolationAnalyzer(), new StringFormatAnalyzer(), new RethrowAnalyzer(), new AsyncVoidAnalyzer(), new BlockingTaskAnalyzer(), new ThreadSleepAnalyzer(), new AsyncWithoutAwaitAnalyzer(), new EmptyCatchAnalyzer(), new SelfAssignmentAnalyzer(), new IgnoredReturnValueAnalyzer(), new LockOnPublicObjectAnalyzer(), new MultipleEnumerationAnalyzer()];
+    private static readonly DiagnosticAnalyzer[] Analyzers = [new InvertIfAnalyzer(), new NullCoalescingAssignmentAnalyzer(), new BooleanComparisonAnalyzer(), new EfCoreClientLinqAnalyzer(), new NestedTernaryAnalyzer(), new MergeNestedIfAnalyzer(), new ElseAfterExitAnalyzer(), new ExplicitBooleanAnalyzer(), new CountToAnyAnalyzer(), new WhereTerminalAnalyzer(), new IsNullAnalyzer(), new IsNullOrEmptyAnalyzer(), new TryGetValueAnalyzer(), new PatternCastAnalyzer(), new ForeachWhereAnalyzer(), new ForeachTakeWhileAnalyzer(), new SwitchExpressionAnalyzer(), new IfElseTernaryAnalyzer(), new StringInterpolationAnalyzer(), new StringFormatAnalyzer(), new RethrowAnalyzer(), new AsyncVoidAnalyzer(), new BlockingTaskAnalyzer(), new ThreadSleepAnalyzer(), new AsyncWithoutAwaitAnalyzer(), new EmptyCatchAnalyzer(), new SelfAssignmentAnalyzer(), new IgnoredReturnValueAnalyzer(), new LockOnPublicObjectAnalyzer(), new EqualsWithoutGetHashCodeAnalyzer(), new MultipleEnumerationAnalyzer()];
 
     public static TheoryData<string> RealtimeRuleIds() => new(LoadRules().Where(r => r.Type == "realtime").Select(r => r.Id));
 

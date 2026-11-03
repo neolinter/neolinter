@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Thirty real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021, NLR0022, NLR0023, NLR0024, NLR0025, NLR0026, NLR0027, NLR0028, NLR0029, NLR0030, NLR0031, NLR0032); the command line analyses are not implemented yet.
+> Status: early development (0.1). Thirty-one real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021, NLR0022, NLR0023, NLR0024, NLR0025, NLR0026, NLR0027, NLR0028, NLR0029, NLR0030, NLR0031, NLR0032, NLR0033); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -267,6 +267,8 @@ NLR0031 has no option and a warning severity. A `lock` statement on an object th
 
 NLR0032 has no option and a warning severity. A parameter, or a local initialized from a sequence, of type `IEnumerable`, `IEnumerable<T>`, `IQueryable` or `IQueryable<T>` that is enumerated more than once is reported once, on the first repeat: `foreach`, a consuming LINQ call (`Count`, `Any`, `First`, `ToList`...) or `GetEnumerator()`, also through deferred operators such as `Where`. Different branches, or a branch that returns first, are not multiple; an enumeration in a loop of a variable declared outside the loop is. The fix appends `.ToList()` to the initializer of an `IEnumerable<T>` local (the query then runs once, at the declaration); not for parameters or `IQueryable`. Not reported: lists, arrays and other collections, fields and properties, variables that are reassigned, passed as `ref` or `out` or tested with `is` or `as`, enumerations inside lambdas, and a variable only passed on to another method.
 
+NLR0033 has no option and a warning severity. A class or struct that overrides `Equals(object)`, declares `==` or `!=`, or implements `IEquatable<T>` without overriding `GetHashCode` is reported on its name, and so is the `GetHashCode` override of a type that defines no equality at all. A base class (other than `object` and `ValueType`) that already overrides the missing method covers the derived type. Report only, there is no code fix. Not reported: records, abstract and static classes, interfaces, types that override both, and `Equals` overloads that are not the `object` override. A mutable struct is a separate, later rule.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -372,6 +374,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0030](rules/NLR0030.yaml) | Ignored return value | real-time, code fix | warning |
 | [NLR0031](rules/NLR0031.yaml) | Lock on a publicly visible object | real-time | warning |
 | [NLR0032](rules/NLR0032.yaml) | Multiple enumeration of an IEnumerable | real-time, code fix | warning |
+| [NLR0033](rules/NLR0033.yaml) | Equals without GetHashCode | real-time | warning |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 
