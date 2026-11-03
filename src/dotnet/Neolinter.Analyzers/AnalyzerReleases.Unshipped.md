@@ -34,3 +34,4 @@ NLR0028  | Reliability | Warning  | EmptyCatchAnalyzer
 NLR0029  | Reliability | Warning  | SelfAssignmentAnalyzer
 NLR0030  | Reliability | Warning  | IgnoredReturnValueAnalyzer
 NLR0031  | Reliability | Warning  | LockOnPublicObjectAnalyzer
+NLR0032  | Reliability | Warning  | MultipleEnumerationAnalyzer
