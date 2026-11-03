@@ -62,7 +62,7 @@ command line, one global numbering).
 - [ ] `string.Format` argument mismatch
 - [ ] `Equals` without `GetHashCode`, mutable struct △
 - [ ] Collection modified during `foreach`
-- [ ] Ignored return value (`string.Replace`, LINQ, immutable types)
+- [x] NLR0030 Ignored return value (F; expression statement calling a known pure method: string, DateTime and similar value types, System.Collections.Immutable instance methods, Math, Convert, Path, System.Linq, `[Pure]` or `[MustUseReturnValue]`; the fix assigns back for a local, parameter or field receiver of the returned type; not for `_ = ...`, methods with out or ref parameters, or unannotated user methods; no option)
 - [ ] Multiple enumeration of an `IEnumerable`
 - [ ] `lock(this)`, lock on a string or `typeof`, double-checked locking
 - [ ] `new Random()` in a loop, `DateTime.Now` instead of `UtcNow` (O)
