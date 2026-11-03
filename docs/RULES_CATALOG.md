@@ -64,7 +64,8 @@ command line, one global numbering).
 - [ ] Collection modified during `foreach`
 - [x] NLR0030 Ignored return value (F; expression statement calling a known pure method: string, DateTime and similar value types, System.Collections.Immutable instance methods, Math, Convert, Path, System.Linq, `[Pure]` or `[MustUseReturnValue]`; the fix assigns back for a local, parameter or field receiver of the returned type; not for `_ = ...`, methods with out or ref parameters, or unannotated user methods; no option)
 - [ ] Multiple enumeration of an `IEnumerable`
-- [ ] `lock(this)`, lock on a string or `typeof`, double-checked locking
+- [x] NLR0031 Lock on a publicly visible object (report only; `lock` on `this` unless the class is sealed or a private nested type, on a string, `typeof(T)` or any `System.Type`, or on a value cast to object; not for private object fields or public fields; no option)
+- [ ] Double-checked locking
 - [ ] `new Random()` in a loop, `DateTime.Now` instead of `UtcNow` (O)
 - [ ] Too broad `catch (Exception)` (O), swallowed exception, useless `catch { throw; }` (F), empty `finally`
 - [x] NLR0028 Empty `catch` block (report only; no statement in the block; comment-only block accepted, option `nlr0028.allow_comment_only = false` reports it; not reported for `OperationCanceledException` and subtypes; reported with a `when` filter; empty `finally` is separate)
