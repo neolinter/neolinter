@@ -11,6 +11,7 @@ using Neolinter.Analyzers.IsNull;
 using Neolinter.Analyzers.IsNullOrEmpty;
 using Neolinter.Analyzers.IfElseTernary;
 using Neolinter.Analyzers.AsyncVoid;
+using Neolinter.Analyzers.BlockingTask;
 using Neolinter.Analyzers.Rethrow;
 using Neolinter.Analyzers.StringFormat;
 using Neolinter.Analyzers.StringInterpolation;
@@ -29,7 +30,7 @@ namespace Neolinter.Tests;
 /// <summary>Keeps /rules/*.yaml (read by the IDE settings screens) in sync with the analyzers.</summary>
 public class RuleFilesTests
 {
-    private static readonly DiagnosticAnalyzer[] Analyzers = [new InvertIfAnalyzer(), new NullCoalescingAssignmentAnalyzer(), new BooleanComparisonAnalyzer(), new EfCoreClientLinqAnalyzer(), new NestedTernaryAnalyzer(), new MergeNestedIfAnalyzer(), new ElseAfterExitAnalyzer(), new ExplicitBooleanAnalyzer(), new CountToAnyAnalyzer(), new WhereTerminalAnalyzer(), new IsNullAnalyzer(), new IsNullOrEmptyAnalyzer(), new TryGetValueAnalyzer(), new PatternCastAnalyzer(), new ForeachWhereAnalyzer(), new ForeachTakeWhileAnalyzer(), new SwitchExpressionAnalyzer(), new IfElseTernaryAnalyzer(), new StringInterpolationAnalyzer(), new StringFormatAnalyzer(), new RethrowAnalyzer(), new AsyncVoidAnalyzer()];
+    private static readonly DiagnosticAnalyzer[] Analyzers = [new InvertIfAnalyzer(), new NullCoalescingAssignmentAnalyzer(), new BooleanComparisonAnalyzer(), new EfCoreClientLinqAnalyzer(), new NestedTernaryAnalyzer(), new MergeNestedIfAnalyzer(), new ElseAfterExitAnalyzer(), new ExplicitBooleanAnalyzer(), new CountToAnyAnalyzer(), new WhereTerminalAnalyzer(), new IsNullAnalyzer(), new IsNullOrEmptyAnalyzer(), new TryGetValueAnalyzer(), new PatternCastAnalyzer(), new ForeachWhereAnalyzer(), new ForeachTakeWhileAnalyzer(), new SwitchExpressionAnalyzer(), new IfElseTernaryAnalyzer(), new StringInterpolationAnalyzer(), new StringFormatAnalyzer(), new RethrowAnalyzer(), new AsyncVoidAnalyzer(), new BlockingTaskAnalyzer()];
 
     public static TheoryData<string> RealtimeRuleIds() => new(LoadRules().Where(r => r.Type == "realtime").Select(r => r.Id));
 

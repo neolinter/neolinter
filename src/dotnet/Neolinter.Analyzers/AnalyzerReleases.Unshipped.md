@@ -27,3 +27,4 @@ NLR0021  | Style    | Info     | StringInterpolationAnalyzer
 NLR0022  | Style    | Info     | StringFormatAnalyzer
 NLR0023  | Reliability | Warning  | RethrowAnalyzer
 NLR0024  | Reliability | Warning  | AsyncVoidAnalyzer
+NLR0025  | Reliability | Warning  | BlockingTaskAnalyzer

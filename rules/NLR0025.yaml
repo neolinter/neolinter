@@ -1,0 +1,40 @@
+id: NLR0025
+title: Do not block on a task inside an async method
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  Reading Result, calling Wait or GetResult, or waiting with Task.WaitAll blocks the thread until the task is done,
+  which can deadlock when a synchronization context is present and wastes a thread; await the task instead.
+details: >-
+  Reported inside an async method, local function, lambda or anonymous method for 't.Result', 't.Wait()',
+  't.Wait(timeout)', 't.GetAwaiter().GetResult()' (also after ConfigureAwait), 'Task.WaitAll(...)' and
+  'Task.WaitAny(...)' on a Task, Task<T>, ValueTask or ValueTask<T>. The fix writes 'await t' ('await t;' for a
+  statement) and adds parentheses when the result is used as 'x.Result.Length'. WaitAll, WaitAny and Wait(timeout) have
+  no equivalent await, so they are reported without a fix, as is any call inside a lock, an exception filter, a query
+  expression, unsafe code or a method with a ref struct local, where await is not possible. Nothing is reported in code
+  that is not itself async (a non-async lambda or local function inside an async method, a constructor, an accessor),
+  for a task variable or parameter that is awaited earlier in the same function, directly or through Task.WhenAll or
+  Task.WhenAny, for Task.FromResult(...) and Task.CompletedTask, nor for a Result member of another type.
+examples:
+  - before: |-
+      async Task<int> LoadAsync(Task<int> task)
+      {
+          return task.Result;
+      }
+    after: |-
+      async Task<int> LoadAsync(Task<int> task)
+      {
+          return await task;
+      }
+  - before: |-
+      async Task SaveAsync(Task save)
+      {
+          save.Wait();
+      }
+    after: |-
+      async Task SaveAsync(Task save)
+      {
+          await save;
+      }
