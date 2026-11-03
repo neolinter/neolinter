@@ -31,3 +31,4 @@ NLR0025  | Reliability | Warning  | BlockingTaskAnalyzer
 NLR0026  | Reliability | Warning  | ThreadSleepAnalyzer
 NLR0027  | Reliability | Warning  | AsyncWithoutAwaitAnalyzer
 NLR0028  | Reliability | Warning  | EmptyCatchAnalyzer
+NLR0029  | Reliability | Warning  | SelfAssignmentAnalyzer

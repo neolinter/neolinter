@@ -1,0 +1,33 @@
+id: NLR0029
+title: Self-assignment
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  Assigning a variable or member to itself has no effect; it is usually a typo for another name or a forgotten 'this.'.
+details: >-
+  Reported for a simple assignment ('=') whose two sides name the same local, parameter, field or auto-implemented
+  property through the same receiver ('x = x', 'this.a = a' where 'a' is the field, 'o.a = o.a'). The fix removes the
+  statement, and is only offered when the assignment is a statement of a block. Nothing is reported for compound
+  assignments, for different receivers or members ('this.a = a' where 'a' is a parameter), for receivers with a call or
+  an indexer, or for a property with a body or that can be overridden, since its getter or setter may have effects.
+examples:
+  - before: |-
+      void Rename(string name)
+      {
+          name = name;
+      }
+    after: |-
+      void Rename(string name)
+      {
+      }
+  - before: |-
+      void Reset()
+      {
+          this.count = count;
+      }
+    after: |-
+      void Reset()
+      {
+      }

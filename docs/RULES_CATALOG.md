@@ -56,7 +56,8 @@ command line, one global numbering).
 ## 3. Probable bugs
 
 - [x] NLR0023 `throw ex;` to `throw;` (F; only the catch variable thrown directly in its own catch block, not in lambdas, local functions, nested catch or finally, not when reassigned; no option)
-- [ ] Self-assignment, floating-point `==`, comparison with `NaN`
+- [x] NLR0029 Self-assignment (F; `=` only, same local, parameter, field or auto-implemented property through the same receiver; the fix removes the statement of a block; not for compound forms, calls or indexers in the receiver, or properties with a body or overridable; no option)
+- [ ] Floating-point `==`, comparison with `NaN`
 - [ ] Always-true or always-false conditions, unreachable code, `<=` against `Length` (off by one)
 - [ ] `string.Format` argument mismatch
 - [ ] `Equals` without `GetHashCode`, mutable struct △
