@@ -1,0 +1,39 @@
+id: NLR0027
+title: Async method without await
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  An async method that never awaits runs synchronously and only adds a state machine; it is usually a forgotten await
+  or an async keyword that is not needed.
+details: >-
+  Reported for an async method, local function, lambda or anonymous method with no 'await', 'await foreach' or
+  'await using' of its own (an await inside a nested lambda or local function does not count). The fix removes 'async'
+  and returns the task by hand ('Task.CompletedTask' or 'Task.FromResult<T>(...)') for a method or local function
+  returning Task or Task<T>; it is only offered when nothing in the body throws and there is no 'using' or 'try', because
+  without 'async' an exception is thrown to the caller instead of being stored in the task. Lambdas, anonymous methods,
+  ValueTask and the other cases are reported without a fix. Nothing is reported for async void (see NLR0024), an iterator,
+  an empty body (a deliberate stub) or a body that only throws.
+examples:
+  - before: |-
+      async Task<int> CountAsync()
+      {
+          return items.Count;
+      }
+    after: |-
+      Task<int> CountAsync()
+      {
+          return Task.FromResult<int>(items.Count);
+      }
+  - before: |-
+      async Task SaveAsync()
+      {
+          cache.Clear();
+      }
+    after: |-
+      Task SaveAsync()
+      {
+          cache.Clear();
+          return Task.CompletedTask;
+      }
