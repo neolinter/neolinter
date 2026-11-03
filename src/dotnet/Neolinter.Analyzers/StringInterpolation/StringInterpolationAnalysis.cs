@@ -92,7 +92,7 @@ internal static class StringInterpolationAnalysis
         model.GetTypeInfo(node, cancellationToken).Type?.SpecialType == SpecialType.System_String
         && model.GetSymbolInfo(node, cancellationToken).Symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator };
 
-    private static bool TryHole(ExpressionSyntax operand, SemanticModel model, CancellationToken cancellationToken, out string hole)
+    internal static bool TryHole(ExpressionSyntax operand, SemanticModel model, CancellationToken cancellationToken, out string hole)
     {
         hole = "";
         var type = model.GetTypeInfo(operand, cancellationToken).Type;
@@ -132,7 +132,7 @@ internal static class StringInterpolationAnalysis
         return true;
     }
 
-    private static bool InExpressionTree(SyntaxNode node, SemanticModel model, CancellationToken cancellationToken)
+    internal static bool InExpressionTree(SyntaxNode node, SemanticModel model, CancellationToken cancellationToken)
     {
         foreach (var ancestor in node.Ancestors())
         {

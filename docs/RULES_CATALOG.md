@@ -88,7 +88,8 @@ command line, one global numbering).
 - [x] NLR0019 `switch` statement to `switch` expression (F; `return` and same-variable assignment forms, `default` required, `or` patterns from C# 9; no option)
 - [x] NLR0020 `if`/`else` that only assigns the same variable or returns, to a conditional expression (F; `if (c) return a; return b;` too; NLR0010 and NLR0007 shapes skipped; no option)
 - [x] NLR0021 concatenation to string interpolation (F; plain literals, C# 6+, no option)
-- [ ] `string.Format` to interpolation (F), interpolation without expression (F)
+- [x] NLR0022 `string.Format` to interpolation (F; plain literal format, placeholders in any order with alignment and specifier, no culture overload, no option)
+- [ ] Interpolation without expression (F)
 - [ ] Redundant cast, `ToString()` or parentheses (F), redundant `this.` (F, O), trailing `return;` (F)
 - [ ] `ToList()` before a `foreach` (F), target-typed `new()` (F, O)
 - [ ] Collection expressions, primary constructors, file-scoped namespaces, `using` declarations (F, O) △

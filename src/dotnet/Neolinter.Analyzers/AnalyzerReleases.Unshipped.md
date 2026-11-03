@@ -24,3 +24,4 @@ NLR0018  | Style    | Info     | ForeachTakeWhileAnalyzer
 NLR0019  | Style    | Info     | SwitchExpressionAnalyzer
 NLR0020  | Style    | Info     | IfElseTernaryAnalyzer
 NLR0021  | Style    | Info     | StringInterpolationAnalyzer
+NLR0022  | Style    | Info     | StringFormatAnalyzer
