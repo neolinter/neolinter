@@ -1,0 +1,31 @@
+id: NLR0031
+title: Lock on a publicly visible object
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  Code that locks on an object other code can also reach (this, a string, a type, a boxed value) can deadlock with
+  unrelated code, or not exclude anything at all.
+details: >-
+  Reported for a 'lock' statement on 'this' (unless the class is sealed or is a private nested type), on a string
+  (a literal, a constant or any string expression, since equal strings are shared by interning), on 'typeof(T)' or any
+  'System.Type' expression such as 'GetType()', and on a value cast to object (a new boxed object each time, so nothing
+  is excluded). Nothing is reported for a private object field, for other reference types, or for locks on public
+  fields (a separate concern). Report only, there is no code fix. Double-checked locking is a separate, later rule.
+fix: >-
+  Add a 'private readonly object _gate = new();' field and lock on it.
+examples:
+  - before: |-
+      public void Add(int item)
+      {
+          lock (this)
+          {
+              _items.Add(item);
+          }
+      }
+  - before: |-
+      lock (typeof(Cache))
+      {
+          Reset();
+      }

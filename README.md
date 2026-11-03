@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Twenty-eight real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021, NLR0022, NLR0023, NLR0024, NLR0025, NLR0026, NLR0027, NLR0028, NLR0029, NLR0030); the command line analyses are not implemented yet.
+> Status: early development (0.1). Twenty-nine real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021, NLR0022, NLR0023, NLR0024, NLR0025, NLR0026, NLR0027, NLR0028, NLR0029, NLR0030, NLR0031); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -263,6 +263,8 @@ NLR0029 has no option and a warning severity. A simple assignment (`=`) whose tw
 
 NLR0030 has no option and a warning severity. An expression statement that calls a method known to only compute a value and drops the result is reported: an instance method of `string`, `DateTime`, `DateTimeOffset`, `TimeSpan`, `DateOnly`, `TimeOnly` or of an immutable collection, a method of `Math`, `Convert`, `Path` or `System.Linq`, and any method marked `[Pure]` or `[MustUseReturnValue]`. The fix assigns the result back (`s = s.Replace(...)`); it is only offered when the receiver is a local, a parameter or a field that can be assigned and the call returns its type (so not for LINQ). Not reported: a result that is used or discarded with `_ =`, methods with an `out` or `ref` parameter, and user methods without the attributes.
 
+NLR0031 has no option and a warning severity. A `lock` statement on an object that other code can also lock on is reported: `this` (unless the class is sealed or a private nested type), a string (literal, constant or any string expression), `typeof(T)` or any `System.Type` such as `GetType()`, and a value cast to `object` (a new box each time, so nothing is excluded). Report only, there is no code fix. Not reported: private object fields, other reference types, and locks on public fields. Double-checked locking is a separate, later rule.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -366,6 +368,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0028](rules/NLR0028.yaml) | Empty catch block | real-time | warning |
 | [NLR0029](rules/NLR0029.yaml) | Self-assignment | real-time, code fix | warning |
 | [NLR0030](rules/NLR0030.yaml) | Ignored return value | real-time, code fix | warning |
+| [NLR0031](rules/NLR0031.yaml) | Lock on a publicly visible object | real-time | warning |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 
