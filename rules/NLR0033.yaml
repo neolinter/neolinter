@@ -1,0 +1,33 @@
+id: NLR0033
+title: Equals without GetHashCode
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  Two objects that are equal must return the same hash code, so a type that defines equality overrides Equals and
+  GetHashCode together; with only one of them, dictionaries and hash sets lose or duplicate entries.
+details: >-
+  Reported on a class or struct that overrides 'Equals(object)', declares '==' or '!=', or implements 'IEquatable<T>'
+  without overriding 'GetHashCode', and on the 'GetHashCode' override of a type that overrides neither 'Equals(object)'
+  nor an equality operator nor 'IEquatable<T>'. A base class that already overrides the missing method (other than
+  object and ValueType) covers the derived type. Nothing is reported for records, abstract or static classes,
+  interfaces, types that override both, or 'Equals' overloads that are not the 'object' override. Report only, there is
+  no code fix: which members make two objects equal is a decision for you. A mutable struct is a separate, later rule.
+fix: >-
+  Override GetHashCode with the members that Equals compares, for example 'return HashCode.Combine(Id, Name);'.
+examples:
+  - before: |-
+      public class Customer
+      {
+          public int Id;
+
+          public override bool Equals(object? obj) => obj is Customer c && c.Id == Id;
+      }
+  - before: |-
+      public class Key
+      {
+          public int Id;
+
+          public override int GetHashCode() => Id;
+      }
