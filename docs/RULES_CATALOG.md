@@ -61,7 +61,7 @@ command line, one global numbering).
 - [ ] Always-true or always-false conditions, unreachable code, `<=` against `Length` (off by one)
 - [ ] `string.Format` argument mismatch
 - [x] NLR0033 `Equals` without `GetHashCode` (report only; class or struct overriding `Equals(object)`, declaring `==`/`!=` or implementing `IEquatable<T>` without `GetHashCode`, and `GetHashCode` without any equality; a base class overriding the missing method covers the type; not for records, abstract or static classes, interfaces or `Equals` overloads; no option)
-- [ ] Mutable struct △
+- [x] NLR0034 Mutable struct (report only; struct with a non-readonly instance field or a property with a `set` accessor, reported on the struct name; not for `readonly struct`, `record struct`, static or const members or `init`; `ref struct` and interop structs are reported; no option)
 - [ ] Collection modified during `foreach`
 - [x] NLR0030 Ignored return value (F; expression statement calling a known pure method: string, DateTime and similar value types, System.Collections.Immutable instance methods, Math, Convert, Path, System.Linq, `[Pure]` or `[MustUseReturnValue]`; the fix assigns back for a local, parameter or field receiver of the returned type; not for `_ = ...`, methods with out or ref parameters, or unannotated user methods; no option)
 - [x] NLR0032 Multiple enumeration of an `IEnumerable` (F; parameter or local of type `IEnumerable`, `IEnumerable<T>` or `IQueryable`; `foreach` or consuming LINQ call twice on one path, or once in a loop of a variable declared outside; the fix appends `.ToList()` to an `IEnumerable<T>` local initializer; not for lists, fields, reassigned variables, lambdas, parameters passed on; no option)
