@@ -46,7 +46,7 @@ command line, one global numbering).
 - [ ] Fire-and-forget task, ignored task
 - [ ] `async` method without `await`
 - [ ] `CancellationToken`: last parameter, propagated to inner calls
-- [ ] `Thread.Sleep` in asynchronous code, use `Task.Delay` (F)
+- [x] NLR0026 `Thread.Sleep` in asynchronous code, use `Task.Delay` (inside async functions only; `Sleep(int)` and `Sleep(TimeSpan)`; code fix to `await Task.Delay(...)` without cancellation token, report only inside `lock` and other places where `await` is illegal; not reported for zero delay or non-async lambdas; no option)
 - [ ] `await` inside a `lock`
 - [ ] Needless `Task.Run` around code that is already asynchronous
 - [ ] `ValueTask` awaited twice, `Task.Factory.StartNew` instead of `Task.Run`
