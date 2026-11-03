@@ -1,0 +1,27 @@
+id: NLR0024
+title: Avoid async void outside event handlers
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  An async method that returns void cannot be awaited, and an exception it throws cannot be caught by its caller and
+  can terminate the process.
+details: >-
+  Reported for an async method, local function, lambda or anonymous method that returns void, the lambda case being an
+  async lambda converted to a void-returning delegate such as Action or Action<T>. Nothing is reported for a method
+  or local function whose parameters are (object, a type deriving from EventArgs), for an override, for an
+  implementation of an interface member, for a method that is named without being called anywhere in the compilation
+  (a method group such as 'button.Click += OnClick;' or 'Action a = Run;'), for a lambda added to an event with '+=',
+  nor for a lambda converted to a delegate with an (object, EventArgs) signature. There is no code fix: changing the
+  return type breaks every use of the method as a delegate, which cannot be ruled out across projects.
+fix: >-
+  Return Task instead of void and await the call (Func<Task> instead of Action for a lambda).
+examples:
+  - before: |-
+      async void Save()
+      {
+          await repository.SaveAsync();
+      }
+  - before: |-
+      Action run = async () => await Work();

@@ -41,7 +41,7 @@ command line, one global numbering).
 ## 2. Asynchronous code
 
 - [ ] `ConfigureAwait(false)` in libraries, or its absence in applications (O)
-- [ ] `async void` outside event handlers
+- [x] NLR0024 `async void` outside event handlers (report only; methods, local functions, lambdas; not event-handler signatures, overrides, interface implementations, method groups or lambdas added to an event; no option)
 - [ ] Blocking `.Result`, `.Wait()`, `.GetAwaiter().GetResult()`
 - [ ] Fire-and-forget task, ignored task
 - [ ] `async` method without `await`
