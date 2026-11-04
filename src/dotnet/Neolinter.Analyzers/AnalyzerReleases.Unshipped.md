@@ -38,3 +38,4 @@ NLR0032  | Reliability | Warning  | MultipleEnumerationAnalyzer
 NLR0033  | Reliability | Warning  | EqualsWithoutGetHashCodeAnalyzer
 NLR0034  | Reliability | Info     | MutableStructAnalyzer
 NLR0035  | Reliability | Warning  | ModifiedInForeachAnalyzer
+NLR0036  | Reliability | Warning  | RandomInLoopAnalyzer
