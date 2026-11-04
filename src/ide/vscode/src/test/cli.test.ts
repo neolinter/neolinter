@@ -16,6 +16,12 @@ test('local manifest comes before the global tool', async () => {
   assert.deepEqual(analyzeArguments(cli!, 'dead-code', 'out.sarif'), ['tool', 'run', 'neolinter', 'analyze', 'dead-code', '--output', 'out.sarif']);
 });
 
+test('the solution path is passed to the analysis when set', async () => {
+  const cli = await detectCli({ ...none, probe: probeOnly('neolinter') });
+  assert.deepEqual(analyzeArguments(cli!, 'duplicates', 'out.sarif', ' lib/App.slnx '), ['analyze', 'duplicates', 'lib/App.slnx', '--output', 'out.sarif']);
+  assert.deepEqual(analyzeArguments(cli!, 'duplicates', 'out.sarif', '  '), ['analyze', 'duplicates', '--output', 'out.sarif']);
+});
+
 test('falls back to the global tool, then to the project, then to nothing', async () => {
   assert.equal((await detectCli({ ...none, probe: probeOnly('neolinter') }))?.source, 'global');
 

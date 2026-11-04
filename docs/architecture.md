@@ -64,7 +64,9 @@ Zed. Each one:
 VS Code "Solution analysis" tab: finds the CLI in this order: setting `neolinter.cli.path`, local tool manifest
 (`dotnet tool run neolinter`), global tool, setting `neolinter.cli.projectPath` (`dotnet run --project <csproj> --`,
 for use before the package is published). It runs `neolinter analyze <analysis> --output <temp>.sarif` as a VS Code
-task in the first workspace folder, treats exit codes `0` and `1` as success and anything else as a failure, parses
+task in the first workspace folder, passing the setting `neolinter.solution.path` (solution, project or folder, relative
+to the folder or absolute) as the path argument when set (otherwise the CLI looks in the folder, then in its subfolders,
+3 levels deep at most, skipping `node_modules`, `bin`, `obj` and hidden folders), treats exit codes `0` and `1` as success and anything else as a failure, parses
 the SARIF (`src/sarif.ts`) and lists findings grouped by rule with links to the locations. Only `dead-code` is
 offered. "Show in Problems panel" (off by default, remembered per workspace) copies the findings to a
 `DiagnosticCollection` with source `neolinter`. The webview sends only an index into the last results, never a path.

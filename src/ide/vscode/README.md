@@ -13,7 +13,10 @@ lists the findings grouped by rule with links to the code, and can copy them to 
 `neolinter`). The command line is searched in this order: setting `neolinter.cli.path`, the local tool manifest,
 the global tool, then setting `neolinter.cli.projectPath` (a `Neolinter.Cli.csproj` run with `dotnet run --project`).
 If none is found, **Install…** offers a global or local `dotnet tool install Neolinter.Cli`; the package is not on
-nuget.org until the first release, so use one of the two settings until then. Restore the solution first
+nuget.org until the first release, so use one of the two settings until then.
+The analysed solution is the single `.sln`/`.slnx` of the workspace folder or, if there is none, of its subfolders
+(3 levels deep at most, for a repository whose C# code lives in a submodule). Set `neolinter.solution.path` (relative
+to the workspace folder, or absolute) to pick a solution, project or folder explicitly, for example when several exist. Restore the solution first
 (`dotnet restore`).
 
 Everything is stored in the workspace `.editorconfig` (`dotnet_diagnostic.<id>.severity` and `<id>.*` keys,

@@ -42,8 +42,9 @@ export async function detectCli({ path, projectPath, probe }: DetectOptions): Pr
   return undefined;
 }
 
-export function analyzeArguments(cli: CliCommand, analysis: Analysis, outputFile: string): string[] {
-  return [...cli.args, 'analyze', analysis, '--output', outputFile];
+/** `solution`: `neolinter.solution.path`, relative to the working directory (the workspace folder) or absolute; empty lets the CLI look for one. */
+export function analyzeArguments(cli: CliCommand, analysis: Analysis, outputFile: string, solution = ''): string[] {
+  return [...cli.args, 'analyze', analysis, ...(solution.trim() === '' ? [] : [solution.trim()]), '--output', outputFile];
 }
 
 /** Exit code 1 means findings were reported; anything else but 0 is a failure (2 is an error). */

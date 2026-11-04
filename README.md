@@ -311,6 +311,11 @@ neolinter analyze dead-code MySolution.slnx --output dead-code.sarif
 neolinter analyze duplicates MySolution.slnx
 ```
 
+The path is optional. Without it the CLI uses the single `.sln`/`.slnx` of the current directory; when there is none,
+it looks in the subfolders (3 levels deep at most, skipping `node_modules`, `bin`, `obj` and hidden folders) and uses
+the only one found. With several, it lists them and asks for one to be passed. In VS Code the setting
+`neolinter.solution.path` passes it for you.
+
 Exit codes: `0` nothing to report, `1` findings reported, `2` error. Restore the solution first (`dotnet restore`;
 `duplicates` only reads source files, `dead-code` needs the framework references).
 
