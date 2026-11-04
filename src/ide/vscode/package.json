@@ -38,6 +38,11 @@
           "default": "",
           "markdownDescription": "Path to the `neolinter` executable used by the Solution analysis tab. Empty: use the local tool manifest, then the global tool."
         },
+        "neolinter.solution.path": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Solution (`.sln`, `.slnx`), project or folder analysed by the Solution analysis tab, relative to the workspace folder or absolute. Empty: the single solution of the workspace folder or, failing that, of its subfolders (3 levels deep at most)."
+        },
         "neolinter.cli.projectPath": {
           "type": "string",
           "default": "",

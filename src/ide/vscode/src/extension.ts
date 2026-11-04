@@ -143,6 +143,10 @@ function cliSettings() {
   return { path: config.get<string>('path', ''), projectPath: config.get<string>('projectPath', '') };
 }
 
+function solutionPath() {
+  return vscode.workspace.getConfiguration('neolinter').get<string>('solution.path', '');
+}
+
 function probe(cwd: string) {
   return (command: string, args: string[]) =>
     new Promise<boolean>((resolve) => execFile(command, args, { cwd, timeout: 30000 }, (error) => resolve(!error)));
@@ -182,7 +186,7 @@ async function runAnalysis(folder: vscode.WorkspaceFolder, analysis: Analysis) {
     folder,
     name,
     'neolinter',
-    new vscode.ProcessExecution(cli.command, analyzeArguments(cli, analysis, output), { cwd: folder.uri.fsPath }),
+    new vscode.ProcessExecution(cli.command, analyzeArguments(cli, analysis, output, solutionPath()), { cwd: folder.uri.fsPath }),
   );
   task.presentationOptions = { reveal: vscode.TaskRevealKind.Silent, clear: true };
 
@@ -203,7 +207,7 @@ async function runAnalysis(folder: vscode.WorkspaceFolder, analysis: Analysis) {
     await vscode.tasks.executeTask(task);
     const code = await exitCode;
     if (!analysisSucceeded(code)) {
-      throw new Error(`The analysis failed (exit code ${code ?? 'unknown'}). See the task output in the Terminal panel.`);
+      throw new Error(`The analysis failed (exit code ${code ?? 'unknown'}). See the task output in the Terminal panel. If no solution was found, set neolinter.solution.path.`);
     }
 
     const sarif = await readFile(output, 'utf8');
