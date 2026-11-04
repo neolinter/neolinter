@@ -1,0 +1,53 @@
+id: NLR0037
+title: Useless catch that only rethrows
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  A catch clause whose body is only 'throw;' hands the exception to the same outer handler it would have reached
+  without it, so the clause only adds noise.
+details: >-
+  Reported on the 'catch' keyword of a clause without 'when' filter whose block holds exactly one statement, 'throw;'
+  (comments are allowed). Nothing is reported when a later clause of the same try catches the same type or a base type
+  (or any exception, as 'catch' alone does): the clause then keeps the exception away from that handler. The fix removes
+  the clause; when no catch clause is left and there is no finally, the try is replaced by its block. A try with a
+  finally keeps it. One difference remains: with an exception nobody handles, the runtime may skip the finally blocks
+  and stop at the throw site, and a 'catch { throw; }' guarantees a handler, so removing the last clause can change
+  that. Report only the useless clause; 'throw ex;' is NLR0023 and an empty catch is NLR0028.
+examples:
+  - before: |-
+      try
+      {
+          Save(order);
+      }
+      catch (IOException)
+      {
+          throw;
+      }
+    after: |-
+      {
+          Save(order);
+      }
+  - before: |-
+      try
+      {
+          Save(order);
+      }
+      catch (IOException)
+      {
+          Log("disk");
+      }
+      catch (ArgumentException)
+      {
+          throw;
+      }
+    after: |-
+      try
+      {
+          Save(order);
+      }
+      catch (IOException)
+      {
+          Log("disk");
+      }
