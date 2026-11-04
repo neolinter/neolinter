@@ -69,7 +69,9 @@ command line, one global numbering).
 - [ ] Double-checked locking
 - [x] NLR0036 `new Random()` in a loop (report only; argument-less `new Random()` or target-typed `new()` in the body or condition of `for`, `foreach`, `while`, `do`; not for an explicit seed, an instance outside the loop, the `foreach` collection or `for` initializer, lambdas or local functions, `Random.Shared`, `RandomNumberGenerator`; no option)
 - [ ] `DateTime.Now` instead of `UtcNow` (O)
-- [ ] Too broad `catch (Exception)` (O), swallowed exception, useless `catch { throw; }` (F), empty `finally`
+- [ ] Too broad `catch (Exception)` (O), swallowed exception
+- [x] NLR0037 Useless `catch { throw; }` (F; clause without `when` filter whose block is only `throw;`, comments allowed; not reported when a later clause of the same try catches the same type, a base type or everything; the fix removes the clause, or replaces the try by its block when no clause and no finally remain; no option)
+- [ ] Empty `finally`
 - [x] NLR0028 Empty `catch` block (report only; no statement in the block; comment-only block accepted, option `nlr0028.allow_comment_only = false` reports it; not reported for `OperationCanceledException` and subtypes; reported with a `when` filter; empty `finally` is separate)
 - [ ] Undisposed `IDisposable`, disposable field without `Dispose` △
 - [ ] `switch` on an enum missing cases, integer division used in a floating-point calculation
