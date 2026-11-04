@@ -1,0 +1,25 @@
+id: NLR0036
+title: new Random() created in a loop
+language: csharp
+type: realtime
+category: Reliability
+defaultSeverity: warning
+description: >-
+  A Random created without a seed starts from the clock, so instances created one after the other in a loop can
+  return exactly the same numbers.
+details: >-
+  Reported on 'new Random()' (or a target-typed 'new()') without arguments, inside the body or the condition of a
+  for, foreach, while or do loop. Nothing is reported when a seed is passed, when the instance is created outside the
+  loop, in the collection of a foreach or the initializer of a for, inside a lambda or local function declared in the
+  loop (it may not run on each iteration), or for Random.Shared and RandomNumberGenerator. Report only, there is no
+  code fix: hoisting the instance or using Random.Shared depends on the target framework and on how the instance is
+  used.
+fix: >-
+  Create the Random once before the loop, or use Random.Shared on .NET 6 and later.
+examples:
+  - before: |-
+      foreach (var player in players)
+      {
+          var dice = new Random();
+          player.Score += dice.Next(1, 7);
+      }

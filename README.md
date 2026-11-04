@@ -7,7 +7,7 @@ Neolinter does not ship its own engine or background process. Real-time rules ar
 the C# tooling you already use, configuration lives in `.editorconfig`, and the expensive analyses run from a
 command line only when you ask for them.
 
-> Status: early development (0.1). Thirty-three real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021, NLR0022, NLR0023, NLR0024, NLR0025, NLR0026, NLR0027, NLR0028, NLR0029, NLR0030, NLR0031, NLR0032, NLR0033, NLR0034, NLR0035); the command line analyses are not implemented yet.
+> Status: early development (0.1). Thirty-four real-time rules (NLR0001, NLR0004, NLR0005, NLR0006, NLR0007, NLR0008, NLR0009, NLR0010, NLR0011, NLR0012, NLR0013, NLR0014, NLR0015, NLR0016, NLR0017, NLR0018, NLR0019, NLR0020, NLR0021, NLR0022, NLR0023, NLR0024, NLR0025, NLR0026, NLR0027, NLR0028, NLR0029, NLR0030, NLR0031, NLR0032, NLR0033, NLR0034, NLR0035, NLR0036); the command line analyses are not implemented yet.
 
 ## Real-time rules vs. command line
 
@@ -273,6 +273,8 @@ NLR0034 has no option and a suggestion severity. A struct with a non-`readonly` 
 
 NLR0035 has no option and a warning severity. A call to a mutating method (`Add`, `Insert`, `Remove`, `RemoveAt`, `RemoveAll`, `Clear`, `Sort`, `Reverse`, `Push`, `Pop`, `Enqueue`, `Dequeue` and relatives) on the local, parameter or field that a `foreach` enumerates is reported on the call, for `List`, `LinkedList`, `Queue`, `Stack`, sorted collections, `Collection`, `Dictionary` and `HashSet` (and types derived from them, `IList`, `ICollection`, `IDictionary`, `ISet`); on `Dictionary` and `HashSet` only additions are reported. Report only, there is no code fix. Not reported: iterating a copy (`list.ToList()`), another collection, indexer assignments, `for` loops, concurrent and immutable collections, calls inside a lambda or local function, and a call directly followed by `break` (of that `foreach`), `return`, `throw` or `goto`.
 
+NLR0036 has no option and a warning severity. A `new Random()` or target-typed `new()` without arguments inside the body or condition of a `for`, `foreach`, `while` or `do` loop is reported, since instances created in quick succession can start from the same clock seed. Report only, there is no code fix. Not reported: an explicit seed, an instance created outside the loop, in the collection of a `foreach` or the initializer of a `for`, inside a lambda or local function, `Random.Shared` and `RandomNumberGenerator`.
+
 The rules then show up wherever Roslyn analyzers are loaded:
 
 | Host | Diagnostics | Code fixes |
@@ -381,6 +383,7 @@ To fail a pull request only on new findings, keep the SARIF of the main branch (
 | [NLR0033](rules/NLR0033.yaml) | Equals without GetHashCode | real-time | warning |
 | [NLR0034](rules/NLR0034.yaml) | Mutable struct | real-time | suggestion |
 | [NLR0035](rules/NLR0035.yaml) | Collection modified during foreach | real-time | warning |
+| [NLR0036](rules/NLR0036.yaml) | new Random() created in a loop | real-time | warning |
 | [NLC0002](rules/NLC0002.yaml) | Unused member | command line | warning |
 | [NLC0003](rules/NLC0003.yaml) | Duplicated code | command line | warning |
 

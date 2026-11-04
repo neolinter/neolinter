@@ -67,7 +67,8 @@ command line, one global numbering).
 - [x] NLR0032 Multiple enumeration of an `IEnumerable` (F; parameter or local of type `IEnumerable`, `IEnumerable<T>` or `IQueryable`; `foreach` or consuming LINQ call twice on one path, or once in a loop of a variable declared outside; the fix appends `.ToList()` to an `IEnumerable<T>` local initializer; not for lists, fields, reassigned variables, lambdas, parameters passed on; no option)
 - [x] NLR0031 Lock on a publicly visible object (report only; `lock` on `this` unless the class is sealed or a private nested type, on a string, `typeof(T)` or any `System.Type`, or on a value cast to object; not for private object fields or public fields; no option)
 - [ ] Double-checked locking
-- [ ] `new Random()` in a loop, `DateTime.Now` instead of `UtcNow` (O)
+- [x] NLR0036 `new Random()` in a loop (report only; argument-less `new Random()` or target-typed `new()` in the body or condition of `for`, `foreach`, `while`, `do`; not for an explicit seed, an instance outside the loop, the `foreach` collection or `for` initializer, lambdas or local functions, `Random.Shared`, `RandomNumberGenerator`; no option)
+- [ ] `DateTime.Now` instead of `UtcNow` (O)
 - [ ] Too broad `catch (Exception)` (O), swallowed exception, useless `catch { throw; }` (F), empty `finally`
 - [x] NLR0028 Empty `catch` block (report only; no statement in the block; comment-only block accepted, option `nlr0028.allow_comment_only = false` reports it; not reported for `OperationCanceledException` and subtypes; reported with a `when` filter; empty `finally` is separate)
 - [ ] Undisposed `IDisposable`, disposable field without `Dispose` △
