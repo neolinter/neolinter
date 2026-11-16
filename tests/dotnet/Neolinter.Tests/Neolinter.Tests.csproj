@@ -16,7 +16,7 @@
     <!-- Test-only: checks /rules/*.yaml against the diagnostic descriptors. -->
     <PackageReference Include="YamlDotNet" Version="18.1.0" />
     <!-- Pins a patched version of a vulnerable transitive dependency of the Roslyn testing library. -->
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="11.0.0" />
   </ItemGroup>
 
   <ItemGroup>
