@@ -63,7 +63,7 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/vscode": "1.95.0",
-    "@vscode/vsce": "^4.1.0",
+    "@vscode/vsce": "^4.1.1",
     "typescript": "^7.0.2",
     "yaml": "^2.9.1"
   }
